@@ -21,8 +21,6 @@ Imports:
     rlang,
     sf,
     shiny
-Suggests: 
-    ggredist
 Depends: 
     R (>= 2.10)
 LazyData: true
