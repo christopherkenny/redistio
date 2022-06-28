@@ -1,4 +1,18 @@
-draw <- function(shp, init_plan, ndists, palette = ggredist::ggredist$dra) {
+#' Interactive Plan Drawing
+#'
+#' @param shp `sf` tibble that you want to draw with
+#' @param init_plan Plan to initialize with.
+#' @param ndists Number of districts to draw if `init_plan` is not supplied.
+#' @param palette Color palette to fill shapes with.
+#' @param save_path Output path to save progress to.
+#'
+#' @return Shiny app
+#' @export
+#'
+#' @examples
+#' draw(dc, dc$ward)
+draw <- function(shp, init_plan, ndists, palette = ggredist::ggredist$dra,
+                 save_path = tempfile(fileext = '.baf')) {
   palette <- as.character(palette)
 
   if (missing(shp)) {
@@ -36,7 +50,8 @@ draw <- function(shp, init_plan, ndists, palette = ggredist::ggredist$dra) {
       ),
       shiny::column( # details area
         3, shiny::tabsetPanel(
-          shiny::tabPanel('Population', gt::gt_output('tab_pop'))
+          shiny::tabPanel('Population', gt::gt_output('tab_pop')),
+          shiny::tabPanel('Download', shiny::downloadButton('save_plan'))
         )
       )
     )
@@ -93,7 +108,7 @@ draw <- function(shp, init_plan, ndists, palette = ggredist::ggredist$dra) {
           # line colors
           stroke = TRUE, weight = 1, color = '#000000',
           # fill control
-          fillOpacity = 0.8, fillColor = ~pal()(shp$redistio_curr_plan)
+          fillOpacity = 0.95, fillColor = ~pal()(shp$redistio_curr_plan)
         )
     })
 
@@ -106,6 +121,16 @@ draw <- function(shp, init_plan, ndists, palette = ggredist::ggredist$dra) {
           )
       })
     })
+
+    output$save_plan <- shiny::downloadHandler(
+      filename = save_path,
+      content = function(con) {
+        writeLines(
+          text = shp$redistio_curr_plan,
+          con = con
+        )
+      }
+    )
   }
 
   shiny::shinyApp(ui = ui, server = server)

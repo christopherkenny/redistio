@@ -17,6 +17,7 @@ Imports:
     dplyr,
     ggredist,
     gt,
+    magrittr,
     sf,
     shiny
 Depends: 
