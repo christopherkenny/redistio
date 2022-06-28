@@ -24,4 +24,6 @@ dc <- dc %>%
     ward = geo_match(from = ., to = wards, method = 'area')
   )
 
+dc <- sf::st_transform(dc, 4326)
+
 usethis::use_data(dc, overwrite = TRUE, compress = 'xz')
