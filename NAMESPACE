@@ -3,3 +3,6 @@
 export("%>%")
 export(draw)
 importFrom(magrittr,"%>%")
+importFrom(rlang,":=")
+importFrom(rlang,.data)
+importFrom(rlang,.env)

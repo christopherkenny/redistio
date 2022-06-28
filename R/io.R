@@ -3,15 +3,18 @@
 #' @param shp `sf` tibble that you want to draw with
 #' @param init_plan Plan to initialize with.
 #' @param ndists Number of districts to draw if `init_plan` is not supplied.
-#' @param palette Color palette to fill shapes with.
+#' @param palette Color palette to fill shapes with. Default is Polychrome 36.
 #' @param save_path Output path to save progress to.
 #'
 #' @return Shiny app
 #' @export
 #'
 #' @examples
-#' draw(dc, dc$ward)
-draw <- function(shp, init_plan, ndists, palette = ggredist::ggredist$dra,
+#' if (interactive()) {
+#'   draw(dc, dc$ward)
+#' }
+#'
+draw <- function(shp, init_plan, ndists, palette,
                  save_path = tempfile(fileext = '.baf')) {
   palette <- as.character(palette)
 
@@ -27,6 +30,10 @@ draw <- function(shp, init_plan, ndists, palette = ggredist::ggredist$dra,
     }
   } else {
     ndists <- length(unique(init_plan))
+  }
+
+  if (missing(palette)) {
+    palette <- grDevices::palette.colors(n = ndists, 'Polychrome 36')
   }
 
   shp$redistio_id <- seq_len(length.out = nrow(shp))
@@ -59,11 +66,11 @@ draw <- function(shp, init_plan, ndists, palette = ggredist::ggredist$dra,
   )
 
   server <- function(input, output, session) {
-    values <- reactiveValues(
+    values <- shiny::reactiveValues(
       tab_pop = shp %>%
         dplyr::as_tibble() %>%
-        dplyr::group_by(redistio_curr_plan) %>%
-        dplyr::summarize(pop = sum(pop))
+        dplyr::group_by(.data$redistio_curr_plan) %>%
+        dplyr::summarize(pop = sum(.data$pop))
     )
 
 
@@ -98,8 +105,8 @@ draw <- function(shp, init_plan, ndists, palette = ggredist::ggredist$dra,
 
       values$tab_pop <- shp %>%
         dplyr::as_tibble() %>%
-        dplyr::group_by(redistio_curr_plan) %>%
-        dplyr::summarize(pop = sum(pop))
+        dplyr::group_by(.data$redistio_curr_plan) %>%
+        dplyr::summarize(pop = sum(.data$pop))
 
       leaflet::leafletProxy('map') %>%
         leaflet::clearShapes() %>%
