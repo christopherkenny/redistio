@@ -24,6 +24,6 @@ Imports:
 Depends: 
     R (>= 2.10)
 LazyData: true
-URL: https://github.com/christopherkenny/redistio
+URL: https://github.com/christopherkenny/redistio,
+    http://www.christophertkenny.com/redistio/
 BugReports: https://github.com/christopherkenny/redistio/issues
-
