@@ -1,0 +1,20 @@
+Package: redistio
+Title: Interactive Redistricting
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Christopher T.",
+           family = "Kenny",
+           role = c("aut", "cre"),
+           email = "christopherkenny@fas.harvard.edu",
+           comment = c(ORCID = "0000-0002-9386-6860"))
+Description: What the package does (one paragraph).
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.0
+Imports: 
+    sf,
+    shiny
+Depends: 
+    R (>= 2.10)
+LazyData: true
