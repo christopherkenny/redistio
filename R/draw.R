@@ -18,7 +18,6 @@
 draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
                  save_path = tempfile(fileext = '.baf')) {
 
-
   if (missing(shp)) {
     stop('`shp` missing, but required.')
   }
@@ -59,6 +58,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       ),
       shiny::column( # interactive mapper
         8,
+        the_javascripts,
         leaflet::leafletOutput('map', height = '100vh')
       ),
       shiny::column( # details area
@@ -99,8 +99,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
           fillOpacity = 0.95, fillColor = ~pal()(shp$redistio_curr_plan),
           # label
           label = ~shp$pop
-        ) #%>%
-      #leaflet::fitBounds(bbox[1], bbox[2], bbox[3], bbox[4])
+        )
     })
 
     shiny::observeEvent(input$map_shape_click,{
@@ -128,14 +127,17 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       leaflet::leafletProxy('map') %>%
         leaflet::clearShapes() %>%
         leaflet::addPolygons(
-          data = shp, layerId = ~shp$redistio_id,
+          data = shp, layerId = ~redistio_id,
           # line colors
           stroke = TRUE, weight = 1, color = '#000000',
           # fill control
-          fillOpacity = 0.95, fillColor = ~pal()(shp$redistio_curr_plan),
+          fillOpacity = 0.95, fillColor = ~pal()(redistio_curr_plan),
           # label
-          label = ~shp$pop
+          label = ~pop
         )
+        #setShapeFillColor(
+        #  layerId = ~shp$redistio_id, fillColor = ~pal()(shp$redistio_curr_plan)
+        #)
     })
 
     shiny::observe({
