@@ -4,7 +4,14 @@
 \alias{draw}
 \title{Interactive Plan Drawing}
 \usage{
-draw(shp, init_plan, ndists, palette, save_path = tempfile(fileext = ".baf"))
+draw(
+  shp,
+  init_plan,
+  ndists,
+  palette,
+  pop_tol = 0.05,
+  save_path = tempfile(fileext = ".baf")
+)
 }
 \arguments{
 \item{shp}{\code{sf} tibble that you want to draw with}
@@ -14,6 +21,8 @@ draw(shp, init_plan, ndists, palette, save_path = tempfile(fileext = ".baf"))
 \item{ndists}{Number of districts to draw if \code{init_plan} is not supplied.}
 
 \item{palette}{Color palette to fill shapes with. Default is Polychrome 36.}
+
+\item{pop_tol}{the population tolerance.}
 
 \item{save_path}{Output path to save progress to.}
 }
