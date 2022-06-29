@@ -58,7 +58,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       ),
       shiny::column( # interactive mapper
         8,
-        the_javascripts,
+        #the_javascripts,
         leaflet::leafletOutput('map', height = '100vh')
       ),
       shiny::column( # details area
@@ -87,18 +87,19 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         palette = as.character(palette[seq_len(ndists)]),
         domain = seq_len(ndists))
     })
+    #redistio_curr_plan <- shiny::reactive(shp$redistio_curr_plan)
 
     output$map <- leaflet::renderLeaflet({
       leaflet::leaflet(data = shp) %>%
         leaflet::addTiles() %>%
         leaflet::addPolygons(
-          layerId = ~shp$redistio_id,
+          layerId = ~redistio_id,
           # line colors
           stroke = TRUE, weight = 1, color = '#000000',
           # fill control
-          fillOpacity = 0.95, fillColor = ~pal()(shp$redistio_curr_plan),
+          fillOpacity = 0.95, fillColor = ~pal()(redistio_curr_plan),
           # label
-          label = ~shp$pop
+          label = ~pop
         )
     })
 
@@ -107,7 +108,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
     })
 
     shiny::observeEvent(eventExpr = clicked$map_shape_click,
-                        {
+                        handlerExpr = {
       click <- clicked$map_shape_click
       clicked$map_shape_click <- NULL
       if (is.null(click)) {
@@ -124,7 +125,10 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         dplyr::mutate(dev = .data$pop - round(tgt_pop)) %>%
         dplyr::arrange(as.integer(.data$redistio_curr_plan))
 
-      leaflet::leafletProxy('map') %>%
+      leaflet::leafletProxy('map', data = shp) %>%
+        # setShapeFillColor(
+        #   layerId = ~redistio_id, fillColor = ~pal()(redistio_curr_plan)
+        # ) #%>%
         leaflet::clearShapes() %>%
         leaflet::addPolygons(
           data = shp, layerId = ~redistio_id,
@@ -135,9 +139,6 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
           # label
           label = ~pop
         )
-        #setShapeFillColor(
-        #  layerId = ~shp$redistio_id, fillColor = ~pal()(shp$redistio_curr_plan)
-        #)
     })
 
     shiny::observe({
