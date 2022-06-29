@@ -171,5 +171,6 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
     )
   }
 
+
   shiny::shinyApp(ui = ui, server = server)
 }
