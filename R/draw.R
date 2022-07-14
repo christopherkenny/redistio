@@ -44,6 +44,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
   min_pop <- ceiling(tgt_pop * (1 - pop_tol))
   max_pop <- floor(tgt_pop * (1 + pop_tol))
 
+  # User Interface ----
   ui <- shiny::fluidPage(
     title = 'redistio',
     theme = bslib::bs_theme(bootswatch = 'darkly'),
@@ -51,10 +52,11 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
     shiny::fluidRow(
       shiny::column( # color selector
         1,
-        shiny::radioButtons('district', 'Edit District:',
-                            choiceNames = lapply(seq_len(ndists), function(x){
-                              shiny::HTML("<p style='color:", palette[x], ";'> &#9632", x, "&#9632</p>")}),
-                            choiceValues = seq_len(ndists))
+        shinyWidgets::radioGroupButtons(inputId = 'district', label = 'Edit District:',
+                                        choiceNames = lapply(seq_len(ndists), function(x){
+                                          shiny::HTML("<p style='color:", palette[x], ";'> &#9632", x, "&#9632</p>")}),
+                                        choiceValues = seq_len(ndists),
+                                        direction = 'vertical')
       ),
       shiny::column( # interactive mapper
         8,
@@ -64,13 +66,16 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       shiny::column( # details area
         3, shiny::tabsetPanel(
           shiny::tabPanel('Population', gt::gt_output('tab_pop')),
-          shiny::tabPanel('Download', shiny::downloadButton('save_plan'))
+          shiny::tabPanel('Precinct', gt::gt_output('hover')),
+          shiny::tabPanel('Download', shiny::downloadButton('save_plan')),
+          selected = 'Precinct'
         )
       )
     )
 
   )
 
+  # Server ----
   server <- function(input, output, session) {
     values <- shiny::reactiveValues(
       tab_pop = shp %>%
@@ -100,7 +105,14 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
           fillOpacity = 0.95, fillColor = ~pal()(redistio_curr_plan),
           # label
           label = ~pop
-        )
+        ) #%>%
+      # leaflet::addLabelOnlyMarkers(
+      # compute lat and long
+      #   group = redistio_curr_plan,
+      #   labelOptions = leaflet::labelOptions(noHide = TRUE,
+      #                                        direction = 'top',
+      #                                        textOnly = TRUE)
+      # )
     })
 
     shiny::observeEvent(input$map_shape_click,{
@@ -109,37 +121,37 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
 
     shiny::observeEvent(eventExpr = clicked$map_shape_click,
                         handlerExpr = {
-      click <- clicked$map_shape_click
-      clicked$map_shape_click <- NULL
-      if (is.null(click)) {
-        return(NULL)
-      }
+                          click <- clicked$map_shape_click
+                          clicked$map_shape_click <- NULL
+                          if (is.null(click)) {
+                            return(NULL)
+                          }
 
-      idx <- which(shp$redistio_id == click$id)
-      shp$redistio_curr_plan[idx] <<- input$district
+                          idx <- which(shp$redistio_id == click$id)
+                          shp$redistio_curr_plan[idx] <<- input$district
 
-      values$tab_pop <- shp %>%
-        dplyr::as_tibble() %>%
-        dplyr::group_by(.data$redistio_curr_plan) %>%
-        dplyr::summarize(pop = sum(.data$pop)) %>%
-        dplyr::mutate(dev = .data$pop - round(tgt_pop)) %>%
-        dplyr::arrange(as.integer(.data$redistio_curr_plan))
+                          values$tab_pop <- shp %>%
+                            dplyr::as_tibble() %>%
+                            dplyr::group_by(.data$redistio_curr_plan) %>%
+                            dplyr::summarize(pop = sum(.data$pop)) %>%
+                            dplyr::mutate(dev = .data$pop - round(tgt_pop)) %>%
+                            dplyr::arrange(as.integer(.data$redistio_curr_plan))
 
-      leaflet::leafletProxy('map', data = shp) %>%
-        # setShapeFillColor(
-        #   layerId = ~redistio_id, fillColor = ~pal()(redistio_curr_plan)
-        # ) #%>%
-        leaflet::clearShapes() %>%
-        leaflet::addPolygons(
-          data = shp, layerId = ~redistio_id,
-          # line colors
-          stroke = TRUE, weight = 1, color = '#000000',
-          # fill control
-          fillOpacity = 0.95, fillColor = ~pal()(redistio_curr_plan),
-          # label
-          label = ~pop
-        )
-    })
+                          leaflet::leafletProxy('map', data = shp) %>%
+                            # setShapeFillColor(
+                            #   layerId = ~redistio_id, fillColor = ~pal()(redistio_curr_plan)
+                            # ) #%>%
+                            leaflet::clearShapes() %>%
+                            leaflet::addPolygons(
+                              data = shp, layerId = ~redistio_id,
+                              # line colors
+                              stroke = TRUE, weight = 1, color = '#000000',
+                              # fill control
+                              fillOpacity = 0.95, fillColor = ~pal()(redistio_curr_plan),
+                              # label
+                              label = ~pop
+                            )
+                        })
 
     shiny::observe({
       output$tab_pop <- gt::render_gt({
@@ -156,6 +168,27 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
           ) %>%
           gt::tab_footnote(
             footnote = paste0('Population must be in [', min_pop, ', ', max_pop, '].')
+          )
+      })
+    })
+    shiny::observeEvent(input$map_shape_mouseover,{
+      shiny::req(input$map_shape_mouseover)
+
+      output$hover <- gt::render_gt({
+        hover_precinct(shp, as.integer(input$map_shape_mouseover$id),
+                       pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap')) %>%
+          format_alarm_names() %>%
+          gt::gt() %>%
+          gt::cols_label(V1 = '') %>%
+          gt::tab_style(
+            style = list(
+              gt::cell_text(align = 'left')
+            ),
+            locations = gt::cells_stub(rows = TRUE)
+          ) %>%
+          gt::tab_options(
+            #table.font.size = 12,
+            data_row.padding = gt::px(0.5)
           )
       })
     })

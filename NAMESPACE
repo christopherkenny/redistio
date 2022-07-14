@@ -2,6 +2,7 @@
 
 export("%>%")
 export(draw)
+export(hover_precinct)
 importFrom(magrittr,"%>%")
 importFrom(rlang,":=")
 importFrom(rlang,.data)
