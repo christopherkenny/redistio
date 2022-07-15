@@ -67,7 +67,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         3, shiny::tabsetPanel(
           shiny::tabPanel('Population', gt::gt_output('tab_pop')),
           shiny::tabPanel('Precinct', gt::gt_output('hover')),
-         shiny::tabPanel('test_dont_use', gt::gt_output('ex')),
+          shiny::tabPanel('test_dont_use', gt::gt_output('ex')),
           shiny::tabPanel('Download', shiny::downloadButton('save_plan')),
           # shiny::tabPanel('2', shiny::radioButtons(
           #   inputId = 'districtRadio',
@@ -87,7 +87,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       tab_pop = shp %>%
         dplyr::as_tibble() %>%
         dplyr::group_by(.data$redistio_curr_plan) %>%
-        dplyr::summarize(pop = sum(.data$pop))
+        dplyr::summarize(pop = sum(.data$pop)) %>%
+        dplyr::mutate(dev = .data$pop - round(tgt_pop))
     )
     clicked <- shiny::reactiveValues(clickedMarker = NULL)
 
@@ -200,13 +201,29 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
     })
 
     output$ex <- gt::render_gt(
-      tibble::tibble(
-        rn = seq_len(ndists),
+      values$tab_pop %>%
+        dplyr::as_tibble() %>%
+        dplyr::mutate(
+          rn = seq_len(ndists),
           district = lapply(rn, function(x) gt::html(limited_button("radio", val = x))),
-        label = lapply(rn, function(x) gt::html(paste0("<p style='color:", palette[x], ";'> &#9632", x, "&#9632</p>")))
+          color = lapply(rn, function(x) gt::html(paste0("<p style='color:", palette[x], ";'>&#9632</p>")))
         ) %>%
+        dplyr::select(.data$district, .data$color, .data$pop, .data$dev) %>%
         gt::gt() %>%
-        gt::cols_hide(.data$rn)
+        #gt::cols_hide(.data$rn) %>%
+        gt::cols_align(align = 'left', columns = c(.data$district, .data$color)) %>%
+        gt::tab_style(
+          style = gt::cell_fill(color = 'red'),
+          locations = gt::cells_body(
+            rows = .data$pop > max_pop | .data$pop < min_pop
+          )
+        ) %>%
+        gt::cols_label(
+          color = ''
+        ) %>%
+        gt::tab_footnote(
+          footnote = paste0('Population must be in [', min_pop, ', ', max_pop, '].')
+        )
     )
 
     output$save_plan <- shiny::downloadHandler(
