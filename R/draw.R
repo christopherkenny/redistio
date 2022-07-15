@@ -200,13 +200,12 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
     })
 
     output$ex <- gt::render_gt(
-      tibble::tibble(rowname = 1:8) %>%
-        dplyr::rowwise() %>%
-        dplyr::mutate(
-          district = lapply(rowname, function(x) limited_button("radio", val = x))
+      tibble::tibble(
+        rn = seq_len(ndists),
+          district = lapply(rn, function(x) gt::html(limited_button("radio", val = x)))
         ) %>%
-        dplyr::mutate(district = lapply(district, gt::html)) %>%
-        gt::gt()
+        gt::gt() %>%
+        gt::cols_hide(.data$rn)
     )
 
     output$save_plan <- shiny::downloadHandler(
