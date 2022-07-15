@@ -202,7 +202,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
     output$ex <- gt::render_gt(
       tibble::tibble(
         rn = seq_len(ndists),
-          district = lapply(rn, function(x) gt::html(limited_button("radio", val = x)))
+          district = lapply(rn, function(x) gt::html(limited_button("radio", val = x))),
+        label = lapply(rn, function(x) gt::html(paste0("<p style='color:", palette[x], ";'> &#9632", x, "&#9632</p>")))
         ) %>%
         gt::gt() %>%
         gt::cols_hide(.data$rn)
