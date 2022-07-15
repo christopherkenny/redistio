@@ -206,7 +206,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         dplyr::mutate(
           rn = seq_len(ndists),
           district = lapply(rn, function(x) gt::html(limited_button("radio", val = x))),
-          color = lapply(rn, function(x) gt::html(paste0("<p style='color:", palette[x], ";", x, "'</p>")))
+          color = lapply(rn, function(x) gt::html(paste0("<p style='color:", palette[x], ";'>&#9632</p>")))
         ) %>%
         dplyr::select(.data$district, .data$color, .data$pop, .data$dev) %>%
         gt::gt() %>%
@@ -218,9 +218,9 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
             rows = .data$pop > max_pop | .data$pop < min_pop
           )
         ) %>%
-        gt::cols_label(
-          color = ''
-        ) %>%
+        # gt::cols_label(
+        #   color = ''
+        # ) %>%
         gt::tab_footnote(
           footnote = paste0('Population must be in [', min_pop, ', ', max_pop, '].')
         )
