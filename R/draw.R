@@ -56,7 +56,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
                                         choiceNames = lapply(seq_len(ndists), function(x){
                                           shiny::HTML("<p style='color:", palette[x], ";'> &#9632", x, "&#9632</p>")}),
                                         choiceValues = seq_len(ndists),
-                                        direction = 'vertical')
+                                        direction = 'vertical'),
+        gt::gt_output('district')
       ),
       shiny::column( # interactive mapper
         8,
@@ -67,13 +68,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         3, shiny::tabsetPanel(
           shiny::tabPanel('Population', gt::gt_output('tab_pop')),
           shiny::tabPanel('Precinct', gt::gt_output('hover')),
-          shiny::tabPanel('test_dont_use', gt::gt_output('ex')),
           shiny::tabPanel('Download', shiny::downloadButton('save_plan')),
-          # shiny::tabPanel('2', shiny::radioButtons(
-          #   inputId = 'districtRadio',
-          #   choices = 1:8,
-          #   label = as.character(1:8)
-          # )),
           selected = 'Precinct'
         )
       )
@@ -135,6 +130,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
                           }
 
                           idx <- which(shp$redistio_id == click$id)
+                          print(input$district_radio)
                           shp$redistio_curr_plan[idx] <<- input$district
 
                           values$tab_pop <- shp %>%
@@ -200,12 +196,12 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       })
     })
 
-    output$ex <- gt::render_gt(
+    output$district <- gt::render_gt(
       values$tab_pop %>%
         dplyr::as_tibble() %>%
         dplyr::mutate(
           rn = seq_len(ndists),
-          district = lapply(rn, function(x) gt::html(limited_button("radio", val = x))),
+          district = lapply(rn, function(x) gt::html(limited_button("district_radio", val = x, printed = paste0("<p style='color:", palette[x], ";'>", x, "</p>")))),
           color = lapply(rn, function(x) gt::html(paste0("<p style='color:", palette[x], ";'>&#9632</p>")))
         ) %>%
         dplyr::select(.data$district, .data$color, .data$pop, .data$dev) %>%
@@ -241,14 +237,14 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
   shiny::shinyApp(ui = ui, server = server)
 }
 
-limited_button <- function(inputId, val) {
+limited_button <- function(inputId, val, printed = val) {
   stringr::str_glue('
 <div id="{inputId}" class="form-group shiny-input-radiogroup shiny-input-container" role="radiogroup" aria-labelledby="{inputId}-label">
   <div class="shiny-options-group">
     <div class="radio">
       <label>
         <input type="radio" name="{inputId}" value="{val}"/>
-        <span>{val}</span>
+        <span>{printed}</span>
       </label>
     </div>
   </div>
@@ -256,21 +252,23 @@ limited_button <- function(inputId, val) {
   ')
 }
 
-# adds button but no color
-# limited_group_button <- function(inputId, val) {
-#   stringr::str_glue('
-# <div class="form-group shiny-input-container shiny-input-radiogroup shiny-input-container-inline">
-#   <div id="inputId" class="radio-group-buttons">
-#     <div aria-labelledby="inputId-label" class="btn-group btn-group-container-sw" data-toggle="buttons" role="group">
-#       <div class="btn-group btn-group-toggle" role="group">
-#         <button class="btn radiobtn btn-default active">
-#           <input type="radio" autocomplete="off" name="inputId" value="{val}"/>
-#            {val}
-#         </button>
-#       </div>
-#     </div>
-#   </div>
-# </div>
-# '
-#   )
-# }
+#adds button but no color
+#shiny::HTML("<p style='color:", palette[x], ";'> &#9632", x, "&#9632</p>")
+limited_group_button <- function(inputId, val) {
+  stringr::str_glue('
+<div class="form-group shiny-input-container shiny-input-radiogroup shiny-input-container-inline">
+  <div id="inputId" class="radio-group-buttons" style = background-color=#FFFF00>
+    <div aria-labelledby="inputId-label" class="btn-group btn-group-container-sw" data-toggle="buttons" role="group">
+      <div class="btn-group btn-group-toggle" role="group">
+        <button class="btn radiobtn btn-default active">
+          <input type="radio" autocomplete="off" name="inputId" value="{val}" />
+           {val}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+'
+  )
+}
+#           <p style=\'color:", #000000, ";\'> &#9632 {val} &#9632</p>
