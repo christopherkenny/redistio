@@ -67,8 +67,13 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         3, shiny::tabsetPanel(
           shiny::tabPanel('Population', gt::gt_output('tab_pop')),
           shiny::tabPanel('Precinct', gt::gt_output('hover')),
-          shiny::tabPanel('test', gt::gt_output('ex')),
+         # shiny::tabPanel('test', gt::gt_output('ex')),
           shiny::tabPanel('Download', shiny::downloadButton('save_plan')),
+          # shiny::tabPanel('2', shiny::radioButtons(
+          #   inputId = 'districtRadio',
+          #   choices = 1:8,
+          #   label = as.character(1:8)
+          # )),
           selected = 'Precinct'
         )
       )
@@ -194,14 +199,12 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       })
     })
 
-    output$ex <- gt::render_gt(
-      tibble::tibble(rowname = 1:8) %>%
-        #dplyr::rowwise() %>%
-        dplyr::mutate(
-          district = lapply(rowname, function(x) make_radio("_radio", label = x))
-        ) %>%
-        gt::gt()
-    )
+    # output$ex <- gt::render_gt({
+    #   tb <- tibble::tibble(rowname = 1:8)
+    #   tb$district <- lapply(tb$rowname, function(x) make_radio('districtRadio', x))
+    #   tb %>%
+    #     gt::gt()
+    # })
 
     output$save_plan <- shiny::downloadHandler(
       filename = save_path,
@@ -218,11 +221,12 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
   shiny::shinyApp(ui = ui, server = server)
 }
 
-#
-make_radio <- function(inputid,...){
+make_radio <- function(inputId, label = '', x = x, ...){
     shiny::radioButtons(
-      inputId = inputid,
-      choices = 1:8,
+      inputId = inputId,
+      choices = x,
+      label,
+      selected = character(),
       ...
     ) %>%
     as.character() %>%
