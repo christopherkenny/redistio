@@ -203,8 +203,9 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       tibble::tibble(rowname = 1:8) %>%
         dplyr::rowwise() %>%
         dplyr::mutate(
-          district = lapply(rowname, function(x) make_radio("_radio", label = x))
+          district = lapply(rowname, function(x) limited_button("radio", val = x))
         ) %>%
+        dplyr::mutate(district = lapply(district, gt::html)) %>%
         gt::gt()
     )
 
@@ -223,14 +224,17 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
   shiny::shinyApp(ui = ui, server = server)
 }
 
-make_radio <- function(inputId, label = '', x = x, ...){
-    shiny::radioButtons(
-      inputId = inputId,
-      choices = 1:8,
-      label,
-      selected = character(),
-      ...
-    ) %>%
-    as.character() %>%
-    gt::html()
+limited_button <- function(inputId, val) {
+  stringr::str_glue('
+<div id="{inputId}" class="form-group shiny-input-radiogroup shiny-input-container" role="radiogroup" aria-labelledby="{inputId}-label">
+  <div class="shiny-options-group">
+    <div class="radio">
+      <label>
+        <input type="radio" name="{inputId}" value="{val}"/>
+        <span>{val}</span>
+      </label>
+    </div>
+  </div>
+</div>
+  ')
 }
