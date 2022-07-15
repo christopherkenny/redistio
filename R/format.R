@@ -3,9 +3,9 @@ format_demog_string <- function(x) {
     'white' = 'White',
     'black' = 'Black',
     'hisp' = 'Hispanic',
-    'aian' = 'Native.',
+    'aian' = 'Native',
     'asian' = 'Asian',
-    'nhpi' = 'Pacific Islander.',
+    'nhpi' = 'Pacific Islander',
     'other' = 'Other',
     'two' = 'Two+'
   )
