@@ -255,21 +255,3 @@ limited_button <- function(inputId, val) {
 </div>
   ')
 }
-
-limited_group_button <- function(inputId, val, color = palette[x]) {
-  stringr::str_glue('
-<div class="form-group shiny-input-container shiny-input-radiogroup shiny-input-container-inline">
-  <div id="inputId" class="radio-group-buttons">
-    <div aria-labelledby="inputId-label" class="btn-group btn-group-container-sw" data-toggle="buttons" role="group">
-      <div class="btn-group btn-group-toggle" role="group">
-        <button class="btn radiobtn btn-default active">
-          <input type="radio" autocomplete="off" name="inputId" value="{val}" color = {color}/>
-           {val}
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-'
-  )
-}
