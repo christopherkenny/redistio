@@ -218,9 +218,9 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
             rows = .data$pop > max_pop | .data$pop < min_pop
           )
         ) %>%
-        # gt::cols_label(
-        #   color = ''
-        # ) %>%
+        gt::cols_label(
+          color = ''
+        ) %>%
         gt::tab_footnote(
           footnote = paste0('Population must be in [', min_pop, ', ', max_pop, '].')
         )
