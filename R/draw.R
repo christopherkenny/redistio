@@ -206,7 +206,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         dplyr::mutate(
           rn = seq_len(ndists),
           district = lapply(rn, function(x) gt::html(limited_button("radio", val = x))),
-          color = lapply(rn, function(x) gt::html(paste0("<p style='color:", palette[x], ";'>&#9632</p>")))
+          color = lapply(rn, function(x) gt::html(paste0("<p style='color:", palette[x], ";", x, "'</p>")))
         ) %>%
         dplyr::select(.data$district, .data$color, .data$pop, .data$dev) %>%
         gt::gt() %>%
@@ -254,4 +254,22 @@ limited_button <- function(inputId, val) {
   </div>
 </div>
   ')
+}
+
+limited_group_button <- function(inputId, val, color = palette[x]) {
+  stringr::str_glue('
+<div class="form-group shiny-input-container shiny-input-radiogroup shiny-input-container-inline">
+  <div id="inputId" class="radio-group-buttons">
+    <div aria-labelledby="inputId-label" class="btn-group btn-group-container-sw" data-toggle="buttons" role="group">
+      <div class="btn-group btn-group-toggle" role="group">
+        <button class="btn radiobtn btn-default active">
+          <input type="radio" autocomplete="off" name="inputId" value="{val}" color = {color}/>
+           {val}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+'
+  )
 }
