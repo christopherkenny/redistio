@@ -53,12 +53,12 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       shiny::column( # color selector
         2,
         shiny::splitLayout(#cellWidths = c("25%", "75%"),
-          shinyWidgets::radioGroupButtons(inputId = 'district', label = 'District:',
+          shinyWidgets::radioGroupButtons(inputId = 'district', label = '',
                                           choiceNames = lapply(seq_len(ndists), function(x){
                                             shiny::HTML("<p style='color:", palette[x], ";'> &#9632", x, "&#9632</p>")}),
                                           choiceValues = seq_len(ndists),
-                                          direction = 'vertical'),
-          gt::gt_output('district')
+                                          direction = 'vertical', size = 'sm'),
+          shiny::tableOutput('district')
         )
       ),
       shiny::column( # interactive mapper
@@ -84,8 +84,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       tab_pop = shp %>%
         dplyr::as_tibble() %>%
         dplyr::group_by(.data$redistio_curr_plan) %>%
-        dplyr::summarize(pop = sum(.data$pop)) %>%
-        dplyr::mutate(dev = .data$pop - round(tgt_pop))
+        dplyr::summarize(pop = as.integer(sum(.data$pop))) %>%
+        dplyr::mutate(dev = as.integer(.data$pop - round(tgt_pop)))
     )
     clicked <- shiny::reactiveValues(clickedMarker = NULL)
 
@@ -137,8 +137,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
                           values$tab_pop <- shp %>%
                             dplyr::as_tibble() %>%
                             dplyr::group_by(.data$redistio_curr_plan) %>%
-                            dplyr::summarize(pop = sum(.data$pop)) %>%
-                            dplyr::mutate(dev = .data$pop - round(tgt_pop)) %>%
+                            dplyr::summarize(pop = as.integer(sum(.data$pop))) %>%
+                            dplyr::mutate(dev = as.integer(.data$pop - round(tgt_pop))) %>%
                             dplyr::arrange(as.integer(.data$redistio_curr_plan))
 
                           leaflet::leafletProxy('map', data = shp) %>%
@@ -197,7 +197,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       })
     })
 
-    output$district <- gt::render_gt({
+    output$district <- shiny::renderTable({
       checked <- ifelse(is.numeric(input$district_radio), input$district_radio, 1)
       values$tab_pop %>%
         dplyr::as_tibble() %>%
@@ -206,32 +206,32 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
           district = lapply(rn, function(x) gt::html(limited_button("district_radio", val = x, printed = paste0("<p style='color:", palette[x], ";'>&#9632 ", x, "</p>"), checked))),
           #color = lapply(rn, function(x) gt::html(paste0("<p style='color:", palette[x], ";'>&#9632</p>")))
         ) %>%
-        dplyr::select(.data$district, .data$pop, .data$dev) %>%
-        gt::gt() %>%
-        #gt::cols_hide(.data$district) %>%
-        gt::cols_align(align = 'left', columns = c(.data$district)) %>%
-        gt::tab_style(
-          style = gt::cell_fill(color = 'red'),
-          locations = gt::cells_body(
-            rows = .data$pop > max_pop | .data$pop < min_pop
-          )
-        ) %>%
-        # gt::cols_label(
-        #   color = ''
+        dplyr::select(.data$pop, .data$dev) #%>%
+        # gt::gt() %>%
+        # #gt::cols_hide(.data$district) %>%
+        # gt::cols_align(align = 'left', columns = c(.data$district)) %>%
+        # gt::tab_style(
+        #   style = gt::cell_fill(color = 'red'),
+        #   locations = gt::cells_body(
+        #     rows = .data$pop > max_pop | .data$pop < min_pop
+        #   )
         # ) %>%
-        gt::tab_footnote(
-          footnote = gt::html(paste0('Target Range<br>[', min_pop, ', ', max_pop, ']'))
-        ) %>%
-        gt::cols_width(
-          district ~ px(60),
-          #color ~ px(20),
-          pop ~ px(60),
-          dev ~ px(60)
-        ) %>%
-        gt::tab_options(
-          container.width = gt::px(120),
-          data_row.padding = gt::px(0.5)
-        )
+        # # gt::cols_label(
+        # #   color = ''
+        # # ) %>%
+        # gt::tab_footnote(
+        #   footnote = gt::html(paste0('Target Range<br>[', min_pop, ', ', max_pop, ']'))
+        # ) %>%
+        # gt::cols_width(
+        #   district ~ px(60),
+        #   #color ~ px(20),
+        #   pop ~ px(60),
+        #   dev ~ px(60)
+        # ) %>%
+        # gt::tab_options(
+        #   container.width = gt::px(120),
+        #   data_row.padding = gt::px(0.5)
+        # )
     })
 
     output$save_plan <- shiny::downloadHandler(
