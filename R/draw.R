@@ -53,11 +53,11 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     shiny::fluidRow(
       shiny::column( # color selector
         2,
-        # shinyWidgets::radioGroupButtons(inputId = 'district', label = '',
-        #                                 choiceNames = lapply(seq_len(ndists), function(x){
-        #                                   shiny::HTML("<p style='color:", palette[x], ";'> &#9632", x, "&#9632</p>")}),
-        #                                 choiceValues = seq_len(ndists),
-        #                                 direction = 'vertical', size = 'sm'),
+        shinyWidgets::radioGroupButtons(inputId = 'district', label = '',
+                                        choiceNames = lapply(seq_len(ndists), function(x){
+                                          shiny::HTML("<p style='color:", palette[x], ";'> &#9632", x, "&#9632</p>")}),
+                                        choiceValues = seq_len(ndists),
+                                        direction = 'vertical', size = 'sm'),
         DT::DTOutput('district')
 
       ),
@@ -84,11 +84,9 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
       tab_pop = table_pop(shp, tgt_pop)
     )
     clicked <- shiny::reactiveValues(clickedMarker = NULL)
-    # checked <- shiny::reactive({
-    #   req(input$tbl_check)
-    #   print(input$tbl_check)
-    #   input$tbl_check
-    # })
+    checked <- shiny::reactive({
+      input$tbl_check
+    })
     # checked <- shiny::eventReactive(
     #   input$tab_check,
     #   input$tab_check,
@@ -204,11 +202,10 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     })
 
     output$district <- DT::renderDT({
-      x <- shiny::isolate(input$tab_check)
       values$tab_pop %>%
         dplyr::as_tibble() %>%
         dplyr::rename(district = .data$redistio_curr_plan) %>%
-        dplyr::mutate(ck = ifelse(isTRUE(district == x), ' checked="checked"', ''),
+        dplyr::mutate(ck = ifelse(district == input$district, ' checked="checked"', ''),
                       but = stringr::str_glue('<input type="radio" name="tab_check" value="{district}"{ck}/>'),
                       .before = dplyr::everything()) %>%
         dplyr::select(-.data$ck) %>%

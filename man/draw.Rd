@@ -10,6 +10,7 @@ draw(
   ndists,
   palette,
   pop_tol = 0.05,
+  opts = redistio_options(),
   save_path = tempfile(fileext = ".baf")
 )
 }
@@ -23,6 +24,8 @@ draw(
 \item{palette}{Color palette to fill shapes with. Default is Polychrome 36.}
 
 \item{pop_tol}{the population tolerance.}
+
+\item{opts}{list of options. Default is \code{redistio_options()}}
 
 \item{save_path}{Output path to save progress to.}
 }
