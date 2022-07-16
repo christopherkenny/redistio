@@ -51,13 +51,15 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
 
     shiny::fluidRow(
       shiny::column( # color selector
-        1,
-        shinyWidgets::radioGroupButtons(inputId = 'district', label = 'Edit District:',
-                                        choiceNames = lapply(seq_len(ndists), function(x){
-                                          shiny::HTML("<p style='color:", palette[x], ";'> &#9632", x, "&#9632</p>")}),
-                                        choiceValues = seq_len(ndists),
-                                        direction = 'vertical'),
-        gt::gt_output('district')
+        2,
+        shiny::splitLayout(#cellWidths = c("25%", "75%"),
+          shinyWidgets::radioGroupButtons(inputId = 'district', label = 'District:',
+                                          choiceNames = lapply(seq_len(ndists), function(x){
+                                            shiny::HTML("<p style='color:", palette[x], ";'> &#9632", x, "&#9632</p>")}),
+                                          choiceValues = seq_len(ndists),
+                                          direction = 'vertical'),
+          gt::gt_output('district')
+        )
       ),
       shiny::column( # interactive mapper
         8,
@@ -65,7 +67,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         leaflet::leafletOutput('map', height = '100vh')
       ),
       shiny::column( # details area
-        3, shiny::tabsetPanel(
+        2, shiny::tabsetPanel(
           shiny::tabPanel('Population', gt::gt_output('tab_pop')),
           shiny::tabPanel('Precinct', gt::gt_output('hover')),
           shiny::tabPanel('Download', shiny::downloadButton('save_plan')),
@@ -130,7 +132,6 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
                           }
 
                           idx <- which(shp$redistio_id == click$id)
-                          print(input$district_radio)
                           shp$redistio_curr_plan[idx] <<- input$district
 
                           values$tab_pop <- shp %>%
@@ -196,31 +197,42 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       })
     })
 
-    output$district <- gt::render_gt(
+    output$district <- gt::render_gt({
+      checked <- ifelse(is.numeric(input$district_radio), input$district_radio, 1)
       values$tab_pop %>%
         dplyr::as_tibble() %>%
         dplyr::mutate(
           rn = seq_len(ndists),
-          district = lapply(rn, function(x) gt::html(limited_button("district_radio", val = x, printed = paste0("<p style='color:", palette[x], ";'>", x, "</p>")))),
-          color = lapply(rn, function(x) gt::html(paste0("<p style='color:", palette[x], ";'>&#9632</p>")))
+          district = lapply(rn, function(x) gt::html(limited_button("district_radio", val = x, printed = paste0("<p style='color:", palette[x], ";'>&#9632 ", x, "</p>"), checked))),
+          #color = lapply(rn, function(x) gt::html(paste0("<p style='color:", palette[x], ";'>&#9632</p>")))
         ) %>%
-        dplyr::select(.data$district, .data$color, .data$pop, .data$dev) %>%
+        dplyr::select(.data$district, .data$pop, .data$dev) %>%
         gt::gt() %>%
-        #gt::cols_hide(.data$rn) %>%
-        gt::cols_align(align = 'left', columns = c(.data$district, .data$color)) %>%
+        #gt::cols_hide(.data$district) %>%
+        gt::cols_align(align = 'left', columns = c(.data$district)) %>%
         gt::tab_style(
           style = gt::cell_fill(color = 'red'),
           locations = gt::cells_body(
             rows = .data$pop > max_pop | .data$pop < min_pop
           )
         ) %>%
-        gt::cols_label(
-          color = ''
-        ) %>%
+        # gt::cols_label(
+        #   color = ''
+        # ) %>%
         gt::tab_footnote(
-          footnote = paste0('Population must be in [', min_pop, ', ', max_pop, '].')
+          footnote = gt::html(paste0('Target Range<br>[', min_pop, ', ', max_pop, ']'))
+        ) %>%
+        gt::cols_width(
+          district ~ px(60),
+          #color ~ px(20),
+          pop ~ px(60),
+          dev ~ px(60)
+        ) %>%
+        gt::tab_options(
+          container.width = gt::px(120),
+          data_row.padding = gt::px(0.5)
         )
-    )
+    })
 
     output$save_plan <- shiny::downloadHandler(
       filename = save_path,
@@ -237,13 +249,14 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
   shiny::shinyApp(ui = ui, server = server)
 }
 
-limited_button <- function(inputId, val, printed = val) {
+limited_button <- function(inputId, val, printed = val, checked = 1) {
+   check <- ifelse(isTRUE(val == checked), ' checked="checked"', '')
   stringr::str_glue('
 <div id="{inputId}" class="form-group shiny-input-radiogroup shiny-input-container" role="radiogroup" aria-labelledby="{inputId}-label">
   <div class="shiny-options-group">
     <div class="radio">
       <label>
-        <input type="radio" name="{inputId}" value="{val}"/>
+        <input type="radio" name="{inputId}" value="{val}"{check}/>
         <span>{printed}</span>
       </label>
     </div>
