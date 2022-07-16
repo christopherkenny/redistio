@@ -53,11 +53,11 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     shiny::fluidRow(
       shiny::column( # color selector
         2,
-        shinyWidgets::radioGroupButtons(inputId = 'district', label = '',
-                                        choiceNames = lapply(seq_len(ndists), function(x){
-                                          shiny::HTML("<p style='color:", palette[x], ";'> &#9632", x, "&#9632</p>")}),
-                                        choiceValues = seq_len(ndists),
-                                        direction = 'vertical', size = 'sm'),
+        # shinyWidgets::radioGroupButtons(inputId = 'district', label = '',
+        #                                 choiceNames = lapply(seq_len(ndists), function(x){
+        #                                   shiny::HTML("<p style='color:", palette[x], ";'> &#9632", x, "&#9632</p>")}),
+        #                                 choiceValues = seq_len(ndists),
+        #                                 direction = 'vertical', size = 'sm'),
         DT::DTOutput('district')
 
       ),
@@ -217,33 +217,6 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
           rownames = FALSE, escape = FALSE, selection = 'none',
           colnames = c('', '', names(.)[-c(1:2)])
         )
-
-      #%>%
-      # gt::gt() %>%
-      # #gt::cols_hide(.data$district) %>%
-      # gt::cols_align(align = 'left', columns = c(.data$district)) %>%
-      # gt::tab_style(
-      #   style = gt::cell_fill(color = 'red'),
-      #   locations = gt::cells_body(
-      #     rows = .data$pop > max_pop | .data$pop < min_pop
-      #   )
-      # ) %>%
-      # # gt::cols_label(
-      # #   color = ''
-      # # ) %>%
-      # gt::tab_footnote(
-      #   footnote = gt::html(paste0('Target Range<br>[', min_pop, ', ', max_pop, ']'))
-      # ) %>%
-      # gt::cols_width(
-      #   district ~ px(60),
-      #   #color ~ px(20),
-      #   pop ~ px(60),
-      #   dev ~ px(60)
-      # ) %>%
-      # gt::tab_options(
-      #   container.width = gt::px(120),
-      #   data_row.padding = gt::px(0.5)
-      # )
     })
 
     output$save_plan <- shiny::downloadHandler(
@@ -260,40 +233,3 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
 
   shiny::shinyApp(ui = ui, server = server)
 }
-
-limited_button <- function(inputId, val, printed = val, checked = 1) {
-  check <- ifelse(isTRUE(val == checked), ' checked="checked"', '')
-  stringr::str_glue('
-<div id="{inputId}" class="form-group shiny-input-radiogroup shiny-input-container" role="radiogroup" aria-labelledby="{inputId}-label">
-  <div class="shiny-options-group">
-    <div class="radio">
-      <label>
-        <input type="radio" name="{inputId}" value="{val}"{check}/>
-        <span>{printed}</span>
-      </label>
-    </div>
-  </div>
-</div>
-  ')
-}
-
-#adds button but no color
-#shiny::HTML("<p style='color:", palette[x], ";'> &#9632", x, "&#9632</p>")
-limited_group_button <- function(inputId, val) {
-  stringr::str_glue('
-<div class="form-group shiny-input-container shiny-input-radiogroup shiny-input-container-inline">
-  <div id="inputId" class="radio-group-buttons" style = background-color=#FFFF00>
-    <div aria-labelledby="inputId-label" class="btn-group btn-group-container-sw" data-toggle="buttons" role="group">
-      <div class="btn-group btn-group-toggle" role="group">
-        <button class="btn radiobtn btn-default active">
-          <input type="radio" autocomplete="off" name="inputId" value="{val}" />
-           {val}
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-'
-  )
-}
-#           <p style=\'color:", #000000, ";\'> &#9632 {val} &#9632</p>
