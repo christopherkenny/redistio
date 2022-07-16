@@ -81,11 +81,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
   # Server ----
   server <- function(input, output, session) {
     values <- shiny::reactiveValues(
-      tab_pop = shp %>%
-        dplyr::as_tibble() %>%
-        dplyr::group_by(.data$redistio_curr_plan) %>%
-        dplyr::summarize(pop = as.integer(sum(.data$pop))) %>%
-        dplyr::mutate(dev = as.integer(.data$pop - round(tgt_pop)))
+      tab_pop = table_pop(shp, tgt_pop)
     )
     clicked <- shiny::reactiveValues(clickedMarker = NULL)
 
@@ -134,12 +130,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
                           idx <- which(shp$redistio_id == click$id)
                           shp$redistio_curr_plan[idx] <<- input$district
 
-                          values$tab_pop <- shp %>%
-                            dplyr::as_tibble() %>%
-                            dplyr::group_by(.data$redistio_curr_plan) %>%
-                            dplyr::summarize(pop = as.integer(sum(.data$pop))) %>%
-                            dplyr::mutate(dev = as.integer(.data$pop - round(tgt_pop))) %>%
-                            dplyr::arrange(as.integer(.data$redistio_curr_plan))
+                          values$tab_pop <- table_pop(shp, tgt_pop)
 
                           leaflet::leafletProxy('map', data = shp) %>%
                             # setShapeFillColor(
