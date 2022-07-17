@@ -130,9 +130,9 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
                           }
 
                           idx <- which(shp$redistio_id == click$id)
-                          redistio_curr_plan$pl[idx] <<- input$district
-                          val$tb_pop$Population <<- as.integer(tapply(shp$pop, redistio_curr_plan$pl, sum))
-                          val$tb_pop$Deviation <<- as.integer(val$tb_pop$Population - tgt_pop)
+                          redistio_curr_plan$pl[idx] <- input$district
+                          val$tb_pop$Population <- as.integer(tapply(shp$pop, redistio_curr_plan$pl, sum))
+                          val$tb_pop$Deviation <- as.integer(val$tb_pop$Population - tgt_pop)
 
                           leaflet::leafletProxy('map', data = shp) %>%
                             leaflet::clearShapes() %>%
@@ -158,7 +158,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
             drawCallback = DT::JS('function() { Shiny.bindAll(this.api().table().node()); } '),
             columnDefs = list(list(width = '10px', targets = c(0, 1, 2)))
           ),
-          rownames = FALSE, escape = FALSE,
+          #rownames = FALSE,
+          escape = FALSE,
           selection = 'none',
           colnames = c('', '', names(.)[-c(1:2)])
         )
@@ -167,7 +168,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     proxy <- DT::dataTableProxy('district')
 
     observe({
-      DT::replaceData(proxy, val$tb_pop, rownames = FALSE,
+      DT::replaceData(proxy, val$tb_pop, #rownames = FALSE,
                       resetPaging = FALSE, clearSelection = FALSE)
     })
 
