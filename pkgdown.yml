@@ -2,7 +2,7 @@ pandoc: 2.14.2
 pkgdown: 2.0.5
 pkgdown_sha: ~
 articles: {}
-last_built: 2022-07-17T21:30Z
+last_built: 2022-07-17T22:14Z
 urls:
   reference: http://www.christophertkenny.com/redistio/reference
   article: http://www.christophertkenny.com/redistio/articles
