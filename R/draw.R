@@ -44,6 +44,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
   tgt_pop <- sum(shp$pop) / ndists
   min_pop <- ceiling(tgt_pop * (1 - pop_tol))
   max_pop <- floor(tgt_pop * (1 + pop_tol))
+  tgt_pop <- as.integer(round(tgt_pop))
 
   # User Interface ----
   ui <- shiny::fluidPage(
@@ -58,7 +59,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
                                           shiny::HTML("<p style='color:", palette[x], ";'> &#9632", x, "&#9632</p>")}),
                                         choiceValues = seq_len(ndists),
                                         direction = 'vertical', size = 'sm'),
-        DT::DTOutput('district')
+        DT::DTOutput('district', width = '50px')
 
       ),
       shiny::column( # interactive mapper
@@ -80,25 +81,40 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
 
   # Server ----
   server <- function(input, output, session) {
+
+    tb_pop <- dplyr::tibble(
+      district = seq_len(ndists),
+      button = vapply(seq_len(ndists),
+                      function(d) {as.character(shiny::radioButtons('radio_col', label = NULL, choices = d))},
+                      FUN.VALUE = ''),
+      Population = as.integer(tapply(shp$pop, init_plan, sum)),
+      Deviation = as.integer(Population - tgt_pop)
+    )
+
+    tb_pop2 <- reactive({
+      tb_pop$Population <- as.integer(tapply(shp$pop, shp$redistio_curr_plan, sum))
+      tb_pop$Deviation <- as.integer(tb_pop$Population - tgt_pop)
+      tb_pop
+    })
+
+
     values <- shiny::reactiveValues(
-      tab_pop = table_pop(shp, tgt_pop)
+      tab_pop = table_pop(shp, tgt_pop) %>%
+        dplyr::as_tibble() %>%
+        dplyr::rowwise() %>%
+        dplyr::mutate(but = as.character(
+          shiny::radioButtons(
+            inputId = 'radio_col',
+            label = NULL,
+            choices = redistio_curr_plan)
+        ),
+        .before = dplyr::everything()) %>%
+        dplyr::ungroup()
     )
     clicked <- shiny::reactiveValues(clickedMarker = NULL)
     checked <- shiny::reactive({
-      input$tbl_check
+      input$tab_check
     })
-    # checked <- shiny::eventReactive(
-    #   input$tab_check,
-    #   input$tab_check,
-    #   ignoreNULL = TRUE,
-    #   ignoreInit = TRUE
-    # )
-
-    checked <- observeEvent(
-      eventExpr = input$tbl_check,
-      input$tbl_check,
-      label = 'tbl_check_observer'
-      )
 
     bbox <- unname(sf::st_bbox(shp))
     pal <- shiny::reactive({
@@ -119,14 +135,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
           fillOpacity = 0.95, fillColor = ~pal()(redistio_curr_plan),
           # label
           label = ~pop
-        ) #%>%
-      # leaflet::addLabelOnlyMarkers(
-      # compute lat and long
-      #   group = redistio_curr_plan,
-      #   labelOptions = leaflet::labelOptions(noHide = TRUE,
-      #                                        direction = 'top',
-      #                                        textOnly = TRUE)
-      # )
+        )
     })
 
     shiny::observeEvent(input$map_shape_click,{
@@ -147,9 +156,6 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
                           values$tab_pop <- table_pop(shp, tgt_pop)
 
                           leaflet::leafletProxy('map', data = shp) %>%
-                            # setShapeFillColor(
-                            #   layerId = ~redistio_id, fillColor = ~pal()(redistio_curr_plan)
-                            # ) #%>%
                             leaflet::clearShapes() %>%
                             leaflet::addPolygons(
                               data = shp, layerId = ~redistio_id,
@@ -162,24 +168,51 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
                             )
                         })
 
+
+    # district stats ----
+    output$district <- DT::renderDT({
+      shiny::isolate(tb_pop2()) %>%
+        DT::datatable(
+          options = list(
+            autoWidth = TRUE, dom = 't', ordering = FALSE,
+            preDrawCallback = DT::JS('function() { Shiny.unbindAll(this.api().table().node()); }'),
+            drawCallback = DT::JS('function() { Shiny.bindAll(this.api().table().node()); } ')
+          ),
+          rownames = FALSE, escape = FALSE,
+          selection = 'none',
+          colnames = c('', '', names(.)[-c(1:2)]),
+
+        )
+    })
+
+    proxy <- DT::dataTableProxy('district')
+
+    observe({
+      DT::replaceData(proxy, tb_pop2(), rownames = FALSE,
+                      resetPaging = FALSE, clearSelection = FALSE)
+    })
+
     shiny::observe({
       output$tab_pop <- gt::render_gt({
-        values$tab_pop %>%
+        tb_pop2() %>%
+          dplyr::select(-dplyr::any_of('button')) %>%
           gt::gt() %>%
           gt::tab_style(
             style = gt::cell_fill(color = 'red'),
             locations = gt::cells_body(
-              rows = .data$pop > max_pop | .data$pop < min_pop
+              rows = .data$Population > max_pop | .data$Population < min_pop
             )
           ) %>%
           gt::cols_label(
-            redistio_curr_plan = ''
+            district = ''
           ) %>%
           gt::tab_footnote(
             footnote = paste0('Population must be in [', min_pop, ', ', max_pop, '].')
           )
       })
     })
+
+    # precinct stats ----
     shiny::observeEvent(input$map_shape_mouseover,{
       shiny::req(input$map_shape_mouseover)
 
@@ -201,21 +234,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
       })
     })
 
-    output$district <- DT::renderDT({
-      values$tab_pop %>%
-        dplyr::as_tibble() %>%
-        dplyr::rename(district = .data$redistio_curr_plan) %>%
-        dplyr::mutate(ck = ifelse(district == input$district, ' checked="checked"', ''),
-                      but = stringr::str_glue('<input type="radio" name="tab_check" value="{district}"{ck}/>'),
-                      .before = dplyr::everything()) %>%
-        dplyr::select(-.data$ck) %>%
-        DT::datatable(
-          options = list(autoWidth = FALSE, dom = 't', ordering = FALSE),
-          rownames = FALSE, escape = FALSE, selection = 'none',
-          colnames = c('', '', names(.)[-c(1:2)])
-        )
-    })
-
+    # downloader ----
     output$save_plan <- shiny::downloadHandler(
       filename = save_path,
       content = function(con) {
