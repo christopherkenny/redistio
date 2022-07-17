@@ -91,7 +91,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
                         function(d) {as.character(shiny::radioButtons('radio_col', label = NULL, choices = d))},
                         FUN.VALUE = ''),
         Population = as.integer(tapply(shp$pop, init_plan, sum)),
-        Deviation = as.integer(Population - tgt_pop)
+        Deviation = as.integer(.data$Population - tgt_pop)
       )
     )
 
@@ -158,7 +158,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
             drawCallback = DT::JS('function() { Shiny.bindAll(this.api().table().node()); } '),
             columnDefs = list(list(width = '10px', targets = c(0, 1, 2)))
           ),
-          #rownames = FALSE,
+          rownames = FALSE,
           escape = FALSE,
           selection = 'none',
           colnames = c('', '', names(.)[-c(1:2)])
@@ -167,8 +167,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
 
     proxy <- DT::dataTableProxy('district')
 
-    observe({
-      DT::replaceData(proxy, val$tb_pop, #rownames = FALSE,
+    shiny::observeEvent(clicked$map_shape_click, {
+      DT::replaceData(proxy, val$tb_pop, rownames = FALSE,
                       resetPaging = FALSE, clearSelection = FALSE)
     })
 

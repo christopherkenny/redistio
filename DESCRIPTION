@@ -24,7 +24,8 @@ Imports:
     shinyWidgets,
     stringr,
     tibble,
-    purrr
+    purrr,
+    DT
 Depends: 
     R (>= 2.10)
 LazyData: true
