@@ -59,7 +59,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
                                           shiny::HTML("<p style='color:", palette[x], ";'> &#9632", x, "&#9632</p>")}),
                                         choiceValues = seq_len(ndists),
                                         direction = 'vertical', size = 'sm'),
-        DT::DTOutput('district', width = '200px')
+        DT::DTOutput('district', width = '250px')
 
       ),
       shiny::column( # interactive mapper
@@ -84,16 +84,16 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
 
     redistio_curr_plan <- shiny::reactiveValues(pl = init_plan)
 
-    val <- shiny::reactiveValues(
-      tb_pop = dplyr::tibble(
-        district = seq_len(ndists),
-        button = vapply(seq_len(ndists),
-                        function(d) {as.character(shiny::radioButtons('radio_col', label = NULL, choices = d))},
-                        FUN.VALUE = ''),
-        Population = as.integer(tapply(shp$pop, init_plan, sum)),
-        Deviation = as.integer(.data$Population - tgt_pop)
-      )
+    tab_pop_static <- dplyr::tibble(
+      district = seq_len(ndists),
+      button = vapply(seq_len(ndists),
+                      function(d) {as.character(shiny::radioButtons('radio_col', label = NULL, choices = d))},
+                      FUN.VALUE = ''),
+      Population = as.integer(tapply(shp$pop, init_plan, sum)),
+      Deviation = as.integer(.data$Population - tgt_pop)
     )
+
+    val <- shiny::reactiveVal(tab_pop_static)
 
     clicked <- shiny::reactiveValues(clickedMarker = NULL)
 
@@ -131,8 +131,10 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
 
                           idx <- which(shp$redistio_id == click$id)
                           redistio_curr_plan$pl[idx] <- input$district
-                          val$tb_pop$Population <- as.integer(tapply(shp$pop, redistio_curr_plan$pl, sum))
-                          val$tb_pop$Deviation <- as.integer(val$tb_pop$Population - tgt_pop)
+                          new_tb_pop <- val()
+                          new_tb_pop$Population <- as.integer(tapply(shp$pop, redistio_curr_plan$pl, sum))
+                          new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - tgt_pop)
+                          val(new_tb_pop)
 
                           leaflet::leafletProxy('map', data = shp) %>%
                             leaflet::clearShapes() %>%
@@ -147,33 +149,33 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
                             )
                         })
 
-
     # district stats ----
     output$district <- DT::renderDT({
-      shiny::isolate(val$tb_pop) %>%
+       val() %>%
         DT::datatable(
           options = list(
             autoWidth = TRUE, dom = 't', ordering = FALSE, scrollX = TRUE,
             preDrawCallback = DT::JS('function() { Shiny.unbindAll(this.api().table().node()); }'),
-            drawCallback = DT::JS('function() { Shiny.bindAll(this.api().table().node()); } '),
+            drawCallback = DT::JS('function() { Shiny.bindAll(this.api().table().node()); }'),
             columnDefs = list(list(width = '10px', targets = c(0, 1, 2)))
           ),
           rownames = FALSE,
           escape = FALSE,
           selection = 'none',
-          colnames = c('', '', names(.)[-c(1:2)])
+          colnames = c('', '', names(.)[-c(1:2)]),
+          fillContainer = TRUE
         )
     })
 
-    proxy <- DT::dataTableProxy('district')
+    dt_proxy <- DT::dataTableProxy('district', deferUntilFlush = FALSE)
 
-    shiny::observeEvent(clicked$map_shape_click, {
-      DT::replaceData(proxy, val$tb_pop, rownames = FALSE,
+    shiny::observe({
+      DT::replaceData(proxy = dt_proxy, val(), rownames = FALSE,
                       resetPaging = FALSE, clearSelection = FALSE)
     })
 
     output$tab_pop <- gt::render_gt({
-      val$tb_pop %>%
+      val() %>%
         dplyr::select(-dplyr::any_of('button')) %>%
         gt::gt() %>%
         gt::tab_style(
