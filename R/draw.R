@@ -153,8 +153,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
           options = list(
             dom = 't', ordering = FALSE, scrollX = TRUE
           ),
-          rownames = FALSE,
-          selection = list(mode = 'single', selected = '1')
+          rownames = FALSE, escape = FALSE,
+          selection = list(target = 'row', mode = 'single', selected = 1)
         )
     }, server = TRUE)
 
