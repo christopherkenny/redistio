@@ -151,10 +151,9 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
        shiny::isolate(val()) %>%
         DT::datatable(
           options = list(
-            dom = 't', ordering = FALSE, scrollX = TRUE, selected = 1
+            dom = 't', ordering = FALSE, scrollX = TRUE
           ),
           rownames = FALSE,
-          escape = FALSE,
           selection = list(mode = 'single', selected = '1')
         )
     }, server = TRUE)
@@ -167,8 +166,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     })
 
     output$tab_pop <- gt::render_gt({
-      shiny::isolate(val()) %>%
-        dplyr::select(-dplyr::any_of('button')) %>%
+      val() %>%
         gt::gt() %>%
         gt::tab_style(
           style = gt::cell_fill(color = 'red'),
