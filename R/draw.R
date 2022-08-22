@@ -54,18 +54,18 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     shiny::fluidRow(
       shiny::column( # color selector
         2,
-        shinyWidgets::radioGroupButtons(inputId = 'district', label = '',
+        shinyWidgets::radioGroupButtons(inputId = 'district_s', label = '',
                                         choiceNames = lapply(seq_len(ndists), function(x){
                                           shiny::HTML("<p style='color:", palette[x], ";'> &#9632", x, "&#9632</p>")}),
                                         choiceValues = seq_len(ndists),
                                         direction = 'vertical', size = 'sm'),
-        DT::DTOutput('district', width = '250px')
+        DT::DTOutput(outputId = 'district', width = '30vh', height = '50vh')
 
       ),
       shiny::column( # interactive mapper
         8,
         #the_javascripts,
-        leaflet::leafletOutput('map', height = '100vh')
+        leaflet::leafletOutput(outputId = 'map', height = '100vh')
       ),
       shiny::column( # details area
         2, shiny::tabsetPanel(
@@ -86,9 +86,6 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
 
     tab_pop_static <- dplyr::tibble(
       district = seq_len(ndists),
-      button = vapply(seq_len(ndists),
-                      function(d) {as.character(shiny::radioButtons('radio_col', label = NULL, choices = d))},
-                      FUN.VALUE = ''),
       Population = as.integer(tapply(shp$pop, init_plan, sum)),
       Deviation = as.integer(.data$Population - tgt_pop)
     )
@@ -117,7 +114,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
         )
     })
 
-    shiny::observeEvent(input$map_shape_click,{
+    shiny::observeEvent(input$map_shape_click, {
       clicked$map_shape_click <- input$map_shape_click
     })
 
@@ -130,7 +127,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
                           }
 
                           idx <- which(shp$redistio_id == click$id)
-                          redistio_curr_plan$pl[idx] <- input$district
+                          redistio_curr_plan$pl[idx] <- input$district_s
                           new_tb_pop <- val()
                           new_tb_pop$Population <- as.integer(tapply(shp$pop, redistio_curr_plan$pl, sum))
                           new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - tgt_pop)
@@ -151,31 +148,26 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
 
     # district stats ----
     output$district <- DT::renderDT({
-       val() %>%
+       shiny::isolate(val()) %>%
         DT::datatable(
           options = list(
-            autoWidth = TRUE, dom = 't', ordering = FALSE, scrollX = TRUE,
-            preDrawCallback = DT::JS('function() { Shiny.unbindAll(this.api().table().node()); }'),
-            drawCallback = DT::JS('function() { Shiny.bindAll(this.api().table().node()); }'),
-            columnDefs = list(list(width = '10px', targets = c(0, 1, 2)))
+            dom = 't', ordering = FALSE, scrollX = TRUE, selected = 1
           ),
           rownames = FALSE,
           escape = FALSE,
-          selection = 'none',
-          colnames = c('', '', names(.)[-c(1:2)]),
-          fillContainer = TRUE
+          selection = list(mode = 'single', selected = '1')
         )
-    })
+    }, server = TRUE)
 
-    dt_proxy <- DT::dataTableProxy('district', deferUntilFlush = FALSE)
+    dt_proxy <- DT::dataTableProxy('district')
 
     shiny::observe({
       DT::replaceData(proxy = dt_proxy, val(), rownames = FALSE,
-                      resetPaging = FALSE, clearSelection = FALSE)
+                      resetPaging = FALSE, clearSelection = 'none')
     })
 
     output$tab_pop <- gt::render_gt({
-      val() %>%
+      shiny::isolate(val()) %>%
         dplyr::select(-dplyr::any_of('button')) %>%
         gt::gt() %>%
         gt::tab_style(
