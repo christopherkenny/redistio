@@ -64,7 +64,6 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
       ),
       shiny::column( # interactive mapper
         8,
-        #the_javascripts,
         leaflet::leafletOutput(outputId = 'map', height = '100vh')
       ),
       shiny::column( # details area
@@ -149,6 +148,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     # district stats ----
     output$district <- DT::renderDT({
        shiny::isolate(val()) %>%
+        #dplyr::mutate(district = paste0("<p style='color:", palette[district], ";'> &#9632", district, "&#9632</p>")) %>%
         DT::datatable(
           options = list(
             dom = 't', ordering = FALSE, scrollX = TRUE
