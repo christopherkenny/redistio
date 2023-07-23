@@ -48,6 +48,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
 
   # User Interface ----
   ui <- shiny::fluidPage(
+    the_javascripts,
     title = 'redistio',
     theme = opts$theme,
 
@@ -133,15 +134,16 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
                           val(new_tb_pop)
 
                           leaflet::leafletProxy('map', data = shp) %>%
-                            leaflet::clearShapes() %>%
-                            leaflet::addPolygons(
-                              data = shp, layerId = ~redistio_id,
+                            setShapeFillColor(
+                              #data = shp,
+                              layerId = ~redistio_id,
                               # line colors
-                              stroke = TRUE, weight = 1, color = '#000000',
+                              #stroke = TRUE, weight = 1, color = '#000000',
                               # fill control
-                              fillOpacity = 0.95, fillColor = ~pal()(redistio_curr_plan$pl),
-                              # label
-                              label = ~pop
+                              #fillOpacity = 0.95,
+                              fillColor = ~pal()(redistio_curr_plan$pl),
+                              ## label
+                              #label = ~pop
                             )
                         })
 
