@@ -38,7 +38,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
   }
   palette <- as.character(palette)
 
-  shp$redistio_id <- seq_len(length.out = nrow(shp))
+  shp$redistio_id <- as.character(seq_len(length.out = nrow(shp)))
   #shp$redistio_curr_plan <- init_plan
 
   tgt_pop <- sum(shp$pop) / ndists

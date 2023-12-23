@@ -1,4 +1,3 @@
-
 #' Create a tibble of precinct stats
 #'
 #' @param shp `sf` tibble
@@ -11,7 +10,8 @@
 #' @examples
 #' hover_precinct(dc, 1, pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap'))
 hover_precinct <- function(shp, id, ...) {
-  z <- shp %>% sf::st_drop_geometry() %>%
+  z <- shp %>%
+    sf::st_drop_geometry() %>%
     dplyr::slice(id)
 
   lapply(rlang::enquos(...),
