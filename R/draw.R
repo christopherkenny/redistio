@@ -18,7 +18,6 @@
 #'
 draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redistio_options(),
                  save_path = tempfile(fileext = '.baf')) {
-
   if (missing(shp)) {
     stop('`shp` missing, but required.')
   }
@@ -39,7 +38,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
   palette <- as.character(palette)
 
   shp$redistio_id <- as.character(seq_len(length.out = nrow(shp)))
-  #shp$redistio_curr_plan <- init_plan
+  # shp$redistio_curr_plan <- init_plan
 
   tgt_pop <- sum(shp$pop) / ndists
   min_pop <- ceiling(tgt_pop * (1 - pop_tol))
@@ -51,17 +50,18 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     the_javascripts,
     title = 'redistio',
     theme = opts$theme,
-
     shiny::fluidRow(
       shiny::column( # color selector
         2,
-        shinyWidgets::radioGroupButtons(inputId = 'district_s', label = '',
-                                        choiceNames = lapply(seq_len(ndists), function(x){
-                                          shiny::HTML("<p style='color:", palette[x], ";'> &#9632", x, "&#9632</p>")}),
-                                        choiceValues = seq_len(ndists),
-                                        direction = 'vertical', size = 'sm'),
+        shinyWidgets::radioGroupButtons(
+          inputId = 'district_s', label = '',
+          choiceNames = lapply(seq_len(ndists), function(x) {
+            shiny::HTML("<p style='color:", palette[x], ";'> &#9632", x, '&#9632</p>')
+          }),
+          choiceValues = seq_len(ndists),
+          direction = 'vertical', size = 'sm'
+        ),
         DT::DTOutput(outputId = 'district', width = '30vh', height = '50vh')
-
       ),
       shiny::column( # interactive mapper
         8,
@@ -76,12 +76,10 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
         )
       )
     )
-
   )
 
   # Server ----
   server <- function(input, output, session) {
-
     redistio_curr_plan <- shiny::reactiveValues(pl = init_plan)
 
     tab_pop_static <- dplyr::tibble(
@@ -97,7 +95,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     pal <- shiny::reactive({
       leaflet::colorFactor(
         palette = as.character(palette[seq_len(ndists)]),
-        domain = seq_len(ndists))
+        domain = seq_len(ndists)
+      )
     })
 
     output$map <- leaflet::renderLeaflet({
@@ -108,7 +107,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
           # line colors
           stroke = TRUE, weight = 1, color = '#000000',
           # fill control
-          fillOpacity = 0.95, fillColor = ~pal()(redistio_curr_plan$pl),
+          fillOpacity = 0.95, fillColor = ~ pal()(redistio_curr_plan$pl),
           # label
           label = ~pop
         )
@@ -118,53 +117,60 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
       clicked$map_shape_click <- input$map_shape_click
     })
 
-    shiny::observeEvent(eventExpr = clicked$map_shape_click,
-                        handlerExpr = {
-                          click <- clicked$map_shape_click
-                          clicked$map_shape_click <- NULL
-                          if (is.null(click)) {
-                            return(NULL)
-                          }
+    shiny::observeEvent(
+      eventExpr = clicked$map_shape_click,
+      handlerExpr = {
+        click <- clicked$map_shape_click
+        clicked$map_shape_click <- NULL
+        if (is.null(click)) {
+          return(NULL)
+        }
 
-                          idx <- which(shp$redistio_id == click$id)
-                          redistio_curr_plan$pl[idx] <- input$district_s
-                          new_tb_pop <- val()
-                          new_tb_pop$Population <- as.integer(tapply(shp$pop, redistio_curr_plan$pl, sum))
-                          new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - tgt_pop)
-                          val(new_tb_pop)
+        idx <- which(shp$redistio_id == click$id)
+        redistio_curr_plan$pl[idx] <- input$district_s
+        new_tb_pop <- val()
+        new_tb_pop$Population <- as.integer(tapply(shp$pop, redistio_curr_plan$pl, sum))
+        new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - tgt_pop)
+        val(new_tb_pop)
 
-                          leaflet::leafletProxy('map', data = shp) %>%
-                            setShapeFillColor(
-                              #data = shp,
-                              layerId = ~redistio_id,
-                              # line colors
-                              #stroke = TRUE, weight = 1, color = '#000000',
-                              # fill control
-                              #fillOpacity = 0.95,
-                              fillColor = ~pal()(redistio_curr_plan$pl),
-                              ## label
-                              #label = ~pop
-                            )
-                        })
+        leaflet::leafletProxy('map', data = shp) %>%
+          setShapeFillColor(
+            # data = shp,
+            layerId = ~redistio_id,
+            # line colors
+            # stroke = TRUE, weight = 1, color = '#000000',
+            # fill control
+            # fillOpacity = 0.95,
+            fillColor = ~ pal()(redistio_curr_plan$pl),
+            ## label
+            # label = ~pop
+          )
+      }
+    )
 
     # district stats ----
-    output$district <- DT::renderDT({
-       shiny::isolate(val()) %>%
-        #dplyr::mutate(district = paste0("<p style='color:", palette[district], ";'> &#9632", district, "&#9632</p>")) %>%
-        DT::datatable(
-          options = list(
-            dom = 't', ordering = FALSE, scrollX = TRUE
-          ),
-          rownames = FALSE, escape = FALSE,
-          selection = list(target = 'row', mode = 'single', selected = 1)
-        )
-    }, server = TRUE)
+    output$district <- DT::renderDT(
+      {
+        shiny::isolate(val()) %>%
+          # dplyr::mutate(district = paste0("<p style='color:", palette[district], ";'> &#9632", district, "&#9632</p>")) %>%
+          DT::datatable(
+            options = list(
+              dom = 't', ordering = FALSE, scrollX = TRUE
+            ),
+            rownames = FALSE, escape = FALSE,
+            selection = list(target = 'row', mode = 'single', selected = 1)
+          )
+      },
+      server = TRUE
+    )
 
     dt_proxy <- DT::dataTableProxy('district')
 
     shiny::observe({
-      DT::replaceData(proxy = dt_proxy, val(), rownames = FALSE,
-                      resetPaging = FALSE, clearSelection = 'none')
+      DT::replaceData(
+        proxy = dt_proxy, val(), rownames = FALSE,
+        resetPaging = FALSE, clearSelection = 'none'
+      )
     })
 
     output$tab_pop <- gt::render_gt({
@@ -186,12 +192,13 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
 
 
     # precinct stats ----
-    shiny::observeEvent(input$map_shape_mouseover,{
+    shiny::observeEvent(input$map_shape_mouseover, {
       shiny::req(input$map_shape_mouseover)
 
       output$hover <- gt::render_gt({
         hover_precinct(shp, as.integer(input$map_shape_mouseover$id),
-                       pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap')) %>%
+          pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap')
+        ) %>%
           format_alarm_names() %>%
           gt::gt() %>%
           gt::cols_label(V1 = '') %>%
