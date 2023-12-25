@@ -81,6 +81,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
   # Server ----
   server <- function(input, output, session) {
     redistio_curr_plan <- shiny::reactiveValues(pl = init_plan)
+    clicked <- shiny::reactiveValues(clickedMarker = NULL)
 
     tab_pop_static <- dplyr::tibble(
       district = seq_len(ndists),
@@ -90,28 +91,32 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
 
     val <- shiny::reactiveVal(tab_pop_static)
 
-    clicked <- shiny::reactiveValues(clickedMarker = NULL)
-
-    pal <- shiny::reactive({
-      leaflet::colorFactor(
+    pal <- leaflet::colorFactor(
         palette = as.character(palette[seq_len(ndists)]),
         domain = seq_len(ndists)
       )
-    })
 
     output$map <- leaflet::renderLeaflet({
-      leaflet::leaflet(data = shp) %>%
-        leaflet::addTiles() %>%
-        leaflet::addPolygons(
-          layerId = ~redistio_id,
-          # line colors
-          stroke = TRUE, weight = 1, color = '#000000',
-          # fill control
-          fillOpacity = 0.95, fillColor = ~ pal()(redistio_curr_plan$pl),
-          # label
+        leaflet::leaflet(data = shp) %>%
+          leaflet::addTiles() %>%
+           leaflet::addPolygons(
+             layerId = ~redistio_id,
+          #   # line colors
+          weight = 1, #color = '#000000',
           label = ~pop
-        )
+           )
     })
+
+    observe({
+      leafletProxy("map", data = shp) %>%
+        setShapeStyle(layerId = ~redistio_id, fillColor=~pal(init_plan), #scolor = ~pal(init_plan),
+                      stroke = TRUE, weight = 1,
+                      color = '#000000',
+                      fillOpacity = 0.95)
+                      ## label
+                      #label = ~pop)
+    })
+
 
     shiny::observeEvent(input$map_shape_click, {
       clicked$map_shape_click <- input$map_shape_click
@@ -134,19 +139,19 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
         val(new_tb_pop)
 
         leaflet::leafletProxy('map', data = shp) %>%
-          setShapeFillColor(
+          setShapeStyle(
             # data = shp,
             layerId = ~redistio_id,
             # line colors
-            # stroke = TRUE, weight = 1, color = '#000000',
+            stroke = TRUE, weight = 1,
+            color = '#000000',
             # fill control
-            # fillOpacity = 0.95,
-            fillColor = ~ pal()(redistio_curr_plan$pl),
+            fillOpacity = 0.95,
+            fillColor = ~ pal(redistio_curr_plan$pl)#,
             ## label
-            # label = ~pop
+            #label = ~pop
           )
-      }
-    )
+      })
 
     # district stats ----
     output$district <- DT::renderDT(
