@@ -1,5 +1,4 @@
-# adopted from https://github.com/rstudio/leaflet/issues/496
-setShapeStyle <- function(map, data = getMapData(map), layerId,
+setShapeStyle <- function(map, data = leaflet::getMapData(map), layerId,
                           stroke = NULL, color = NULL,
                           weight = NULL, opacity = NULL,
                           fill = NULL, fillColor = NULL,
@@ -9,23 +8,26 @@ setShapeStyle <- function(map, data = getMapData(map), layerId,
   options <- c(
     list(layerId = layerId),
     options,
-    leaflet::filterNULL(list(
-      stroke = stroke, color = color,
-      weight = weight, opacity = opacity,
-      fill = fill, fillColor = fillColor,
-      fillOpacity = fillOpacity, dashArray = dashArray,
-      smoothFactor = smoothFactor, noClip = noClip
-    ))
+    leaflet::filterNULL(
+      list(
+        stroke = stroke, color = color,
+        weight = weight, opacity = opacity,
+        fill = fill, fillColor = fillColor,
+        fillOpacity = fillOpacity, dashArray = dashArray,
+        smoothFactor = smoothFactor, noClip = noClip
+      )
+    )
   )
+  # evaluate all options
   options <- leaflet::evalFormula(options, data = data)
-  options <- dplyr::bind_cols(options)
-  layerId <- dplyr::select(options, .data$layerId)
-  style <- dplyr::select(options, -.data$layerId)
+  # make them the same length (by building a data.frame)
+  options <- do.call(data.frame, c(options, list(stringsAsFactors = FALSE)))
 
-  leaflet::invokeMethod(
-    map = map, data = data, method = 'setStyle',
-    'shape', layerId, style
-  )
+  layerId <- options[[1]]
+  style <- options[-1] # drop layer column
+
+  # print(list(style=style))
+  leaflet::invokeMethod(map, data, 'setStyle', 'shape', layerId, style)
 }
 
 the_javascripts <- shiny::tags$head(

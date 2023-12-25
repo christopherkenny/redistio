@@ -92,29 +92,31 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     val <- shiny::reactiveVal(tab_pop_static)
 
     pal <- leaflet::colorFactor(
-        palette = as.character(palette[seq_len(ndists)]),
-        domain = seq_len(ndists)
-      )
+      palette = as.character(palette[seq_len(ndists)]),
+      domain = seq_len(ndists)
+    )
 
     output$map <- leaflet::renderLeaflet({
-        leaflet::leaflet(data = shp) %>%
-          leaflet::addTiles() %>%
-           leaflet::addPolygons(
-             layerId = ~redistio_id,
-          #   # line colors
-          weight = 1, #color = '#000000',
+      leaflet::leaflet(data = shp) %>%
+        leaflet::addTiles() %>%
+        leaflet::addPolygons(
+          layerId = ~redistio_id,
+          weight = 1,
           label = ~pop
-           )
+        )
     })
 
     observe({
-      leafletProxy("map", data = shp) %>%
-        setShapeStyle(layerId = ~redistio_id, fillColor=~pal(init_plan), #scolor = ~pal(init_plan),
-                      stroke = TRUE, weight = 1,
-                      color = '#000000',
-                      fillOpacity = 0.95)
-                      ## label
-                      #label = ~pop)
+      leaflet::leafletProxy("map", data = shp) %>%
+        setShapeStyle(
+          layerId = ~redistio_id,
+          fillColor = ~pal(init_plan),
+          #color = ~pal(init_plan),
+          stroke = TRUE,
+          weight = 1,
+          color = '#000000',
+          fillOpacity = 0.95
+        )
     })
 
 
@@ -147,9 +149,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
             color = '#000000',
             # fill control
             fillOpacity = 0.95,
-            fillColor = ~ pal(redistio_curr_plan$pl)#,
-            ## label
-            #label = ~pop
+            fillColor = ~ pal(redistio_curr_plan$pl)
           )
       })
 
@@ -202,7 +202,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
 
       output$hover <- gt::render_gt({
         hover_precinct(shp, as.integer(input$map_shape_mouseover$id),
-          pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap')
+                       pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap')
         ) %>%
           format_alarm_names() %>%
           gt::gt() %>%
