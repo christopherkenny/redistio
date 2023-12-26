@@ -25,7 +25,8 @@ Imports:
     stringr,
     tibble,
     purrr,
-    DT
+    DT,
+    scales
 Depends: 
     R (>= 2.10)
 LazyData: true

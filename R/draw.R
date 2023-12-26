@@ -112,7 +112,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
         )
     })
 
-    observe({
+    shiny::observe({
       leaflet::leafletProxy('map', data = shp) %>%
         setShapeStyle(
           layerId = ~redistio_id,
