@@ -1,5 +1,5 @@
-redistio_options <- function(...) {
+redistio_options <- function(theme = 'darkly', ...) {
   list(
-    theme = bslib::bs_theme(bootswatch = 'darkly')
+    theme = bslib::bs_theme(bootswatch = theme)
   )
 }

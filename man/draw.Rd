@@ -15,7 +15,7 @@ draw(
 )
 }
 \arguments{
-\item{shp}{\code{sf} tibble that you want to draw with}
+\item{shp}{an \code{sf} tibble that you want to draw with}
 
 \item{init_plan}{Plan to initialize with.}
 

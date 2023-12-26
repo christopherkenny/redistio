@@ -1,6 +1,6 @@
 #' Interactive Plan Drawing
 #'
-#' @param shp `sf` tibble that you want to draw with
+#' @param shp an `sf` tibble that you want to draw with
 #' @param init_plan Plan to initialize with.
 #' @param ndists Number of districts to draw if `init_plan` is not supplied.
 #' @param palette Color palette to fill shapes with. Default is Polychrome 36.
@@ -36,13 +36,30 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     palette <- grDevices::palette.colors(n = ndists, 'Polychrome 36')
   }
   palette <- as.character(palette)
+  if (length(palette) != ndists) {
+    if (length(palette) > ndists) {
+      palette <- palette[seq_len(ndists)]
+    } else {
+      if (length(palette) < 1) {
+        stop('`palette` must have at least one color.')
+      }
+      palette <- rep(palette, ceiling(ndists/length(palette)))[seq_len(ndists)]
+    }
+  }
 
   shp$redistio_id <- as.character(seq_len(length.out = nrow(shp)))
   # shp$redistio_curr_plan <- init_plan
 
-  # handle hover ----
+  # prep hover ----
   shp_tb <- shp |>
     sf::st_drop_geometry()
+
+  hov <- hover_precinct(shp_tb, seq_len(nrow(shp_tb)),
+                 pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap')
+  ) %>%
+    format_alarm_names()
+
+  # other prep ----
 
   tgt_pop <- sum(shp$pop) / ndists
   min_pop <- ceiling(tgt_pop * (1 - pop_tol))
@@ -213,13 +230,11 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
 
       if (input$tabRight == 'Precinct') {
         output$hover <- gt::render_gt({
-          hover_precinct(shp, as.integer(input$map_shape_mouseover$id),
-            pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap')
-          ) %>%
-            format_alarm_names() %>%
+          hov |>
+            dplyr::select('group', 'rowname', paste0('V', input$map_shape_mouseover$id)) |>
             gt::gt() %>%
-            gt::cols_label(V1 = '') %>%
-            #gt::cols_label_with(fn = format_alarm_names) %>%
+            gt::cols_label_with(columns = gt::starts_with('V'), fn = function(x) '') %>%
+            # #gt::cols_hide(dplyr::starts_with('V')) %>%
             gt::tab_style(
               style = list(
                 gt::cell_text(align = 'left')
@@ -228,7 +243,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
             ) %>%
             gt::tab_options(
               data_row.padding = gt::px(0.5)
-            )
+            ) %>%
+            gt::fmt_number(columns = gt::starts_with('V'), decimals = 0)
         })
       }
     })
