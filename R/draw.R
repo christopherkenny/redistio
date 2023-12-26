@@ -56,8 +56,9 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
 
   hov <- hover_precinct(shp_tb, seq_len(nrow(shp_tb)),
                  pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap')
-  ) %>%
-    format_alarm_names()
+  ) |>
+    format_alarm_names() |>
+    dplyr::mutate(dplyr::across(dplyr::starts_with('V'), scales::label_comma()))
 
   # other prep ----
 
@@ -191,7 +192,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
             ),
             rownames = FALSE, escape = FALSE,
             selection = list(target = 'row', mode = 'single', selected = 1)
-          )
+          ) |>
+          DT::formatRound(columns = c('Population', 'Deviation'), digits = 0)
       },
       server = TRUE
     )
@@ -243,8 +245,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
             ) %>%
             gt::tab_options(
               data_row.padding = gt::px(0.5)
-            ) %>%
-            gt::fmt_number(columns = gt::starts_with('V'), decimals = 0)
+            )# %>%
+            # gt::fmt_number(columns = gt::starts_with('V'), decimals = 0)
         })
       }
     })
