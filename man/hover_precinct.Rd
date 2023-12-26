@@ -2,14 +2,12 @@
 % Please edit documentation in R/hover_precinct.R
 \name{hover_precinct}
 \alias{hover_precinct}
-\title{Create a tibble of precinct stats}
+\title{Create a \code{tibble} of precinct stats}
 \usage{
-hover_precinct(shp, id, ...)
+hover_precinct(shp, ...)
 }
 \arguments{
-\item{shp}{\code{sf} tibble}
-
-\item{id}{integer row number}
+\item{shp}{a \link[tibble:tibble]{tibble::tibble} with precinct stats}
 
 \item{...}{named tidyselections}
 }
@@ -17,7 +15,7 @@ hover_precinct(shp, id, ...)
 A \link[tibble:tibble]{tibble::tibble}
 }
 \description{
-Create a tibble of precinct stats
+Create a \code{tibble} of precinct stats
 }
 \examples{
 hover_precinct(dc, 1, pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap'))

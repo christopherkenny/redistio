@@ -1,7 +1,6 @@
 #' Create a `tibble` of precinct stats
 #'
 #' @param shp a [tibble::tibble] with precinct stats
-#' @param id integer row number
 #' @param ... named tidyselections
 #'
 #' @return A [tibble::tibble]
@@ -9,13 +8,13 @@
 #'
 #' @examples
 #' hover_precinct(dc, 1, pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap'))
-hover_precinct <- function(shp, id, ...) {
+hover_precinct <- function(shp, ...) {
   if (inherits(shp, 'sf')) {
     shp <- sf::st_drop_geometry(shp)
   }
 
-  shp <- shp |>
-    dplyr::slice(id)
+  # shp <- shp |>
+  #   dplyr::slice(id)
 
   lapply(rlang::enquos(...),
          function(ooo) {
@@ -25,7 +24,7 @@ hover_precinct <- function(shp, id, ...) {
              as.data.frame() |>
              tibble::rownames_to_column() |>
              tibble::as_tibble()
-         }) |>
-    dplyr::bind_rows(.id = 'group')
+         }) #|>
+   # dplyr::bind_rows(.id = 'group')
 }
 

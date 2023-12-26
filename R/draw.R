@@ -54,9 +54,10 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
   shp_tb <- shp |>
     sf::st_drop_geometry()
 
-  hov <- hover_precinct(shp_tb, seq_len(nrow(shp_tb)),
+  hov <- hover_precinct(shp_tb, #seq_len(nrow(shp_tb)),
                  pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap')
   ) |>
+    dplyr::bind_rows(.id = 'group') |>
     format_alarm_names() |>
     dplyr::mutate(dplyr::across(dplyr::starts_with('V'), scales::label_comma()))
 
