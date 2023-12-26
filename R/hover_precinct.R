@@ -10,19 +10,19 @@
 #' @examples
 #' hover_precinct(dc, 1, pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap'))
 hover_precinct <- function(shp, id, ...) {
-  z <- shp %>%
-    sf::st_drop_geometry() %>%
+  shp <- shp |>
+    sf::st_drop_geometry() |>
     dplyr::slice(id)
 
   lapply(rlang::enquos(...),
          function(ooo) {
-           z %>%
-             dplyr::select(!!ooo) %>%
-             t() %>%
-             as.data.frame() %>%
-             tibble::rownames_to_column() %>%
+           shp |>
+             dplyr::select(!!ooo) |>
+             t() |>
+             as.data.frame() |>
+             tibble::rownames_to_column() |>
              tibble::as_tibble()
-         }) %>%
+         }) |>
     dplyr::bind_rows(.id = 'group')
 }
 

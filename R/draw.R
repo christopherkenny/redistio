@@ -40,10 +40,15 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
   shp$redistio_id <- as.character(seq_len(length.out = nrow(shp)))
   # shp$redistio_curr_plan <- init_plan
 
+  # handle hover ----
+  shp_tb <- shp |>
+    sf::st_drop_geometry()
+
   tgt_pop <- sum(shp$pop) / ndists
   min_pop <- ceiling(tgt_pop * (1 - pop_tol))
   max_pop <- floor(tgt_pop * (1 + pop_tol))
   tgt_pop <- as.integer(round(tgt_pop))
+  pretty_bounds <- paste0('Population must be in [', scales::label_comma()(min_pop), ', ', scales::label_comma()(max_pop), '].')
 
   # User Interface ----
   ui <- shiny::fluidPage(
@@ -69,6 +74,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
       ),
       shiny::column( # details area
         2, shiny::tabsetPanel(
+          id = 'tabRight',
           shiny::tabPanel('Population', gt::gt_output('tab_pop')),
           shiny::tabPanel('Precinct', gt::gt_output('hover')),
           shiny::tabPanel('Download', shiny::downloadButton('save_plan')),
@@ -107,11 +113,11 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     })
 
     observe({
-      leaflet::leafletProxy("map", data = shp) %>%
+      leaflet::leafletProxy('map', data = shp) %>%
         setShapeStyle(
           layerId = ~redistio_id,
-          fillColor = ~pal(init_plan),
-          #color = ~pal(init_plan),
+          fillColor = ~ pal(init_plan),
+          # color = ~pal(init_plan),
           stroke = TRUE,
           weight = 1,
           color = '#000000',
@@ -135,10 +141,13 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
 
         idx <- which(shp$redistio_id == click$id)
         redistio_curr_plan$pl[idx] <- input$district_s
-        new_tb_pop <- val()
-        new_tb_pop$Population <- as.integer(tapply(shp$pop, redistio_curr_plan$pl, sum))
-        new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - tgt_pop)
-        val(new_tb_pop)
+        if (input$tabRight == 'Population') {
+          new_tb_pop <- val()
+          new_tb_pop$Population <- as.integer(tapply(shp$pop, redistio_curr_plan$pl, sum))
+          new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - tgt_pop)
+          val(new_tb_pop)
+        }
+
 
         leaflet::leafletProxy('map', data = shp) %>%
           setShapeStyle(
@@ -151,7 +160,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
             fillOpacity = 0.95,
             fillColor = ~ pal(redistio_curr_plan$pl)
           )
-      })
+      }
+    )
 
     # district stats ----
     output$district <- DT::renderDT(
@@ -190,8 +200,9 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
         gt::cols_label(
           district = ''
         ) %>%
+        gt::fmt_number(columns = c('Population', 'Deviation'), decimals = 0) %>%
         gt::tab_footnote(
-          footnote = paste0('Population must be in [', min_pop, ', ', max_pop, '].')
+          footnote = pretty_bounds
         )
     })
 
@@ -200,23 +211,25 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     shiny::observeEvent(input$map_shape_mouseover, {
       shiny::req(input$map_shape_mouseover)
 
-      output$hover <- gt::render_gt({
-        hover_precinct(shp, as.integer(input$map_shape_mouseover$id),
-                       pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap')
-        ) %>%
-          format_alarm_names() %>%
-          gt::gt() %>%
-          gt::cols_label(V1 = '') %>%
-          gt::tab_style(
-            style = list(
-              gt::cell_text(align = 'left')
-            ),
-            locations = gt::cells_stub(rows = TRUE)
+      if (input$tabRight == 'Precinct') {
+        output$hover <- gt::render_gt({
+          hover_precinct(shp, as.integer(input$map_shape_mouseover$id),
+            pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap')
           ) %>%
-          gt::tab_options(
-            data_row.padding = gt::px(0.5)
-          )
-      })
+            gt::gt() %>%
+            gt::cols_label(V1 = '') %>%
+            gt::cols_label_with(fn = format_alarm_names) %>%
+            gt::tab_style(
+              style = list(
+                gt::cell_text(align = 'left')
+              ),
+              locations = gt::cells_stub(rows = TRUE)
+            ) %>%
+            gt::tab_options(
+              data_row.padding = gt::px(0.5)
+            )
+        })
+      }
     })
 
     # downloader ----
