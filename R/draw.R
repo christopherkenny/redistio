@@ -57,13 +57,9 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
   hov <- hover_precinct(shp_tb, #seq_len(nrow(shp_tb)),
                  pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap')
   ) |>
-    #dplyr::bind_rows(.id = 'group') |>
-    lapply(function(x) {
-      x |>
-        #format_alarm_names() |>
-        dplyr::mutate(dplyr::across(dplyr::starts_with('V'), scales::label_comma()))
-    })
-
+    dplyr::bind_rows(.id = 'group') |>
+    format_alarm_names() |>
+    dplyr::mutate(dplyr::across(dplyr::starts_with('V'), scales::label_comma()))
 
   # other prep ----
 
@@ -99,7 +95,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
         2, shiny::tabsetPanel(
           id = 'tabRight',
           shiny::tabPanel('Population', gt::gt_output('tab_pop')),
-          shiny::tabPanel('Precinct', shiny::uiOutput('hover')),
+          shiny::tabPanel('Precinct', gt::gt_output('hover')),
           shiny::tabPanel('Download', shiny::downloadButton('save_plan')),
           selected = 'Precinct'
         )
@@ -236,24 +232,22 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
       shiny::req(input$map_shape_mouseover)
 
       if (input$tabRight == 'Precinct') {
-        for (i in seq_len(length(hov))) {
-          output[[paste0('hover', i)]] <- DT::renderDT({
-            hov[[i]] |>
-              dplyr::select(#'group',
-                'rowname', paste0('V', input$map_shape_mouseover$id)) |>
-              DT::datatable(
-                options = list(
-                  dom = 't', ordering = FALSE, scrollX = TRUE
-                )
-              ) |>
-              DT::formatRound(columns = paste0('V', input$map_shape_mouseover$id), digits = 0)
-          })
-
-        }
-        output$hover <- shiny::renderUI({
-          lapply(seq_len(length(hov)), function(i) {
-            DT::dataTableOutput(paste0('hover', i))
-          })
+        output$hover <- gt::render_gt({
+          hov |>
+            dplyr::select('group', 'rowname', paste0('V', input$map_shape_mouseover$id)) |>
+            gt::gt() %>%
+            gt::cols_label_with(columns = gt::starts_with('V'), fn = function(x) '') %>%
+            # #gt::cols_hide(dplyr::starts_with('V')) %>%
+            gt::tab_style(
+              style = list(
+                gt::cell_text(align = 'left')
+              ),
+              locations = gt::cells_stub(rows = TRUE)
+            ) %>%
+            gt::tab_options(
+              data_row.padding = gt::px(0.5)
+            )# %>%
+            # gt::fmt_number(columns = gt::starts_with('V'), decimals = 0)
         })
       }
     })
