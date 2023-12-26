@@ -216,9 +216,10 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
           hover_precinct(shp, as.integer(input$map_shape_mouseover$id),
             pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap')
           ) %>%
+            format_alarm_names() %>%
             gt::gt() %>%
             gt::cols_label(V1 = '') %>%
-            gt::cols_label_with(fn = format_alarm_names) %>%
+            #gt::cols_label_with(fn = format_alarm_names) %>%
             gt::tab_style(
               style = list(
                 gt::cell_text(align = 'left')
