@@ -69,22 +69,27 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
   pretty_bounds <- paste0('Population must be in [', scales::label_comma()(min_pop), ', ', scales::label_comma()(max_pop), '].')
 
   # User Interface ----
+  if (!is.null(opts$select_color)) {
+    selection_html <- shiny::tags$style(
+      shiny::HTML(
+        paste0(
+          'table.dataTable tr.active td, table.dataTable tr.active ',
+               '{box-shadow: inset 0 0 0 9999px ',  opts$select_color,
+               '!important;}')
+        )
+    )
+  } else {
+    selection_html <- NULL
+  }
   ui <- shiny::fluidPage(
     the_javascripts,
+    selection_html,
     title = 'redistio',
-    theme = opts$theme,
+    theme = ifelse(is.character(opts$theme), bslib::bs_theme(preset = opts$theme), opts$theme),
     shiny::fluidRow(
       shiny::column( # color selector
         2,
-        shinyWidgets::radioGroupButtons(
-          inputId = 'district_s', label = '',
-          choiceNames = lapply(seq_len(ndists), function(x) {
-            shiny::HTML("<p style='color:", palette[x], ";'> &#9632", x, '&#9632</p>')
-          }),
-          choiceValues = seq_len(ndists),
-          direction = 'vertical', size = 'sm'
-        ),
-        DT::DTOutput(outputId = 'district', width = '30vh', height = '50vh')
+        DT::DTOutput(outputId = 'district', width = '30vh', height = 'auto')
       ),
       shiny::column( # interactive mapper
         8,
@@ -108,7 +113,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     clicked <- shiny::reactiveValues(clickedMarker = NULL)
 
     tab_pop_static <- dplyr::tibble(
-      district = seq_len(ndists),
+      District = paste0("<p style='background-color:", palette[seq_len(ndists)], "; text-align:center;'> ", seq_len(ndists), " </p>"),
       Population = as.integer(tapply(shp$pop, init_plan, sum)),
       Deviation = as.integer(.data$Population - tgt_pop)
     )
@@ -158,14 +163,11 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
         }
 
         idx <- which(shp$redistio_id == click$id)
-        redistio_curr_plan$pl[idx] <- input$district_s
-        if (input$tabRight == 'Population') {
-          new_tb_pop <- val()
-          new_tb_pop$Population <- as.integer(tapply(shp$pop, redistio_curr_plan$pl, sum))
-          new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - tgt_pop)
-          val(new_tb_pop)
-        }
-
+        redistio_curr_plan$pl[idx] <- input$district_rows_selected
+        new_tb_pop <- val()
+        new_tb_pop$Population <- as.integer(tapply(shp$pop, redistio_curr_plan$pl, sum))
+        new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - tgt_pop)
+        val(new_tb_pop)
 
         leaflet::leafletProxy('map', data = shp) %>%
           setShapeStyle(
@@ -184,14 +186,15 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     # district stats ----
     output$district <- DT::renderDT(
       {
-        shiny::isolate(val()) %>%
-          # dplyr::mutate(district = paste0("<p style='color:", palette[district], ";'> &#9632", district, "&#9632</p>")) %>%
+        x <- shiny::isolate(val()) %>%
           DT::datatable(
             options = list(
               dom = 't', ordering = FALSE, scrollX = TRUE
             ),
-            rownames = FALSE, escape = FALSE,
-            selection = list(target = 'row', mode = 'single', selected = 1)
+            style = 'bootstrap',
+          rownames = FALSE,
+          escape = FALSE,
+          selection = list(target = 'row', mode = 'single', selected = 1)
           ) |>
           DT::formatRound(columns = c('Population', 'Deviation'), digits = 0)
       },
@@ -209,6 +212,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
 
     output$tab_pop <- gt::render_gt({
       val() %>%
+        dplyr::mutate(District = stringr::str_extract(.data$District, ' \\d+ ')) |>
         gt::gt() %>%
         gt::tab_style(
           style = gt::cell_fill(color = 'red'),
@@ -217,7 +221,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
           )
         ) %>%
         gt::cols_label(
-          district = ''
+          District = ''
         ) %>%
         gt::fmt_number(columns = c('Population', 'Deviation'), decimals = 0) %>%
         gt::tab_footnote(
@@ -250,7 +254,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
               gt::tab_options(
                 data_row.padding = gt::px(0.5)
               ) %>%
-            gt::fmt_number(columns = gt::starts_with('V'), decimals = 0)
+              gt::fmt_number(columns = gt::starts_with('V'), decimals = 0)
           })
         }
       }
