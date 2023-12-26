@@ -37,28 +37,24 @@
 </nav><div class="container template-reference-topic">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="" class="logo" alt=""><h1>Create a tibble of precinct stats</h1>
+      <img src="" class="logo" alt=""><h1>Create a <code>tibble</code> of precinct stats</h1>
       <small class="dont-index">Source: <a href="https://github.com/christopherkenny/redistio/blob/HEAD/R/hover_precinct.R" class="external-link"><code>R/hover_precinct.R</code></a></small>
       <div class="d-none name"><code>hover_precinct.Rd</code></div>
     </div>
 
     <div class="ref-description section level2">
-    <p>Create a tibble of precinct stats</p>
+    <p>Create a <code>tibble</code> of precinct stats</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">hover_precinct</span><span class="op">(</span><span class="va">shp</span>, <span class="va">id</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">hover_precinct</span><span class="op">(</span><span class="va">shp</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>shp</dt>
-<dd><p><code>sf</code> tibble</p></dd>
-
-
-<dt>id</dt>
-<dd><p>integer row number</p></dd>
+<dd><p>a <a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble::tibble</a> with precinct stats</p></dd>
 
 
 <dt>...</dt>
@@ -77,27 +73,61 @@
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">hover_precinct</span><span class="op">(</span><span class="va">dc</span>, <span class="fl">1</span>, pop <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">'pop'</span><span class="op">)</span>, vap <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">'vap'</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 18 × 3</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    group rowname      V1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> pop   pop        <span style="text-decoration: underline;">9</span>944</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> pop   pop_hisp    840</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> pop   pop_white  <span style="text-decoration: underline;">4</span>185</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> pop   pop_black  <span style="text-decoration: underline;">3</span>418</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> pop   pop_aian     12</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> pop   pop_asian  <span style="text-decoration: underline;">1</span>020</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> pop   pop_nhpi     11</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> pop   pop_other    39</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> pop   pop_two     419</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> vap   vap        <span style="text-decoration: underline;">8</span>803</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">11</span> vap   vap_hisp    778</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">12</span> vap   vap_white  <span style="text-decoration: underline;">4</span>122</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">13</span> vap   vap_black  <span style="text-decoration: underline;">2</span>509</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">14</span> vap   vap_aian     11</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">15</span> vap   vap_asian   979</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">16</span> vap   vap_nhpi     11</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">17</span> vap   vap_other    32</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">18</span> vap   vap_two     361</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 1 × 144</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   rowname V1         V2    V3    V4    V5    V6    V7    V8    V9    V10   V11  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> GEOID20 1100102-0… 1100… 1100… 1100… 1100… 1100… 1100… 1100… 1100… 1100… 1100…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 132 more variables: V12 &lt;chr&gt;, V13 &lt;chr&gt;, V14 &lt;chr&gt;, V15 &lt;chr&gt;, V16 &lt;chr&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   V17 &lt;chr&gt;, V18 &lt;chr&gt;, V19 &lt;chr&gt;, V20 &lt;chr&gt;, V21 &lt;chr&gt;, V22 &lt;chr&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   V23 &lt;chr&gt;, V24 &lt;chr&gt;, V25 &lt;chr&gt;, V26 &lt;chr&gt;, V27 &lt;chr&gt;, V28 &lt;chr&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   V29 &lt;chr&gt;, V30 &lt;chr&gt;, V31 &lt;chr&gt;, V32 &lt;chr&gt;, V33 &lt;chr&gt;, V34 &lt;chr&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   V35 &lt;chr&gt;, V36 &lt;chr&gt;, V37 &lt;chr&gt;, V38 &lt;chr&gt;, V39 &lt;chr&gt;, V40 &lt;chr&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   V41 &lt;chr&gt;, V42 &lt;chr&gt;, V43 &lt;chr&gt;, V44 &lt;chr&gt;, V45 &lt;chr&gt;, V46 &lt;chr&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   V47 &lt;chr&gt;, V48 &lt;chr&gt;, V49 &lt;chr&gt;, V50 &lt;chr&gt;, V51 &lt;chr&gt;, V52 &lt;chr&gt;, …</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $pop</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 9 × 144</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   rowname      V1    V2    V3    V4    V5    V6    V7    V8    V9   V10   V11</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> pop        <span style="text-decoration: underline;">9</span>944  <span style="text-decoration: underline;">6</span>908  <span style="text-decoration: underline;">6</span>354  <span style="text-decoration: underline;">6</span>532  <span style="text-decoration: underline;">4</span>823 <span style="text-decoration: underline;">10</span>853  <span style="text-decoration: underline;">3</span>327  <span style="text-decoration: underline;">6</span>178  <span style="text-decoration: underline;">5</span>809  <span style="text-decoration: underline;">5</span>795  <span style="text-decoration: underline;">7</span>794</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> pop_hisp    840   715   595   602   456  <span style="text-decoration: underline;">1</span>023   330   434   684   608   836</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> pop_white  <span style="text-decoration: underline;">4</span>185  <span style="text-decoration: underline;">4</span>090  <span style="text-decoration: underline;">3</span>855  <span style="text-decoration: underline;">4</span>375  <span style="text-decoration: underline;">3</span>765  <span style="text-decoration: underline;">7</span>405  <span style="text-decoration: underline;">2</span>178  <span style="text-decoration: underline;">4</span>662  <span style="text-decoration: underline;">3</span>692  <span style="text-decoration: underline;">3</span>952  <span style="text-decoration: underline;">5</span>275</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> pop_black  <span style="text-decoration: underline;">3</span>418   644   367   286   103   579   208   275   489   391   473</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">5</span> pop_aian     12    16    16     3     4    10     0     6     2     1    12</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">6</span> pop_asian  <span style="text-decoration: underline;">1</span>020  <span style="text-decoration: underline;">1</span>076  <span style="text-decoration: underline;">1</span>251   954   266  <span style="text-decoration: underline;">1</span>191   386   407   739   527   732</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">7</span> pop_nhpi     11    14     0     2     2     9     3     3     0     0     3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">8</span> pop_other    39    31    44    27    25    60    25    55    15    21    53</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">9</span> pop_two     419   322   226   283   202   576   197   336   188   295   410</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 132 more variables: V12 &lt;dbl&gt;, V13 &lt;dbl&gt;, V14 &lt;dbl&gt;, V15 &lt;dbl&gt;, V16 &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   V17 &lt;dbl&gt;, V18 &lt;dbl&gt;, V19 &lt;dbl&gt;, V20 &lt;dbl&gt;, V21 &lt;dbl&gt;, V22 &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   V23 &lt;dbl&gt;, V24 &lt;dbl&gt;, V25 &lt;dbl&gt;, V26 &lt;dbl&gt;, V27 &lt;dbl&gt;, V28 &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   V29 &lt;dbl&gt;, V30 &lt;dbl&gt;, V31 &lt;dbl&gt;, V32 &lt;dbl&gt;, V33 &lt;dbl&gt;, V34 &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   V35 &lt;dbl&gt;, V36 &lt;dbl&gt;, V37 &lt;dbl&gt;, V38 &lt;dbl&gt;, V39 &lt;dbl&gt;, V40 &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   V41 &lt;dbl&gt;, V42 &lt;dbl&gt;, V43 &lt;dbl&gt;, V44 &lt;dbl&gt;, V45 &lt;dbl&gt;, V46 &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   V47 &lt;dbl&gt;, V48 &lt;dbl&gt;, V49 &lt;dbl&gt;, V50 &lt;dbl&gt;, V51 &lt;dbl&gt;, V52 &lt;dbl&gt;, …</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $vap</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 9 × 144</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   rowname      V1    V2    V3    V4    V5    V6    V7    V8    V9   V10   V11</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> vap        <span style="text-decoration: underline;">8</span>803  <span style="text-decoration: underline;">6</span>804  <span style="text-decoration: underline;">6</span>170  <span style="text-decoration: underline;">6</span>225  <span style="text-decoration: underline;">4</span>217 <span style="text-decoration: underline;">10</span>004  <span style="text-decoration: underline;">2</span>669  <span style="text-decoration: underline;">4</span>780  <span style="text-decoration: underline;">5</span>216  <span style="text-decoration: underline;">5</span>018  <span style="text-decoration: underline;">6</span>749</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> vap_hisp    778   701   572   566   371   929   237   322   624   509   689</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> vap_white  <span style="text-decoration: underline;">4</span>122  <span style="text-decoration: underline;">4</span>045  <span style="text-decoration: underline;">3</span>766  <span style="text-decoration: underline;">4</span>202  <span style="text-decoration: underline;">3</span>342  <span style="text-decoration: underline;">6</span>818  <span style="text-decoration: underline;">1</span>790  <span style="text-decoration: underline;">3</span>616  <span style="text-decoration: underline;">3</span>247  <span style="text-decoration: underline;">3</span>455  <span style="text-decoration: underline;">4</span>634</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> vap_black  <span style="text-decoration: underline;">2</span>509   630   365   263    92   556   176   228   480   351   418</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">5</span> vap_aian     11    16    14     3     2    10     0     6     2     0    12</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">6</span> vap_asian   979  <span style="text-decoration: underline;">1</span>059  <span style="text-decoration: underline;">1</span>220   918   249  <span style="text-decoration: underline;">1</span>156   321   378   718   475   664</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">7</span> vap_nhpi     11    11     0     2     1     9     3     3     0     0     2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">8</span> vap_other    32    30    35    20    23    49    24    39    13    19    35</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">9</span> vap_two     361   312   198   251   137   477   118   188   132   209   295</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 132 more variables: V12 &lt;dbl&gt;, V13 &lt;dbl&gt;, V14 &lt;dbl&gt;, V15 &lt;dbl&gt;, V16 &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   V17 &lt;dbl&gt;, V18 &lt;dbl&gt;, V19 &lt;dbl&gt;, V20 &lt;dbl&gt;, V21 &lt;dbl&gt;, V22 &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   V23 &lt;dbl&gt;, V24 &lt;dbl&gt;, V25 &lt;dbl&gt;, V26 &lt;dbl&gt;, V27 &lt;dbl&gt;, V28 &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   V29 &lt;dbl&gt;, V30 &lt;dbl&gt;, V31 &lt;dbl&gt;, V32 &lt;dbl&gt;, V33 &lt;dbl&gt;, V34 &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   V35 &lt;dbl&gt;, V36 &lt;dbl&gt;, V37 &lt;dbl&gt;, V38 &lt;dbl&gt;, V39 &lt;dbl&gt;, V40 &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   V41 &lt;dbl&gt;, V42 &lt;dbl&gt;, V43 &lt;dbl&gt;, V44 &lt;dbl&gt;, V45 &lt;dbl&gt;, V46 &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   V47 &lt;dbl&gt;, V48 &lt;dbl&gt;, V49 &lt;dbl&gt;, V50 &lt;dbl&gt;, V51 &lt;dbl&gt;, V52 &lt;dbl&gt;, …</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
