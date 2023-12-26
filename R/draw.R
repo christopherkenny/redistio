@@ -55,11 +55,10 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     sf::st_drop_geometry()
 
   hov <- hover_precinct(shp_tb, #seq_len(nrow(shp_tb)),
-                 pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap')
+                        pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap')
   ) |>
     dplyr::bind_rows(.id = 'group') |>
-    format_alarm_names() |>
-    dplyr::mutate(dplyr::across(dplyr::starts_with('V'), scales::label_comma()))
+    format_alarm_names()
 
   # other prep ----
 
@@ -226,29 +225,34 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
         )
     })
 
+    # reactive mouseover
+    hov_reac <- shiny::reactive({
+      input$map_shape_mouseover
+    })
+    hov_reac_d <- shiny::debounce(hov_reac, 100)
 
     # precinct stats ----
-    shiny::observeEvent(input$map_shape_mouseover, {
-      shiny::req(input$map_shape_mouseover)
-
-      if (input$tabRight == 'Precinct') {
-        output$hover <- gt::render_gt({
-          hov |>
-            dplyr::select('group', 'rowname', paste0('V', input$map_shape_mouseover$id)) |>
-            gt::gt() %>%
-            gt::cols_label_with(columns = gt::starts_with('V'), fn = function(x) '') %>%
-            # #gt::cols_hide(dplyr::starts_with('V')) %>%
-            gt::tab_style(
-              style = list(
-                gt::cell_text(align = 'left')
-              ),
-              locations = gt::cells_stub(rows = TRUE)
-            ) %>%
-            gt::tab_options(
-              data_row.padding = gt::px(0.5)
-            )# %>%
-            # gt::fmt_number(columns = gt::starts_with('V'), decimals = 0)
-        })
+    shiny::observeEvent(hov_reac_d(), {
+      if (!is.null(hov_reac_d())) {
+        if (input$tabRight == 'Precinct') {
+          output$hover <- gt::render_gt({
+            hov |>
+              dplyr::select('group', 'rowname', paste0('V', hov_reac_d()$id)) |>
+              gt::gt() %>%
+              gt::cols_label_with(columns = gt::starts_with('V'), fn = function(x) '') %>%
+              # #gt::cols_hide(dplyr::starts_with('V')) %>%
+              gt::tab_style(
+                style = list(
+                  gt::cell_text(align = 'left')
+                ),
+                locations = gt::cells_stub(rows = TRUE)
+              ) %>%
+              gt::tab_options(
+                data_row.padding = gt::px(0.5)
+              ) %>%
+            gt::fmt_number(columns = gt::starts_with('V'), decimals = 0)
+          })
+        }
       }
     })
 
