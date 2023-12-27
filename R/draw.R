@@ -48,6 +48,10 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
     split_cols <- split_cols(shp)
   }
 
+  if (!sf::st_is_longlat(shp)) {
+    shp <- sf::st_transform(shp, 4326)
+  }
+
 
   # handle palettes ----
   if (missing(palette)) {
