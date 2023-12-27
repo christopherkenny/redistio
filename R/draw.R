@@ -395,7 +395,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         gt::tab_spanner(label = 'Contiguity', columns = c('Pieces')) |>
         gt::tab_spanner(label = 'Compactness', columns = dplyr::starts_with('comp_')) |>
         gt::tab_spanner(label = 'Splits',
-                        columns = dplyr::starts_with(c('admin_', 'subadmin'))) |>
+                        columns = dplyr::starts_with(c('admin_', 'subadmin_'))) |>
         gt::tab_spanner(label = 'Multi Splits', columns = dplyr::starts_with('multi_')) |>
         gt::tab_spanner(label = 'Total Splits', columns = dplyr::starts_with('total_')) |>
         gt::cols_label(
