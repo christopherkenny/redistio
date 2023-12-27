@@ -27,6 +27,10 @@ draw(
 
 \item{pop_tol}{the population tolerance.}
 
+\item{adj_col}{Name of column in \code{shp} that contains adjacency information.}
+
+\item{split_cols}{Name of column in \code{shp} that contain administrative units}
+
 \item{opts}{list of options. Default is \code{redistio_options()}}
 
 \item{save_path}{Output path to save progress to.}

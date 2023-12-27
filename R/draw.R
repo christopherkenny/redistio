@@ -5,6 +5,8 @@
 #' @param ndists Number of districts to draw if `init_plan` is not supplied.
 #' @param palette Color palette to fill shapes with. Default is Polychrome 36.
 #' @param pop_tol the population tolerance.
+#' @param adj_col Name of column in `shp` that contains adjacency information.
+#' @param split_cols Name of column in `shp` that contain administrative units
 #' @param opts list of options. Default is `redistio_options()`
 #' @param save_path Output path to save progress to.
 #'
@@ -145,6 +147,12 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       title = 'integrity',
       shiny::fluidRow(
         gt::gt_output('integrity')
+      )
+    ),
+    shiny::tabPanel(
+      title = 'elections',
+      shiny::fluidRow(
+        gt::gt_output('elections')
       )
     )
   )
@@ -400,6 +408,10 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
             stringr::str_remove('^admin_|^subadmin_|^multi_|^total_')
         )
 
+    })
+
+    output$elections <- gt::render_gt({
+      rict_elections(shp_tb, plan = redistio_curr_plan$pl)
     })
   }
 

@@ -2,6 +2,7 @@
 #'
 #' @param theme a name of a bootswatch preset theme or other `bslib::bs_theme()` object
 #' @param select_color a color to use for highlighting selected districts
+#' @param leaflet_height height to pass to `leaflet::leafletOutput()`
 #' @param ... additional arguments (currently ignored)
 #'
 #' @return a `list`

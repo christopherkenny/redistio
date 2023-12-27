@@ -40,6 +40,21 @@ format_compactness <- function(x) {
   x
 }
 
+format_election_names <- function(x) {
+  rplc <- c(
+    'pre' = 'Pres',
+    'uss' = 'US Sen',
+    'gov' = 'Gov',
+    'atg' = 'Att Gen',
+    'sos' = 'SoS'
+  )
+
+  for (i in seq_along(rplc)) {
+    x <- stringr::str_replace(x, pattern = names(rplc)[i], replacement = rplc[i])
+  }
+  x
+}
+
 format_alarm_names <- function(x) {
   x |>
     dplyr::mutate(rowname = vapply(stringr::str_split(.data$rowname, '_', n = 2), function(y) purrr::pluck(y, 2, .default = ''), FUN.VALUE = '')) |>

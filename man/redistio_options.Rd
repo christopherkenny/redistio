@@ -16,6 +16,8 @@ redistio_options(
 
 \item{select_color}{a color to use for highlighting selected districts}
 
+\item{leaflet_height}{height to pass to \code{leaflet::leafletOutput()}}
+
 \item{...}{additional arguments (currently ignored)}
 }
 \value{
