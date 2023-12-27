@@ -13,20 +13,20 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports: 
-    leaflet,
-    bslib,
-    dplyr,
-    gt,
-    rlang,
-    sf,
-    shiny,
-    stringr,
-    tibble,
-    purrr,
-    DT,
-    scales,
-    geomander,
-    redistmetrics
+    bslib, 
+    dplyr, 
+    DT, 
+    geomander, 
+    gt, 
+    leaflet, 
+    purrr, 
+    redistmetrics, 
+    rlang, 
+    scales, 
+    sf, 
+    shiny, 
+    stringr, 
+    tibble
 Depends: 
     R (>= 2.10)
 LazyData: true
