@@ -120,7 +120,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       shiny::fluidRow(
         shiny::column( # color selector
           2,
-          DT::DTOutput(outputId = 'district', width = '30vh', height = 'auto'),
+          DT::DTOutput(outputId = 'district', width = '30vh', height = 'auto',
+                       ),
         ),
         shiny::column( # interactive mapper
           8,
@@ -245,12 +246,14 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         x <- shiny::isolate(val()) |>
           DT::datatable(
             options = list(
-              dom = 't', ordering = FALSE, scrollX = TRUE
+              dom = 't', ordering = FALSE, scrollX = TRUE, scrollY = '80vh', #TODO make changeable
+              pageLength = ndists
             ),
             style = 'bootstrap',
             rownames = FALSE,
             escape = FALSE,
-            selection = list(target = 'row', mode = 'single', selected = 1)
+            selection = list(target = 'row', mode = 'single', selected = 1),
+            fillContainer = TRUE
           ) |>
           DT::formatRound(columns = c('Population', 'Deviation'), digits = 0)
       },
