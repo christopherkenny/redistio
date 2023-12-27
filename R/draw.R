@@ -17,7 +17,7 @@
 #' }
 #'
 draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redistio_options(),
-                 save_path = tempfile(fileext = '.baf')) {
+                 save_path = tempfile(fileext = '.csv')) {
   if (missing(shp)) {
     stop('`shp` missing, but required.')
   }
@@ -93,7 +93,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
       shiny::fluidRow(
         shiny::column( # color selector
           2,
-          DT::DTOutput(outputId = 'district', width = '30vh', height = 'auto')
+          DT::DTOutput(outputId = 'district', width = '30vh', height = 'auto'),
         ),
         shiny::column( # interactive mapper
           8,
@@ -104,13 +104,16 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
             id = 'tabRight',
             shiny::tabPanel('Population', gt::gt_output('tab_pop')),
             shiny::tabPanel('Precinct', gt::gt_output('hover')),
-            shiny::tabPanel('Download', shiny::downloadButton('save_plan')),
+            shiny::tabPanel('Download', shiny::downloadButton('save_plan', label = 'Export plan')),
             selected = 'Precinct'
           )
         )
       )
-    )
+    ),
     # analysis panel ----
+    shiny::tabPanel(
+      title = 'analyze'
+    )
   )
 
   # Server ----
@@ -270,19 +273,27 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
 
     # downloader ----
     output$save_plan <- shiny::downloadHandler(
-      filename = save_path,
-      content = function(con) {
-        writeLines(
-          text = redistio_curr_plan$pl,
-          con = con
+      filename = function() {
+        save_path
+        },
+      content = function(file) {
+        df <- data.frame(
+          row_id = seq_len(length(redistio_curr_plan$pl)),
+          District = redistio_curr_plan$pl
+        )
+
+        write.csv(
+          x = df,
+          file = file,
+          row.names = FALSE
         )
       }
     )
-  }
+    shiny::outputOptions(output, "save_plan", suspendWhenHidden = FALSE)
 
   # analysis panel ----
 
-
+  }
   # run app ----
   shiny::shinyApp(ui = ui, server = server)
 }

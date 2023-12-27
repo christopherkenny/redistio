@@ -11,7 +11,7 @@ draw(
   palette,
   pop_tol = 0.05,
   opts = redistio_options(),
-  save_path = tempfile(fileext = ".baf")
+  save_path = tempfile(fileext = ".csv")
 )
 }
 \arguments{
