@@ -20,6 +20,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
                  adj_col = 'adj', split_cols = guess_admins,
                  opts = redistio_options(),
                  save_path = tempfile(fileext = '.csv')) {
+  # defaults ----
+  def_opts <- redistio_options()
 
   # run basic inputs ----
   if (missing(shp)) {
@@ -91,7 +93,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       shiny::HTML(
         paste0(
           'table.dataTable tr.active td, table.dataTable tr.active ',
-          '{box-shadow: inset 0 0 0 9999px ',  opts$select_color,
+          '{box-shadow: inset 0 0 0 9999px ',
+          opts$select_color %||% def_opts$select_color,
           '!important;}')
       )
     )
@@ -115,7 +118,10 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         ),
         shiny::column( # interactive mapper
           8,
-          leaflet::leafletOutput(outputId = 'map', height = '91vh')
+          leaflet::leafletOutput(
+            outputId = 'map',
+            height = opts$leaflet_height %||% def_opts$leaflet_height,
+          )
         ),
         shiny::column( # details area
           2, shiny::tabsetPanel(

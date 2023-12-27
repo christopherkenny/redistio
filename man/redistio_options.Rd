@@ -4,7 +4,12 @@
 \alias{redistio_options}
 \title{Set options for \code{redistio}}
 \usage{
-redistio_options(theme = "flatly", select_color = "purple", ...)
+redistio_options(
+  theme = "flatly",
+  select_color = "purple",
+  leaflet_height = "91vh",
+  ...
+)
 }
 \arguments{
 \item{theme}{a name of a bootswatch preset theme or other \code{bslib::bs_theme()} object}

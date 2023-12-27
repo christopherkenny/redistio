@@ -9,9 +9,12 @@
 #'
 #' @examples
 #' redistio_options()
-redistio_options <- function(theme = 'flatly', select_color = 'purple', ...) {
+redistio_options <- function(theme = 'flatly', select_color = 'purple',
+                             leaflet_height = '91vh',
+                             ...) {
   list(
     theme = theme,
-    select_color = select_color
+    select_color = select_color,
+    leaflet_height = leaflet_height
   )
 }

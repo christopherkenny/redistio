@@ -92,7 +92,7 @@ rict_splits <- function(map, plan, admin = NULL, subadmin = NULL, total = NULL,
   }
 
   subadmin_out <- lapply(seq_along(subadmin), function(i) {
-    redistmetrics::splits_subadmin(plan, map, !!rlang::sym(subadmin[i]))
+    redistmetrics::splits_sub_admin(plan, map, !!rlang::sym(subadmin[i]))
   })
   if (length(subadmin_out) > 0) {
     subadmin_out <- subadmin_out |>
