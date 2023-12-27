@@ -8,10 +8,10 @@
 #' @export
 #'
 #' @examples
-#' redistio_options(theme = 'minty')
-redistio_options <- function(theme = 'darkly', select_color = 'purple', ...) {
+#' redistio_options()
+redistio_options <- function(theme = 'flatly', select_color = 'purple', ...) {
   list(
-    theme = ifelse(is.character(theme), bslib::bs_theme(preset = theme), theme),
+    theme = theme,
     select_color = select_color
   )
 }

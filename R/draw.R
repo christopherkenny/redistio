@@ -16,7 +16,8 @@
 #'   draw(dc, dc$ward)
 #' }
 #'
-draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redistio_options(),
+draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, adj_col = 'adj',
+                 opts = redistio_options(),
                  save_path = tempfile(fileext = '.csv')) {
   if (missing(shp)) {
     stop('`shp` missing, but required.')
@@ -30,6 +31,10 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     }
   } else {
     ndists <- length(unique(init_plan))
+  }
+
+  if (!adj_col %in% names(shp)) {
+    shp$adj <- geomander::adjacency(shp)
   }
 
   if (missing(palette)) {
@@ -48,7 +53,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
   }
 
   shp$redistio_id <- as.character(seq_len(length.out = nrow(shp)))
-  # shp$redistio_curr_plan <- init_plan
+  shp$fmt_pop <- scales::label_comma()(shp$pop)
 
   # prep hover ----
   shp_tb <- shp |>
@@ -66,7 +71,10 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
   min_pop <- ceiling(tgt_pop * (1 - pop_tol))
   max_pop <- floor(tgt_pop * (1 + pop_tol))
   tgt_pop <- as.integer(round(tgt_pop))
-  pretty_bounds <- paste0('Population must be in [', scales::label_comma()(min_pop), ', ', scales::label_comma()(max_pop), '].')
+  pretty_bounds <- paste0(
+    'Population must be in [',
+    scales::label_comma()(min_pop), ', ', scales::label_comma()(max_pop), '].'
+  )
 
   # User Interface ----
   if (!is.null(opts$select_color)) {
@@ -74,22 +82,23 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
       shiny::HTML(
         paste0(
           'table.dataTable tr.active td, table.dataTable tr.active ',
-               '{box-shadow: inset 0 0 0 9999px ',  opts$select_color,
-               '!important;}')
-        )
+          '{box-shadow: inset 0 0 0 9999px ',  opts$select_color,
+          '!important;}')
+      )
     )
   } else {
     selection_html <- NULL
   }
   ui <- shiny::navbarPage(
     title = 'redistio',
-    theme = ifelse(is.character(opts$theme), bslib::bs_theme(preset = opts$theme), opts$theme),
+    theme = bslib::bs_theme(preset = opts$theme),
     id = 'navbar',
     # draw panel ----
     shiny::tabPanel(
       title = 'draw',
       the_javascripts,
       selection_html,
+      theme = bslib::bs_theme(preset = opts$theme),
       shiny::fluidRow(
         shiny::column( # color selector
           2,
@@ -115,6 +124,12 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
       title = 'demographics',
       shiny::fluidRow(
         gt::gt_output('demographics')
+      )
+    ),
+    shiny::tabPanel(
+      title = 'integrity',
+      shiny::fluidRow(
+        gt::gt_output('integrity')
       )
     )
   )
@@ -145,7 +160,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
         leaflet::addPolygons(
           layerId = ~redistio_id,
           weight = 1,
-          label = ~pop
+          label = ~fmt_pop
         )
     })
 
@@ -156,7 +171,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
           fillColor = ~ pal(init_plan),
           # color = ~pal(init_plan),
           stroke = TRUE,
-          weight = 1,
+          weight = 0.5,
           color = '#000000',
           fillOpacity = 0.95
         )
@@ -206,9 +221,9 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
               dom = 't', ordering = FALSE, scrollX = TRUE
             ),
             style = 'bootstrap',
-          rownames = FALSE,
-          escape = FALSE,
-          selection = list(target = 'row', mode = 'single', selected = 1)
+            rownames = FALSE,
+            escape = FALSE,
+            selection = list(target = 'row', mode = 'single', selected = 1)
           ) |>
           DT::formatRound(columns = c('Population', 'Deviation'), digits = 0)
       },
@@ -258,7 +273,6 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
               dplyr::select('group', 'rowname', paste0('V', hov_reac_d()$id)) |>
               gt::gt() |>
               gt::cols_label_with(columns = gt::starts_with('V'), fn = function(x) '') |>
-              # #gt::cols_hide(dplyr::starts_with('V')) |>
               gt::tab_style(
                 style = list(
                   gt::cell_text(align = 'left')
@@ -278,7 +292,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     output$save_plan <- shiny::downloadHandler(
       filename = function() {
         save_path
-        },
+      },
       content = function(file) {
         df <- data.frame(
           row_id = seq_len(length(redistio_curr_plan$pl)),
@@ -294,7 +308,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     )
     shiny::outputOptions(output, "save_plan", suspendWhenHidden = FALSE)
 
-  # demographics panel ----
+    # demographics panel ----
 
     output$demographics <- gt::render_gt({
       list(
@@ -322,7 +336,41 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
         gt::tab_spanner(label = 'Voting Age Population', columns = dplyr::starts_with(c('vap')))
     })
 
+    # integrity panel ----
+    output$integrity <- gt::render_gt({
+      if (adj_col %in% names(shp)) {
+        int_l <- list(
+          rict_population(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
+          rict_contiguity(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
+          rict_compactness(shp, plan = redistio_curr_plan$pl, as_gt = FALSE)
+        )
+      } else {
+        int_l <- list(
+          rict_population(shp, redistio_curr_plan$pl, as_gt = FALSE),
+          rict_compactness(shp, redistio_curr_plan$pl, as_gt = FALSE)
+        )
+      }
+      int_l |>
+        purrr::reduce(.f = dplyr::left_join, by = 'District') |>
+        gt::gt() |>
+        gt::fmt_number(columns = c('Population', 'deviation'), decimals = 0) |>
+        gt::fmt_percent(columns = 'pct_deviation', decimals = 1) |>
+        gt::tab_spanner(label = 'Deviation', columns = c('deviation', 'pct_deviation')) |>
+        gt::tab_spanner(label = 'Contiguity', columns = c('Pieces')) |>
+        gt::tab_spanner(label = 'Compactness', columns = dplyr::starts_with('comp_')) |>
+        gt::cols_label(
+          deviation = 'People',
+          pct_deviation = '%'
+        )  |>
+          gt::fmt_percent(columns = dplyr::starts_with('comp_'), decimals = 1) |>
+          gt::cols_label_with(
+            columns = dplyr::starts_with('comp_'),
+            fn = function(x) format_compactness(x)
+          )
+
+    })
   }
+
   # run app ----
   shiny::shinyApp(ui = ui, server = server)
 }
