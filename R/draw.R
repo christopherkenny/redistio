@@ -81,30 +81,36 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
   } else {
     selection_html <- NULL
   }
-  ui <- shiny::fluidPage(
-    the_javascripts,
-    selection_html,
+  ui <- shiny::navbarPage(
     title = 'redistio',
     theme = ifelse(is.character(opts$theme), bslib::bs_theme(preset = opts$theme), opts$theme),
-    shiny::fluidRow(
-      shiny::column( # color selector
-        2,
-        DT::DTOutput(outputId = 'district', width = '30vh', height = 'auto')
-      ),
-      shiny::column( # interactive mapper
-        8,
-        leaflet::leafletOutput(outputId = 'map', height = '100vh')
-      ),
-      shiny::column( # details area
-        2, shiny::tabsetPanel(
-          id = 'tabRight',
-          shiny::tabPanel('Population', gt::gt_output('tab_pop')),
-          shiny::tabPanel('Precinct', gt::gt_output('hover')),
-          shiny::tabPanel('Download', shiny::downloadButton('save_plan')),
-          selected = 'Precinct'
+    id = 'navbar',
+    # draw panel ----
+    shiny::tabPanel(
+      title = 'draw',
+      the_javascripts,
+      selection_html,
+      shiny::fluidRow(
+        shiny::column( # color selector
+          2,
+          DT::DTOutput(outputId = 'district', width = '30vh', height = 'auto')
+        ),
+        shiny::column( # interactive mapper
+          8,
+          leaflet::leafletOutput(outputId = 'map', height = '91vh')
+        ),
+        shiny::column( # details area
+          2, shiny::tabsetPanel(
+            id = 'tabRight',
+            shiny::tabPanel('Population', gt::gt_output('tab_pop')),
+            shiny::tabPanel('Precinct', gt::gt_output('hover')),
+            shiny::tabPanel('Download', shiny::downloadButton('save_plan')),
+            selected = 'Precinct'
+          )
         )
       )
     )
+    # analysis panel ----
   )
 
   # Server ----
@@ -124,6 +130,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
       palette = as.character(palette[seq_len(ndists)]),
       domain = seq_len(ndists)
     )
+
+    # draw panel ----
 
     output$map <- leaflet::renderLeaflet({
       leaflet::leaflet(data = shp) %>%
@@ -272,6 +280,9 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     )
   }
 
+  # analysis panel ----
 
+
+  # run app ----
   shiny::shinyApp(ui = ui, server = server)
 }
