@@ -10,6 +10,8 @@ draw(
   ndists,
   palette,
   pop_tol = 0.05,
+  adj_col = "adj",
+  split_cols = guess_admins,
   opts = redistio_options(),
   save_path = tempfile(fileext = ".csv")
 )

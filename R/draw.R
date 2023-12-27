@@ -16,9 +16,12 @@
 #'   draw(dc, dc$ward)
 #' }
 #'
-draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, adj_col = 'adj',
+draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
+                 adj_col = 'adj', split_cols = guess_admins,
                  opts = redistio_options(),
                  save_path = tempfile(fileext = '.csv')) {
+
+  # run basic inputs ----
   if (missing(shp)) {
     stop('`shp` missing, but required.')
   }
@@ -37,6 +40,12 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, adj_col = 'adj
     shp$adj <- geomander::adjacency(shp)
   }
 
+  if (rlang::is_closure(split_cols)) {
+    split_cols <- split_cols(shp)
+  }
+
+
+  # handle palettes ----
   if (missing(palette)) {
     palette <- grDevices::palette.colors(n = ndists, 'Polychrome 36')
   }
@@ -299,7 +308,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, adj_col = 'adj
           District = redistio_curr_plan$pl
         )
 
-        write.csv(
+        utils::write.csv(
           x = df,
           file = file,
           row.names = FALSE
@@ -342,12 +351,20 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, adj_col = 'adj
         int_l <- list(
           rict_population(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
           rict_contiguity(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
-          rict_compactness(shp, plan = redistio_curr_plan$pl, as_gt = FALSE)
+          rict_compactness(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
+          rict_splits(shp, plan = redistio_curr_plan$pl,
+                      admin = split_cols$admin, subadmin = split_cols$subadmin,
+                      multi = split_cols$multi, total = split_cols$total,
+                      as_gt = FALSE)
         )
       } else {
         int_l <- list(
           rict_population(shp, redistio_curr_plan$pl, as_gt = FALSE),
-          rict_compactness(shp, redistio_curr_plan$pl, as_gt = FALSE)
+          rict_compactness(shp, redistio_curr_plan$pl, as_gt = FALSE),
+          rict_splits(shp, plan = redistio_curr_plan$pl,
+                      admin = split_cols$admin, subadmin = split_cols$subadmin,
+                      multi = split_cols$multi, total = split_cols$total,
+                      as_gt = FALSE)
         )
       }
       int_l |>
@@ -355,18 +372,27 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, adj_col = 'adj
         gt::gt() |>
         gt::fmt_number(columns = c('Population', 'deviation'), decimals = 0) |>
         gt::fmt_percent(columns = 'pct_deviation', decimals = 1) |>
+        gt::fmt_percent(columns = dplyr::starts_with('comp_'), decimals = 1) |>
         gt::tab_spanner(label = 'Deviation', columns = c('deviation', 'pct_deviation')) |>
         gt::tab_spanner(label = 'Contiguity', columns = c('Pieces')) |>
         gt::tab_spanner(label = 'Compactness', columns = dplyr::starts_with('comp_')) |>
+        gt::tab_spanner(label = 'Splits',
+                        columns = dplyr::starts_with(c('admin_', 'subadmin'))) |>
+        gt::tab_spanner(label = 'Multi Splits', columns = dplyr::starts_with('multi_')) |>
+        gt::tab_spanner(label = 'Total Splits', columns = dplyr::starts_with('total_')) |>
         gt::cols_label(
           deviation = 'People',
           pct_deviation = '%'
         )  |>
-          gt::fmt_percent(columns = dplyr::starts_with('comp_'), decimals = 1) |>
-          gt::cols_label_with(
-            columns = dplyr::starts_with('comp_'),
-            fn = function(x) format_compactness(x)
-          )
+        gt::cols_label_with(
+          columns = dplyr::starts_with('comp_'),
+          fn = function(x) format_compactness(x)
+        ) |>
+        gt::cols_label_with(
+          columns = dplyr::starts_with(c('admin_', 'subadmin_', 'multi_', 'total_')),
+          fn = function(x) x |>
+            stringr::str_remove('^admin_|^subadmin_|^multi_|^total_')
+        )
 
     })
   }

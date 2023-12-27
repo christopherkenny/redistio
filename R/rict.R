@@ -125,7 +125,11 @@ rict_splits <- function(map, plan, admin = NULL, subadmin = NULL, total = NULL,
     multi_out
   ) |>
     purrr::discard(.p = function(d) length(d) == 0) |>
-    purrr::list_cbind()
+    purrr::list_cbind() |>
+    dplyr::mutate(
+      District = sort(unique(plan)),
+      .before = dplyr::everything()
+    )
 
   if (as_gt) {
     out |>

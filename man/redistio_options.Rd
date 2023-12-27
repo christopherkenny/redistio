@@ -4,7 +4,7 @@
 \alias{redistio_options}
 \title{Set options for \code{redistio}}
 \usage{
-redistio_options(theme = "darkly", select_color = "purple", ...)
+redistio_options(theme = "flatly", select_color = "purple", ...)
 }
 \arguments{
 \item{theme}{a name of a bootswatch preset theme or other \code{bslib::bs_theme()} object}
@@ -20,5 +20,5 @@ a \code{list}
 Set options for \code{redistio}
 }
 \examples{
-redistio_options(theme = 'minty')
+redistio_options()
 }
