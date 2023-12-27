@@ -28,7 +28,7 @@ Imports:
     stringr, 
     tibble
 Depends: 
-    R (>= 2.10)
+    R (>= 4.1.0)
 LazyData: true
 URL: https://github.com/christopherkenny/redistio,
     http://www.christophertkenny.com/redistio/
