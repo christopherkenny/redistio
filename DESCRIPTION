@@ -26,7 +26,8 @@ Imports:
     purrr,
     DT,
     scales,
-    geomander
+    geomander,
+    redistmetrics
 Depends: 
     R (>= 2.10)
 LazyData: true
