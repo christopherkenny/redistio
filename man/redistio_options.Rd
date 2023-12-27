@@ -8,6 +8,7 @@ redistio_options(
   theme = "flatly",
   select_color = "purple",
   leaflet_height = "91vh",
+  crs = 4326,
   ...
 )
 }
@@ -17,6 +18,8 @@ redistio_options(
 \item{select_color}{a color to use for highlighting selected districts}
 
 \item{leaflet_height}{height to pass to \code{leaflet::leafletOutput()}}
+
+\item{crs}{a coordinate reference system to use in \code{leaflet::leaflet()}}
 
 \item{...}{additional arguments (currently ignored)}
 }

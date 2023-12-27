@@ -49,7 +49,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
   }
 
   if (!sf::st_is_longlat(shp)) {
-    shp <- sf::st_transform(shp, 4326)
+    shp <- sf::st_transform(shp, opts$crs %||% def_opts$crs)
   }
 
 
