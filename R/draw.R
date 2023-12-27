@@ -110,9 +110,12 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
         )
       )
     ),
-    # analysis panel ----
+    # demographics panel ----
     shiny::tabPanel(
-      title = 'analyze'
+      title = 'demographics',
+      shiny::fluidRow(
+        gt::gt_output('demographics')
+      )
     )
   )
 
@@ -137,8 +140,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     # draw panel ----
 
     output$map <- leaflet::renderLeaflet({
-      leaflet::leaflet(data = shp) %>%
-        leaflet::addTiles() %>%
+      leaflet::leaflet(data = shp) |>
+        leaflet::addTiles() |>
         leaflet::addPolygons(
           layerId = ~redistio_id,
           weight = 1,
@@ -147,7 +150,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     })
 
     shiny::observe({
-      leaflet::leafletProxy('map', data = shp) %>%
+      leaflet::leafletProxy('map', data = shp) |>
         setShapeStyle(
           layerId = ~redistio_id,
           fillColor = ~ pal(init_plan),
@@ -180,7 +183,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
         new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - tgt_pop)
         val(new_tb_pop)
 
-        leaflet::leafletProxy('map', data = shp) %>%
+        leaflet::leafletProxy('map', data = shp) |>
           setShapeStyle(
             # data = shp,
             layerId = ~redistio_id,
@@ -197,7 +200,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     # district stats ----
     output$district <- DT::renderDT(
       {
-        x <- shiny::isolate(val()) %>%
+        x <- shiny::isolate(val()) |>
           DT::datatable(
             options = list(
               dom = 't', ordering = FALSE, scrollX = TRUE
@@ -222,19 +225,19 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     })
 
     output$tab_pop <- gt::render_gt({
-      val() %>%
+      val() |>
         dplyr::mutate(District = stringr::str_extract(.data$District, ' \\d+ ')) |>
-        gt::gt() %>%
+        gt::gt() |>
         gt::tab_style(
           style = gt::cell_fill(color = 'red'),
           locations = gt::cells_body(
             rows = .data$Population > max_pop | .data$Population < min_pop
           )
-        ) %>%
+        ) |>
         gt::cols_label(
           District = ''
-        ) %>%
-        gt::fmt_number(columns = c('Population', 'Deviation'), decimals = 0) %>%
+        ) |>
+        gt::fmt_number(columns = c('Population', 'Deviation'), decimals = 0) |>
         gt::tab_footnote(
           footnote = pretty_bounds
         )
@@ -253,18 +256,18 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
           output$hover <- gt::render_gt({
             hov |>
               dplyr::select('group', 'rowname', paste0('V', hov_reac_d()$id)) |>
-              gt::gt() %>%
-              gt::cols_label_with(columns = gt::starts_with('V'), fn = function(x) '') %>%
-              # #gt::cols_hide(dplyr::starts_with('V')) %>%
+              gt::gt() |>
+              gt::cols_label_with(columns = gt::starts_with('V'), fn = function(x) '') |>
+              # #gt::cols_hide(dplyr::starts_with('V')) |>
               gt::tab_style(
                 style = list(
                   gt::cell_text(align = 'left')
                 ),
                 locations = gt::cells_stub(rows = TRUE)
-              ) %>%
+              ) |>
               gt::tab_options(
                 data_row.padding = gt::px(0.5)
-              ) %>%
+              ) |>
               gt::fmt_number(columns = gt::starts_with('V'), decimals = 0)
           })
         }
@@ -291,7 +294,33 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05, opts = redisti
     )
     shiny::outputOptions(output, "save_plan", suspendWhenHidden = FALSE)
 
-  # analysis panel ----
+  # demographics panel ----
+
+    output$demographics <- gt::render_gt({
+      list(
+        rict_population(shp, redistio_curr_plan$pl, as_gt = FALSE),
+        tally_pop(shp, redistio_curr_plan$pl, normalize = TRUE),
+        tally_vap(shp, redistio_curr_plan$pl, normalize = TRUE)
+      ) |>
+        purrr::reduce(.f = dplyr::left_join, by = 'District') |>
+        gt::gt() |>
+        gt::fmt_number(columns = c('Population', 'deviation', 'vap'), decimals = 0) |>
+        gt::fmt_percent(columns = 'pct_deviation', decimals = 1) |>
+        gt::fmt_percent(columns = dplyr::starts_with(c('pop_', 'vap_')), decimals = 1) |>
+        gt::cols_hide(columns = 'pop') |>
+        gt::cols_label(
+          deviation = 'People',
+          pct_deviation = '%',
+          vap = 'Total'
+        ) |>
+        gt::cols_label_with(
+          columns = dplyr::starts_with(c('pop_', 'vap_')),
+          fn = function(x) format_demog_string(stringr::word(x, 2, sep = '_'))
+        ) |>
+        gt::tab_spanner(label = 'Deviation', columns = c('deviation', 'pct_deviation')) |>
+        gt::tab_spanner(label = 'Total Population', columns = dplyr::starts_with(c('pop_'))) |>
+        gt::tab_spanner(label = 'Voting Age Population', columns = dplyr::starts_with(c('vap')))
+    })
 
   }
   # run app ----
