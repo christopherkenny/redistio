@@ -512,6 +512,9 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
           `attr<-`('existing_col', 'redistio_plan') |>
           redist::filter(.data$redistio_plan %in% input$alg_district))
 
+        district_order <- map_sub()$redistio_plan |> unique()
+
+
         run_sims <- switch(input$alg_algorithm,
           'SMC' = redist::redist_smc,
           'Merge Split' = \(...) redist::redist_mergesplit(warmup = 0, ...),
@@ -519,16 +522,19 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         )
 
         if (input$alg_algorithm %in% c('SMC', 'Merge Split')) {
-          sims <- run_sims(map_sub(), nsims = input$alg_nsims)
+          sims <- run_sims(map_sub(), nsims = input$alg_nsims) |>
+            redist::match_numbers('redistio_plan')
         } else {
           sims <- run_sims(map_sub(), nsims = input$alg_nsims,
                            counties = !!rlang::ensym(opts$alg_counties %||% def_opts$alg_counties)
-                           )
+                           ) |>
+            redist::match_numbers('redistio_plan')
         }
 
         # TODO: plan selection vs taking last
         redistio_alg_plan$pl <- redist::last_plan(sims)
-        redistio_alg_plan$plans <- redist::get_plans_matrix(sims)
+        redistio_alg_plan$plans <- redist::get_plans_matrix(sims) |>
+          apply(MARGIN = 2, FUN = function(col) district_order[col])
         sims_sum <- sims |>
           dplyr::mutate(
             dev = redist::plan_parity(map = map_sub())
