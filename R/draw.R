@@ -359,12 +359,13 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
 
     output$tab_pop <- gt::render_gt({
       val() |>
+        #dplyr::slice(-1) |>
         dplyr::mutate(District = stringr::str_extract(.data$District, ' \\d+ ')) |>
         gt::gt() |>
         gt::tab_style(
           style = gt::cell_fill(color = 'red'),
           locations = gt::cells_body(
-            rows = .data$Population > max_pop | .data$Population < min_pop
+            rows = (.data$Population > max_pop | .data$Population < min_pop) & !is.na(.data$District)
           )
         ) |>
         gt::cols_label(
