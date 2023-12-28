@@ -53,6 +53,8 @@
 <span>  select_color <span class="op">=</span> <span class="st">"purple"</span>,</span>
 <span>  leaflet_height <span class="op">=</span> <span class="st">"91vh"</span>,</span>
 <span>  crs <span class="op">=</span> <span class="fl">4326</span>,</span>
+<span>  use_algorithms <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  alg_max_districts <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -73,6 +75,14 @@
 
 <dt>crs</dt>
 <dd><p>a coordinate reference system to use in <code><a href="https://rdrr.io/pkg/leaflet/man/leaflet.html" class="external-link">leaflet::leaflet()</a></code></p></dd>
+
+
+<dt>use_algorithms</dt>
+<dd><p>whether to use redistricting simulation algorithms</p></dd>
+
+
+<dt>alg_max_districts</dt>
+<dd><p>maximum number of districts to use in algorithms</p></dd>
 
 
 <dt>...</dt>
@@ -102,6 +112,12 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $crs</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 4326</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $use_algorithms</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $alg_max_districts</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 3</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>
     </div>
