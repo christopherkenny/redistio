@@ -65,7 +65,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       if (length(palette) < 1) {
         stop('`palette` must have at least one color.')
       }
-      palette <- rep(palette, ceiling(ndists/length(palette)))[seq_len(ndists)]
+      palette <- rep(palette, ceiling(ndists / length(palette)))[seq_len(ndists)]
     }
   }
 
@@ -112,7 +112,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
           'table.dataTable tr.active td, table.dataTable tr.active ',
           '{box-shadow: inset 0 0 0 9999px ',
           opts$select_color %||% def_opts$select_color,
-          '!important;}')
+          '!important;}'
+        )
       )
     )
   } else {
@@ -124,6 +125,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
     title = 'redistio',
     theme = bslib::bs_theme(preset = (opts$theme %||% def_opts$theme)),
     id = 'navbar',
+    header = shiny::tags$head(shiny::tags$link(rel = 'shortcut icon', href = 'https://raw.githubusercontent.com/christopherkenny/redistio/main/man/figures/logo.png')),
     # draw panel ----
     shiny::tabPanel(
       title = 'draw',
@@ -133,8 +135,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       shiny::fluidRow(
         shiny::column( # color selector
           2,
-          DT::DTOutput(outputId = 'district', width = '30vh', height = 'auto',
-          ),
+          DT::DTOutput(outputId = 'district', width = '30vh', height = 'auto', ),
         ),
         shiny::column( # interactive mapper
           8,
@@ -245,7 +246,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         palette[c(NA_integer_, seq_len(ndists))],
         "; text-align:center;'> ",
         c(as.character(shiny::icon('eraser')), seq_len(ndists)),
-        " </p>"),
+        ' </p>'
+      ),
       Population = distr_pop(shp$pop, total = tot_pop, plan = init_plan, ndists = ndists),
       Deviation = as.integer(distr_pop(shp$pop, total = tot_pop, plan = init_plan, ndists = ndists) - c(0L, rep(tgt_pop, ndists)))
     )
@@ -308,7 +310,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         new_tb_pop <- val()
         new_tb_pop$Population <- distr_pop(shp$pop, total = tot_pop, plan = redistio_curr_plan$pl, ndists = ndists)
         new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - c(0L, rep(tgt_pop, ndists)))
-        #print(new_tb_pop)
+        # print(new_tb_pop)
         val(new_tb_pop)
 
         leaflet::leafletProxy('map', data = shp) |>
@@ -327,22 +329,23 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
     )
 
     # district stats ----
-    output$district <- DT::renderDT({
-      shiny::isolate(val()) |>
-        DT::datatable(
-          options = list(
-            dom = 't', ordering = FALSE, scrollX = TRUE, scrollY = '80vh', #TODO make changeable
-            pageLength = ndists + 1L
-          ),
-          style = 'bootstrap',
-          rownames = FALSE,
-          escape = FALSE,
-          selection = list(target = 'row', mode = 'single', selected = 2),
-          fillContainer = TRUE
-        ) |>
-        DT::formatRound(columns = c('Population', 'Deviation'), digits = 0)
-    },
-    server = TRUE
+    output$district <- DT::renderDT(
+      {
+        shiny::isolate(val()) |>
+          DT::datatable(
+            options = list(
+              dom = 't', ordering = FALSE, scrollX = TRUE, scrollY = '80vh', # TODO make changeable
+              pageLength = ndists + 1L
+            ),
+            style = 'bootstrap',
+            rownames = FALSE,
+            escape = FALSE,
+            selection = list(target = 'row', mode = 'single', selected = 2),
+            fillContainer = TRUE
+          ) |>
+          DT::formatRound(columns = c('Population', 'Deviation'), digits = 0)
+      },
+      server = TRUE
     )
 
     dt_proxy <- DT::dataTableProxy('district')
@@ -421,7 +424,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         )
       }
     )
-    shiny::outputOptions(output, "save_plan", suspendWhenHidden = FALSE)
+    shiny::outputOptions(output, 'save_plan', suspendWhenHidden = FALSE)
 
     # demographics panel ----
 
@@ -459,19 +462,23 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
             rict_population(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
             rict_contiguity(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
             rict_compactness(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
-            rict_splits(shp, plan = redistio_curr_plan$pl,
-                        admin = split_cols$admin, subadmin = split_cols$subadmin,
-                        multi = split_cols$multi, total = split_cols$total,
-                        as_gt = FALSE)
+            rict_splits(shp,
+              plan = redistio_curr_plan$pl,
+              admin = split_cols$admin, subadmin = split_cols$subadmin,
+              multi = split_cols$multi, total = split_cols$total,
+              as_gt = FALSE
+            )
           )
         } else {
           int_l <- list(
             rict_population(shp, redistio_curr_plan$pl, as_gt = FALSE),
             rict_compactness(shp, redistio_curr_plan$pl, as_gt = FALSE),
-            rict_splits(shp, plan = redistio_curr_plan$pl,
-                        admin = split_cols$admin, subadmin = split_cols$subadmin,
-                        multi = split_cols$multi, total = split_cols$total,
-                        as_gt = FALSE)
+            rict_splits(shp,
+              plan = redistio_curr_plan$pl,
+              admin = split_cols$admin, subadmin = split_cols$subadmin,
+              multi = split_cols$multi, total = split_cols$total,
+              as_gt = FALSE
+            )
           )
         }
       } else {
@@ -489,24 +496,27 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         gt::tab_spanner(label = 'Deviation', columns = c('deviation', 'pct_deviation')) |>
         gt::tab_spanner(label = 'Contiguity', columns = dplyr::any_of('Pieces')) |>
         gt::tab_spanner(label = 'Compactness', columns = dplyr::starts_with('comp_')) |>
-        gt::tab_spanner(label = 'Splits',
-                        columns = dplyr::starts_with(c('admin_', 'subadmin_'))) |>
+        gt::tab_spanner(
+          label = 'Splits',
+          columns = dplyr::starts_with(c('admin_', 'subadmin_'))
+        ) |>
         gt::tab_spanner(label = 'Multi Splits', columns = dplyr::starts_with('multi_')) |>
         gt::tab_spanner(label = 'Total Splits', columns = dplyr::starts_with('total_')) |>
         gt::cols_label(
           deviation = 'People',
           pct_deviation = '%'
-        )  |>
+        ) |>
         gt::cols_label_with(
           columns = dplyr::starts_with('comp_'),
           fn = function(x) format_compactness(x)
         ) |>
         gt::cols_label_with(
           columns = dplyr::starts_with(c('admin_', 'subadmin_', 'multi_', 'total_')),
-          fn = function(x) x |>
-            stringr::str_remove('^admin_|^subadmin_|^multi_|^total_')
+          fn = function(x) {
+            x |>
+              stringr::str_remove('^admin_|^subadmin_|^multi_|^total_')
+          }
         )
-
     })
 
     # elections panel ----
@@ -516,30 +526,29 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
 
     # algorithms panel ----
     if (use_algorithms) {
-
       output$alg_map <- leaflet::renderLeaflet({
-
         map_sub(shp |>
-                  dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
-                  `attr<-`('existing_col', 'redistio_plan') |>
-                  redist::filter(.data$redistio_plan %in% input$alg_district))
+          dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
+          `attr<-`('existing_col', 'redistio_plan') |>
+          redist::filter(.data$redistio_plan %in% input$alg_district))
 
         district_order <- map_sub()$redistio_plan |> unique()
 
 
         run_sims <- switch(input$alg_algorithm,
-                           'SMC' = redist::redist_smc,
-                           'Merge Split' = \(...) redist::redist_mergesplit(warmup = 0, ...),
-                           'Flip' = redist::redist_flip,
+          'SMC' = redist::redist_smc,
+          'Merge Split' = \(...) redist::redist_mergesplit(warmup = 0, ...),
+          'Flip' = redist::redist_flip,
         )
 
         if (input$alg_algorithm %in% c('SMC', 'Merge Split')) {
-          sims <- run_sims(map_sub(), nsims = input$alg_nsims,
-                           counties = !!rlang::sym(opts$alg_counties %||% def_opts$alg_counties)) |>
+          sims <- run_sims(map_sub(),
+            nsims = input$alg_nsims,
+            counties = !!rlang::sym(opts$alg_counties %||% def_opts$alg_counties)
+          ) |>
             redist::match_numbers('redistio_plan')
         } else {
-          sims <- run_sims(map_sub(), nsims = input$alg_nsims
-          ) |>
+          sims <- run_sims(map_sub(), nsims = input$alg_nsims) |>
             redist::match_numbers('redistio_plan')
         }
 
@@ -571,28 +580,28 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
             color = '#000000',
             stroke = 0.5
           )
-
       }) |>
         shiny::bindEvent(input$alg_run)
     }
 
-    output$alg_summary <- DT::renderDT({
-      shiny::isolate(alg_plans()) |>
-        DT::datatable(
-          options = list(
-            dom = 't', ordering = FALSE, scrollX = TRUE, scrollY = '70vh', #TODO make changeable
-            pagingType = 'numbers', scrollCollapse = TRUE,
-            pageLength = ndists * ((opts$alg_max_sims %||% def_opts$alg_max_sims) + 1)
-          ),
-          style = 'bootstrap',
-          rownames = FALSE,
-          escape = FALSE,
-          selection = list(target = 'row', mode = 'single', selected = 2),
-          fillContainer = TRUE
-        ) |>
-        DT::formatPercentage(columns = 'dev', digits = 1)
-    },
-    server = TRUE
+    output$alg_summary <- DT::renderDT(
+      {
+        shiny::isolate(alg_plans()) |>
+          DT::datatable(
+            options = list(
+              dom = 't', ordering = FALSE, scrollX = TRUE, scrollY = '70vh', # TODO make changeable
+              pagingType = 'numbers', scrollCollapse = TRUE,
+              pageLength = ndists * ((opts$alg_max_sims %||% def_opts$alg_max_sims) + 1)
+            ),
+            style = 'bootstrap',
+            rownames = FALSE,
+            escape = FALSE,
+            selection = list(target = 'row', mode = 'single', selected = 2),
+            fillContainer = TRUE
+          ) |>
+          DT::formatPercentage(columns = 'dev', digits = 1)
+      },
+      server = TRUE
     )
 
     dt_alg_proxy <- DT::dataTableProxy('alg_summary')
@@ -604,7 +613,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       )
     })
 
-    shiny::observeEvent(input$alg_summary_rows_selected,{
+    shiny::observeEvent(input$alg_summary_rows_selected, {
       shiny::req(redistio_alg_plan$plans)
       leaflet::leafletProxy('alg_map', data = map_sub()) |>
         setShapeStyle(
@@ -654,7 +663,6 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         resetPaging = FALSE, clearSelection = 'none'
       )
     })
-
   }
 
   # run app ----

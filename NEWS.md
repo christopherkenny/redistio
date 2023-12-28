@@ -1,4 +1,4 @@
-# redistio (development version)
+# redistio 0.0.0.9000
 
 * Adds interactive district builder with `draw()`
   * Adds primary draw panel for interactive redistricting
