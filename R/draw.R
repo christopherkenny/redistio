@@ -245,6 +245,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
     )
 
     val <- shiny::reactiveVal(tab_pop_static)
+    map_sub <- shiny::reactiveVal(shp)
 
     alg_plans_static <- tibble::tibble(
       draw = factor(),
@@ -506,10 +507,10 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
 
       output$alg_map <- leaflet::renderLeaflet({
 
-        map_sub <- shp |>
+        map_sub(shp |>
           dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
           `attr<-`('existing_col', 'redistio_plan') |>
-          redist::filter(.data$redistio_plan %in% input$alg_district)
+          redist::filter(.data$redistio_plan %in% input$alg_district))
 
         run_sims <- switch(input$alg_algorithm,
           'SMC' = redist::redist_smc,
@@ -518,9 +519,9 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         )
 
         if (input$alg_algorithm %in% c('SMC', 'Merge Split')) {
-          sims <- run_sims(map_sub, nsims = input$alg_nsims)
+          sims <- run_sims(map_sub(), nsims = input$alg_nsims)
         } else {
-          sims <- run_sims(map_sub, nsims = input$alg_nsims,
+          sims <- run_sims(map_sub(), nsims = input$alg_nsims,
                            counties = !!rlang::ensym(opts$alg_counties %||% def_opts$alg_counties)
                            )
         }
@@ -530,7 +531,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         redistio_alg_plan$plans <- redist::get_plans_matrix(sims)
         sims_sum <- sims |>
           dplyr::mutate(
-            dev = redist::plan_parity(map = map_sub)
+            dev = redist::plan_parity(map = map_sub())
           ) |>
           tibble::as_tibble() |>
           dplyr::group_by(draw) |>
@@ -540,7 +541,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         alg_plans(sims_sum)
 
 
-        map_sub |>
+        map_sub() |>
           leaflet::leaflet() |>
           leaflet::addTiles() |>
           leaflet::addPolygons(
@@ -585,23 +586,24 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       )
     })
 
-    # shiny::observeEvent(input$alg_summary_rows_selected,{
-    #   leaflet::leafletProxy('alg_map', data = map_sub) |>
-    #     setShapeStyle(
-    #       # data = shp,
-    #       layerId = ~redistio_id,
-    #       # line colors
-    #       stroke = TRUE, weight = 1,
-    #       color = '#000000',
-    #       # fill control
-    #       fillOpacity = 0.95,
-    #       fillColor = ~ pal(redistio_alg_plan$plans[, input$alg_summary_rows_selected])
-    #     )
-    #   })
+    shiny::observeEvent(input$alg_summary_rows_selected,{
+      shiny::req(redistio_alg_plan$plans)
+      leaflet::leafletProxy('alg_map', data = map_sub()) |>
+        setShapeStyle(
+          # data = shp,
+          layerId = ~redistio_id,
+          # line colors
+          stroke = TRUE, weight = 1,
+          color = '#000000',
+          # fill control
+          fillOpacity = 0.95,
+          fillColor = ~ pal(redistio_alg_plan$plans[, input$alg_summary_rows_selected])
+        )
+      })
 
 
     shiny::observeEvent(input$alg_accept, {
-      pl <- redistio_alg_plan$pl
+      pl <- redistio_alg_plan$plans[, input$alg_summary_rows_selected]
       pl <- sort(input$alg_district)[pl]
       idx <- which(redistio_curr_plan$pl %in% input$alg_district)
       redistio_curr_plan$pl[idx] <- pl
@@ -618,6 +620,11 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
           fillColor = ~ pal(redistio_curr_plan$pl)
         )
 
+      leaflet::leafletProxy('alg_map') |>
+        leaflet::clearTiles() |>
+        leaflet::clearShapes()
+
+      alg_plans(alg_plans_static)
       shiny::updateTabsetPanel(session, 'navbar', 'draw')
     })
 
