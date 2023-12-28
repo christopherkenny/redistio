@@ -58,6 +58,8 @@
 <span>  crs <span class="op">=</span> <span class="fl">4326</span>,</span>
 <span>  use_algorithms <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  alg_max_districts <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  alg_max_sims <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>  alg_counties <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -86,6 +88,14 @@
 
 <dt>alg_max_districts</dt>
 <dd><p>maximum number of districts to use in algorithms</p></dd>
+
+
+<dt>alg_max_sims</dt>
+<dd><p>maximum number of simulations to use in algorithms</p></dd>
+
+
+<dt>alg_counties</dt>
+<dd><p>name of county column in <code>sf</code> object to use in algorithms</p></dd>
 
 
 <dt>...</dt>
@@ -121,6 +131,12 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $alg_max_districts</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $alg_max_sims</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $alg_counties</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>
     </div>
