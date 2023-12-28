@@ -74,7 +74,12 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
 
   # prep hover ----
   shp_tb <- shp |>
-    sf::st_drop_geometry()
+    tibble::as_tibble()
+  # sf::st_drop_geometry()
+  # Using sf::st_drop_geometry causes a
+  # Error in glue(str, .envir = .envir, .transformer = transformer, .cli = TRUE,  :
+  # Expecting '}'
+  # when used on a redist_map twice in a row
 
   hov <- hover_precinct(
     shp_tb,
