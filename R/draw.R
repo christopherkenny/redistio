@@ -134,7 +134,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         shiny::column( # color selector
           2,
           DT::DTOutput(outputId = 'district', width = '30vh', height = 'auto',
-                       ),
+          ),
         ),
         shiny::column( # interactive mapper
           8,
@@ -240,7 +240,12 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
     clicked <- shiny::reactiveValues(clickedMarker = NULL)
 
     tab_pop_static <- dplyr::tibble(
-      District = paste0("<p style='background-color:", palette[c(NA_integer_, seq_len(ndists))], "; text-align:center;'> ", c('---', seq_len(ndists)), " </p>"),
+      District = paste0(
+        "<p style='background-color:",
+        palette[c(NA_integer_, seq_len(ndists))],
+        "; text-align:center;'> ",
+        c(as.character(shiny::icon('eraser')), seq_len(ndists)),
+        " </p>"),
       Population = distr_pop(shp$pop, total = tot_pop, plan = init_plan, ndists = ndists),
       Deviation = as.integer(distr_pop(shp$pop, total = tot_pop, plan = init_plan, ndists = ndists) - c(0L, rep(tgt_pop, ndists)))
     )
@@ -322,21 +327,21 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
 
     # district stats ----
     output$district <- DT::renderDT({
-        shiny::isolate(val()) |>
-          DT::datatable(
-            options = list(
-              dom = 't', ordering = FALSE, scrollX = TRUE, scrollY = '80vh', #TODO make changeable
-              pageLength = ndists + 1L
-            ),
-            style = 'bootstrap',
-            rownames = FALSE,
-            escape = FALSE,
-            selection = list(target = 'row', mode = 'single', selected = 2),
-            fillContainer = TRUE
-          ) |>
-          DT::formatRound(columns = c('Population', 'Deviation'), digits = 0)
-      },
-      server = TRUE
+      shiny::isolate(val()) |>
+        DT::datatable(
+          options = list(
+            dom = 't', ordering = FALSE, scrollX = TRUE, scrollY = '80vh', #TODO make changeable
+            pageLength = ndists + 1L
+          ),
+          style = 'bootstrap',
+          rownames = FALSE,
+          escape = FALSE,
+          selection = list(target = 'row', mode = 'single', selected = 2),
+          fillContainer = TRUE
+        ) |>
+        DT::formatRound(columns = c('Population', 'Deviation'), digits = 0)
+    },
+    server = TRUE
     )
 
     dt_proxy <- DT::dataTableProxy('district')
@@ -514,17 +519,17 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       output$alg_map <- leaflet::renderLeaflet({
 
         map_sub(shp |>
-          dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
-          `attr<-`('existing_col', 'redistio_plan') |>
-          redist::filter(.data$redistio_plan %in% input$alg_district))
+                  dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
+                  `attr<-`('existing_col', 'redistio_plan') |>
+                  redist::filter(.data$redistio_plan %in% input$alg_district))
 
         district_order <- map_sub()$redistio_plan |> unique()
 
 
         run_sims <- switch(input$alg_algorithm,
-          'SMC' = redist::redist_smc,
-          'Merge Split' = \(...) redist::redist_mergesplit(warmup = 0, ...),
-          'Flip' = redist::redist_flip,
+                           'SMC' = redist::redist_smc,
+                           'Merge Split' = \(...) redist::redist_mergesplit(warmup = 0, ...),
+                           'Flip' = redist::redist_flip,
         )
 
         if (input$alg_algorithm %in% c('SMC', 'Merge Split')) {
@@ -533,7 +538,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
             redist::match_numbers('redistio_plan')
         } else {
           sims <- run_sims(map_sub(), nsims = input$alg_nsims
-                           ) |>
+          ) |>
             redist::match_numbers('redistio_plan')
         }
 
@@ -567,7 +572,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
           )
 
       }) |>
-      shiny::bindEvent(input$alg_run)
+        shiny::bindEvent(input$alg_run)
     }
 
     output$alg_summary <- DT::renderDT({
@@ -611,7 +616,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
           fillOpacity = 0.95,
           fillColor = ~ pal(redistio_alg_plan$plans[, input$alg_summary_rows_selected])
         )
-      })
+    })
 
 
     shiny::observeEvent(input$alg_accept, {
