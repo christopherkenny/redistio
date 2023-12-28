@@ -9,6 +9,8 @@ redistio_options(
   select_color = "purple",
   leaflet_height = "91vh",
   crs = 4326,
+  use_algorithms = TRUE,
+  alg_max_districts = 3,
   ...
 )
 }
@@ -20,6 +22,10 @@ redistio_options(
 \item{leaflet_height}{height to pass to \code{leaflet::leafletOutput()}}
 
 \item{crs}{a coordinate reference system to use in \code{leaflet::leaflet()}}
+
+\item{use_algorithms}{whether to use redistricting simulation algorithms}
+
+\item{alg_max_districts}{maximum number of districts to use in algorithms}
 
 \item{...}{additional arguments (currently ignored)}
 }

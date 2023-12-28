@@ -55,7 +55,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
 
   # handle palettes ----
   if (missing(palette)) {
-    palette <- grDevices::palette.colors(n = ndists, 'Polychrome 36')
+    palette <- suppressWarnings(grDevices::palette.colors(n = ndists, 'Polychrome 36'))
   }
   palette <- as.character(palette)
   if (length(palette) != ndists) {
@@ -76,8 +76,9 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
   shp_tb <- shp |>
     sf::st_drop_geometry()
 
-  hov <- hover_precinct(shp_tb, #seq_len(nrow(shp_tb)),
-                        pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap')
+  hov <- hover_precinct(
+    shp_tb,
+    pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap')
   ) |>
     dplyr::bind_rows(.id = 'group') |>
     format_alarm_names()
@@ -93,6 +94,10 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
     scales::label_comma()(min_pop), ', ', scales::label_comma()(max_pop), '].'
   )
 
+  use_algorithms <- inherits(shp, 'redist_map') &&
+    opts$use_algorithms %||% def_opts$use_algorithms &&
+    rlang::is_installed('redist')
+
   # User Interface ----
   if (!is.null(opts$select_color)) {
     selection_html <- shiny::tags$style(
@@ -107,6 +112,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
   } else {
     selection_html <- NULL
   }
+
+
   ui <- shiny::navbarPage(
     title = 'redistio',
     theme = bslib::bs_theme(preset = opts$theme),
@@ -148,23 +155,81 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         gt::gt_output('demographics')
       )
     ),
+    # traditional redistricting panel ----
     shiny::tabPanel(
       title = 'integrity',
       shiny::fluidRow(
         gt::gt_output('integrity')
       )
     ),
+    # elections panel ----
     shiny::tabPanel(
       title = 'elections',
       shiny::fluidRow(
         gt::gt_output('elections')
       )
-    )
+    ),
+    # algorithms panel ----
+    if (use_algorithms) {
+      shiny::tabPanel(
+        title = 'algorithms',
+        shiny::fluidRow(
+          shiny::column( # selector
+            2,
+            shiny::selectizeInput(
+              inputId = 'alg_district',
+              label = paste0('Districts to redraw (up to ', opts$alg_max_districts %||% def_opts$alg_max_districts, ')'),
+              choices = seq_len(ndists),
+              options = list(maxItems = opts$alg_max_districts %||% def_opts$alg_max_districts)
+            ),
+            shiny::hr(),
+            shiny::selectInput(
+              inputId = 'alg_algorithm',
+              label = 'Algorithm to use',
+              choices = c('SMC', 'Merge Split', 'Flip')
+            ),
+            shiny::hr(),
+            shiny::sliderInput(
+              inputId = 'alg_nsims',
+              label = 'Number of simulations',
+              min = 1,
+              max = 100,
+              value = 10
+            ),
+            shiny::hr(),
+            shiny::actionButton(
+              inputId = 'alg_run',
+              label = 'Run algorithm',
+              icon = shiny::icon('circle-play')
+            ),
+            shiny::tags$hr(),
+            shiny::actionButton(
+              inputId = 'alg_accept',
+              label = 'Accept plan',
+              icon = shiny::icon('file-export')
+            ),
+          ),
+          shiny::column( # interactive mapper
+            width = 8,
+            leaflet::leafletOutput(
+              outputId = 'alg_map',
+              height = opts$leaflet_height %||% def_opts$leaflet_height,
+            )
+          ),
+          shiny::column( # details area
+            width = 2
+          )
+        )
+      )
+    } else {
+      NULL
+    }
   )
 
   # Server ----
   server <- function(input, output, session) {
     redistio_curr_plan <- shiny::reactiveValues(pl = init_plan)
+    redistio_alg_plan <- shiny::reactiveValues(pl = NULL)
     clicked <- shiny::reactiveValues(clickedMarker = NULL)
 
     tab_pop_static <- dplyr::tibble(
@@ -241,8 +306,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
     )
 
     # district stats ----
-    output$district <- DT::renderDT(
-      {
+    output$district <- DT::renderDT({
         x <- shiny::isolate(val()) |>
           DT::datatable(
             options = list(
@@ -417,9 +481,73 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
 
     })
 
+    # elections panel ----
     output$elections <- gt::render_gt({
       rict_elections(shp_tb, plan = redistio_curr_plan$pl)
     })
+
+    # algorithms panel ----
+    if (use_algorithms) {
+
+      output$alg_map <- leaflet::renderLeaflet({
+
+        map_sub <- shp |>
+          dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
+          `attr<-`('existing_col', 'redistio_plan') |>
+          redist::filter(.data$redistio_plan %in% input$alg_district)
+
+        run_sims <- switch(input$alg_algorithm,
+          'SMC' = redist::redist_smc,
+          'Merge Split' = \(...) redist::redist_mergesplit(warmup = 0, ...),
+          'Flip' = redist::redist_flip,
+        )
+
+        sims <- run_sims(map_sub, nsims = input$alg_nsims)#TODO:, counties = county)
+
+        # TODO: plan selection vs taking last
+        redistio_alg_plan$pl <- redist::last_plan(sims)
+
+        map_sub |>
+          dplyr::mutate(
+            pl = redist::last_plan(sims)
+          ) |>
+          leaflet::leaflet() |>
+          leaflet::addTiles() |>
+          leaflet::addPolygons(
+            layerId = ~redistio_id,
+            weight = 1,
+            label = ~fmt_pop,
+            fillColor = ~pal(pl),
+            fillOpacity = 0.95,
+            color = '#000000',
+            stroke = 0.5
+          )
+
+      }) |>
+      shiny::bindEvent(input$alg_run)
+    }
+
+    shiny::observeEvent(input$alg_accept, {
+      pl <- redistio_alg_plan$pl
+      pl <- sort(input$alg_district)[pl]
+      idx <- which(redistio_curr_plan$pl %in% input$alg_district)
+      redistio_curr_plan$pl[idx] <- pl
+
+      leaflet::leafletProxy('map', data = shp) |>
+        setShapeStyle(
+          # data = shp,
+          layerId = ~redistio_id,
+          # line colors
+          stroke = TRUE, weight = 1,
+          color = '#000000',
+          # fill control
+          fillOpacity = 0.95,
+          fillColor = ~ pal(redistio_curr_plan$pl)
+        )
+
+      shiny::updateTabsetPanel(session, 'navbar', 'draw')
+    })
+
   }
 
   # run app ----

@@ -33,3 +33,5 @@ LazyData: true
 URL: https://github.com/christopherkenny/redistio,
     http://www.christophertkenny.com/redistio/
 BugReports: https://github.com/christopherkenny/redistio/issues
+Suggests: 
+    redist
