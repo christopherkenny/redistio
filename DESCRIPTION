@@ -7,7 +7,10 @@ Authors@R:
            role = c("aut", "cre"),
            email = "christopherkenny@fas.harvard.edu",
            comment = c(ORCID = "0000-0002-9386-6860"))
-Description: What the package does (one paragraph).
+Description: A point and click editor for districts built on 'shiny' and 'Leaflet'. 
+    Users can draw districts and calculate standard redistricting metrics, like 
+    compactness or the number of administrative splits. Maps can be exported as
+    assignment files, readable by most other redistricting softwares.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
