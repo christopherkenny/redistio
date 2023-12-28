@@ -541,7 +541,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
           'Flip' = redist::redist_flip,
         )
 
-        if (input$alg_algorithm %in% c('SMC', 'Merge Split')) {
+        if (input$alg_algorithm %in% c('SMC', 'Merge Split') &&
+            isTRUE(opts$alg_counties %||% def_opts$alg_counties %in% names(shp))) {
           sims <- run_sims(map_sub(),
             nsims = input$alg_nsims,
             counties = !!rlang::sym(opts$alg_counties %||% def_opts$alg_counties)
