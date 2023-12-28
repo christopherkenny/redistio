@@ -71,6 +71,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
 
   shp$redistio_id <- as.character(seq_len(length.out = nrow(shp)))
   shp$fmt_pop <- scales::label_comma()(shp$pop)
+  tot_pop <- sum(shp$pop)
 
   # prep hover ----
   shp_tb <- shp |>
@@ -239,18 +240,15 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
     clicked <- shiny::reactiveValues(clickedMarker = NULL)
 
     tab_pop_static <- dplyr::tibble(
-      District = paste0("<p style='background-color:", palette[seq_len(ndists)], "; text-align:center;'> ", seq_len(ndists), " </p>"),
-      Population = as.integer(tapply(shp$pop, init_plan, sum)),
-      Deviation = as.integer(.data$Population - tgt_pop)
+      District = paste0("<p style='background-color:", palette[c(NA_integer_, seq_len(ndists))], "; text-align:center;'> ", c('---', seq_len(ndists)), " </p>"),
+      Population = distr_pop(shp$pop, total = tot_pop, plan = init_plan, ndists = ndists),
+      Deviation = as.integer(distr_pop(shp$pop, total = tot_pop, plan = init_plan, ndists = ndists) - c(0L, rep(tgt_pop, ndists)))
     )
-
     val <- shiny::reactiveVal(tab_pop_static)
     map_sub <- shiny::reactiveVal(shp)
 
     alg_plans_static <- tibble::tibble(
       draw = factor(),
-      # district = integer(),
-      # total_pop = double(),
       dev = double()
     )
 
@@ -301,10 +299,10 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         }
 
         idx <- which(shp$redistio_id == click$id)
-        redistio_curr_plan$pl[idx] <- input$district_rows_selected
+        redistio_curr_plan$pl[idx] <- ifelse(input$district_rows_selected == 1, NA_integer_, input$district_rows_selected - 1L)
         new_tb_pop <- val()
-        new_tb_pop$Population <- as.integer(tapply(shp$pop, redistio_curr_plan$pl, sum))
-        new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - tgt_pop)
+        new_tb_pop$Population <- distr_pop(shp$pop, total = tot_pop, plan = init_plan, ndists = ndists)
+        new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - c(0L, rep(tgt_pop, ndists)))
         val(new_tb_pop)
 
         leaflet::leafletProxy('map', data = shp) |>
@@ -317,7 +315,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
             # fill control
             fillOpacity = 0.95,
             fillColor = ~ pal(redistio_curr_plan$pl)
-          )
+          ) |>
+          suppressWarnings()
       }
     )
 
@@ -327,12 +326,12 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
           DT::datatable(
             options = list(
               dom = 't', ordering = FALSE, scrollX = TRUE, scrollY = '80vh', #TODO make changeable
-              pageLength = ndists
+              pageLength = ndists + 1L
             ),
             style = 'bootstrap',
             rownames = FALSE,
             escape = FALSE,
-            selection = list(target = 'row', mode = 'single', selected = 1),
+            selection = list(target = 'row', mode = 'single', selected = 2),
             fillContainer = TRUE
           ) |>
           DT::formatRound(columns = c('Population', 'Deviation'), digits = 0)
@@ -448,26 +447,33 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
 
     # integrity panel ----
     output$integrity <- gt::render_gt({
-      if (adj_col %in% names(shp)) {
-        int_l <- list(
-          rict_population(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
-          rict_contiguity(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
-          rict_compactness(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
-          rict_splits(shp, plan = redistio_curr_plan$pl,
-                      admin = split_cols$admin, subadmin = split_cols$subadmin,
-                      multi = split_cols$multi, total = split_cols$total,
-                      as_gt = FALSE)
-        )
+      if (!any(is.na(redistio_curr_plan$pl))) {
+        if (adj_col %in% names(shp)) {
+          int_l <- list(
+            rict_population(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
+            rict_contiguity(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
+            rict_compactness(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
+            rict_splits(shp, plan = redistio_curr_plan$pl,
+                        admin = split_cols$admin, subadmin = split_cols$subadmin,
+                        multi = split_cols$multi, total = split_cols$total,
+                        as_gt = FALSE)
+          )
+        } else {
+          int_l <- list(
+            rict_population(shp, redistio_curr_plan$pl, as_gt = FALSE),
+            rict_compactness(shp, redistio_curr_plan$pl, as_gt = FALSE),
+            rict_splits(shp, plan = redistio_curr_plan$pl,
+                        admin = split_cols$admin, subadmin = split_cols$subadmin,
+                        multi = split_cols$multi, total = split_cols$total,
+                        as_gt = FALSE)
+          )
+        }
       } else {
         int_l <- list(
-          rict_population(shp, redistio_curr_plan$pl, as_gt = FALSE),
-          rict_compactness(shp, redistio_curr_plan$pl, as_gt = FALSE),
-          rict_splits(shp, plan = redistio_curr_plan$pl,
-                      admin = split_cols$admin, subadmin = split_cols$subadmin,
-                      multi = split_cols$multi, total = split_cols$total,
-                      as_gt = FALSE)
+          rict_population(shp, redistio_curr_plan$pl, as_gt = FALSE)
         )
       }
+
       int_l |>
         purrr::reduce(.f = dplyr::left_join, by = 'District') |>
         gt::gt() |>
@@ -475,7 +481,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         gt::fmt_percent(columns = 'pct_deviation', decimals = 1) |>
         gt::fmt_percent(columns = dplyr::starts_with('comp_'), decimals = 1) |>
         gt::tab_spanner(label = 'Deviation', columns = c('deviation', 'pct_deviation')) |>
-        gt::tab_spanner(label = 'Contiguity', columns = c('Pieces')) |>
+        gt::tab_spanner(label = 'Contiguity', columns = dplyr::any_of('Pieces')) |>
         gt::tab_spanner(label = 'Compactness', columns = dplyr::starts_with('comp_')) |>
         gt::tab_spanner(label = 'Splits',
                         columns = dplyr::starts_with(c('admin_', 'subadmin_'))) |>
