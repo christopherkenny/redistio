@@ -306,8 +306,9 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         idx <- which(shp$redistio_id == click$id)
         redistio_curr_plan$pl[idx] <- ifelse(input$district_rows_selected == 1, NA_integer_, input$district_rows_selected - 1L)
         new_tb_pop <- val()
-        new_tb_pop$Population <- distr_pop(shp$pop, total = tot_pop, plan = init_plan, ndists = ndists)
+        new_tb_pop$Population <- distr_pop(shp$pop, total = tot_pop, plan = redistio_curr_plan$pl, ndists = ndists)
         new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - c(0L, rep(tgt_pop, ndists)))
+        #print(new_tb_pop)
         val(new_tb_pop)
 
         leaflet::leafletProxy('map', data = shp) |>
@@ -621,7 +622,6 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
 
     shiny::observeEvent(input$alg_accept, {
       pl <- redistio_alg_plan$plans[, input$alg_summary_rows_selected]
-      pl <- as.numeric(sort(input$alg_district)[pl])
       idx <- which(redistio_curr_plan$pl %in% input$alg_district)
       redistio_curr_plan$pl[idx] <- pl
 
@@ -643,6 +643,16 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
 
       alg_plans(alg_plans_static)
       shiny::updateTabsetPanel(session, 'navbar', 'draw')
+
+      new_tb_pop <- val()
+      new_tb_pop$Population <- distr_pop(shp$pop, total = tot_pop, plan = redistio_curr_plan$pl, ndists = ndists)
+      new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - c(0L, rep(tgt_pop, ndists)))
+      val(new_tb_pop)
+
+      DT::replaceData(
+        proxy = dt_alg_proxy, alg_plans(), rownames = FALSE,
+        resetPaging = FALSE, clearSelection = 'none'
+      )
     })
 
   }
