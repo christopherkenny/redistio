@@ -6,6 +6,8 @@
 #' @param crs a coordinate reference system to use in `leaflet::leaflet()`
 #' @param use_algorithms whether to use redistricting simulation algorithms
 #' @param alg_max_districts maximum number of districts to use in algorithms
+#' @param alg_max_sims maximum number of simulations to use in algorithms
+#' @param alg_counties name of county column in `sf` object to use in algorithms
 #' @param ... additional arguments (currently ignored)
 #'
 #' @return a `list`
@@ -16,6 +18,8 @@
 redistio_options <- function(theme = 'flatly', select_color = 'purple',
                              leaflet_height = '91vh', crs = 4326,
                              use_algorithms = TRUE, alg_max_districts = 3,
+                             alg_max_sims = 100,
+                             alg_counties = NULL,
                              ...) {
   list(
     theme = theme,
@@ -23,6 +27,8 @@ redistio_options <- function(theme = 'flatly', select_color = 'purple',
     leaflet_height = leaflet_height,
     crs = crs,
     use_algorithms = use_algorithms,
-    alg_max_districts = alg_max_districts
+    alg_max_districts = alg_max_districts,
+    alg_max_sims = alg_max_sims,
+    alg_counties = alg_counties
   )
 }

@@ -121,14 +121,14 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
 
   ui <- shiny::navbarPage(
     title = 'redistio',
-    theme = bslib::bs_theme(preset = opts$theme),
+    theme = bslib::bs_theme(preset = (opts$theme %||% def_opts$theme)),
     id = 'navbar',
     # draw panel ----
     shiny::tabPanel(
       title = 'draw',
       the_javascripts,
       selection_html,
-      theme = bslib::bs_theme(preset = opts$theme),
+      theme = bslib::bs_theme(preset = (opts$theme %||% def_opts$theme)),
       shiny::fluidRow(
         shiny::column( # color selector
           2,
@@ -183,9 +183,9 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
             2,
             shiny::selectizeInput(
               inputId = 'alg_district',
-              label = paste0('Districts to redraw (up to ', opts$alg_max_districts %||% def_opts$alg_max_districts, ')'),
+              label = paste0('Districts to redraw (up to ', min(opts$alg_max_districts %||% def_opts$alg_max_districts, ndists), ')'),
               choices = seq_len(ndists),
-              options = list(maxItems = opts$alg_max_districts %||% def_opts$alg_max_districts)
+              options = list(maxItems = min(opts$alg_max_districts %||% def_opts$alg_max_districts, ndists))
             ),
             shiny::hr(),
             shiny::selectInput(
@@ -198,7 +198,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
               inputId = 'alg_nsims',
               label = 'Number of simulations',
               min = 1,
-              max = 100,
+              max = (opts$alg_max_sims %||% def_opts$alg_max_sims),
               value = 10
             ),
             shiny::hr(),
@@ -206,13 +206,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
               inputId = 'alg_run',
               label = 'Run algorithm',
               icon = shiny::icon('circle-play')
-            ),
-            shiny::tags$hr(),
-            shiny::actionButton(
-              inputId = 'alg_accept',
-              label = 'Accept plan',
-              icon = shiny::icon('file-export')
-            ),
+            )
           ),
           shiny::column( # interactive mapper
             width = 8,
@@ -222,7 +216,14 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
             )
           ),
           shiny::column( # details area
-            width = 2
+            width = 2,
+            DT::DTOutput(outputId = 'alg_summary', width = '30vh', height = '80vh'),
+            shiny::tags$hr(),
+            shiny::actionButton(
+              inputId = 'alg_accept',
+              label = 'Accept plan',
+              icon = shiny::icon('file-export')
+            ),
           )
         )
       )
@@ -234,7 +235,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
   # Server ----
   server <- function(input, output, session) {
     redistio_curr_plan <- shiny::reactiveValues(pl = init_plan)
-    redistio_alg_plan <- shiny::reactiveValues(pl = NULL)
+    redistio_alg_plan <- shiny::reactiveValues(pl = NULL, plans = NULL)
     clicked <- shiny::reactiveValues(clickedMarker = NULL)
 
     tab_pop_static <- dplyr::tibble(
@@ -244,6 +245,15 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
     )
 
     val <- shiny::reactiveVal(tab_pop_static)
+
+    alg_plans_static <- tibble::tibble(
+      draw = factor(),
+      # district = integer(),
+      # total_pop = double(),
+      dev = double()
+    )
+
+    alg_plans <- shiny::reactiveVal(alg_plans_static)
 
     pal <- leaflet::colorFactor(
       palette = as.character(palette[seq_len(ndists)]),
@@ -312,7 +322,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
 
     # district stats ----
     output$district <- DT::renderDT({
-        x <- shiny::isolate(val()) |>
+        shiny::isolate(val()) |>
           DT::datatable(
             options = list(
               dom = 't', ordering = FALSE, scrollX = TRUE, scrollY = '80vh', #TODO make changeable
@@ -507,22 +517,37 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
           'Flip' = redist::redist_flip,
         )
 
-        sims <- run_sims(map_sub, nsims = input$alg_nsims)#TODO:, counties = county)
+        if (input$alg_algorithm %in% c('SMC', 'Merge Split')) {
+          sims <- run_sims(map_sub, nsims = input$alg_nsims)
+        } else {
+          sims <- run_sims(map_sub, nsims = input$alg_nsims,
+                           counties = !!rlang::ensym(opts$alg_counties %||% def_opts$alg_counties)
+                           )
+        }
 
         # TODO: plan selection vs taking last
         redistio_alg_plan$pl <- redist::last_plan(sims)
+        redistio_alg_plan$plans <- redist::get_plans_matrix(sims)
+        sims_sum <- sims |>
+          dplyr::mutate(
+            dev = redist::plan_parity(map = map_sub)
+          ) |>
+          tibble::as_tibble() |>
+          dplyr::group_by(draw) |>
+          dplyr::slice(1) |>
+          dplyr::ungroup() |>
+          dplyr::select(dplyr::all_of(c('draw', 'dev')))
+        alg_plans(sims_sum)
+
 
         map_sub |>
-          dplyr::mutate(
-            pl = redist::last_plan(sims)
-          ) |>
           leaflet::leaflet() |>
           leaflet::addTiles() |>
           leaflet::addPolygons(
             layerId = ~redistio_id,
             weight = 1,
             label = ~fmt_pop,
-            fillColor = ~pal(pl),
+            fillColor = pal(redistio_alg_plan$pl),
             fillOpacity = 0.95,
             color = '#000000',
             stroke = 0.5
@@ -531,6 +556,49 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       }) |>
       shiny::bindEvent(input$alg_run)
     }
+
+    output$alg_summary <- DT::renderDT({
+      shiny::isolate(alg_plans()) |>
+        DT::datatable(
+          options = list(
+            dom = 't', ordering = FALSE, scrollX = TRUE, scrollY = '70vh', #TODO make changeable
+            pagingType = 'numbers', scrollCollapse = TRUE,
+            pageLength = ndists * ((opts$alg_max_sims %||% def_opts$alg_max_sims) + 1)
+          ),
+          style = 'bootstrap',
+          rownames = FALSE,
+          escape = FALSE,
+          selection = list(target = 'row', mode = 'single', selected = 2),
+          fillContainer = TRUE
+        ) |>
+        DT::formatPercentage(columns = 'dev', digits = 1)
+    },
+    server = TRUE
+    )
+
+    dt_alg_proxy <- DT::dataTableProxy('alg_summary')
+
+    shiny::observe({
+      DT::replaceData(
+        proxy = dt_alg_proxy, alg_plans(), rownames = FALSE,
+        resetPaging = FALSE, clearSelection = 'none'
+      )
+    })
+
+    # shiny::observeEvent(input$alg_summary_rows_selected,{
+    #   leaflet::leafletProxy('alg_map', data = map_sub) |>
+    #     setShapeStyle(
+    #       # data = shp,
+    #       layerId = ~redistio_id,
+    #       # line colors
+    #       stroke = TRUE, weight = 1,
+    #       color = '#000000',
+    #       # fill control
+    #       fillOpacity = 0.95,
+    #       fillColor = ~ pal(redistio_alg_plan$plans[, input$alg_summary_rows_selected])
+    #     )
+    #   })
+
 
     shiny::observeEvent(input$alg_accept, {
       pl <- redistio_alg_plan$pl
