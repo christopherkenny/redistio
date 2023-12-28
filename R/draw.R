@@ -522,11 +522,11 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
         )
 
         if (input$alg_algorithm %in% c('SMC', 'Merge Split')) {
-          sims <- run_sims(map_sub(), nsims = input$alg_nsims) |>
+          sims <- run_sims(map_sub(), nsims = input$alg_nsims,
+                           counties = !!rlang::sym(opts$alg_counties %||% def_opts$alg_counties)) |>
             redist::match_numbers('redistio_plan')
         } else {
-          sims <- run_sims(map_sub(), nsims = input$alg_nsims,
-                           counties = !!rlang::ensym(opts$alg_counties %||% def_opts$alg_counties)
+          sims <- run_sims(map_sub(), nsims = input$alg_nsims
                            ) |>
             redist::match_numbers('redistio_plan')
         }
@@ -610,7 +610,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
 
     shiny::observeEvent(input$alg_accept, {
       pl <- redistio_alg_plan$plans[, input$alg_summary_rows_selected]
-      pl <- sort(input$alg_district)[pl]
+      pl <- as.numeric(sort(input$alg_district)[pl])
       idx <- which(redistio_curr_plan$pl %in% input$alg_district)
       redistio_curr_plan$pl[idx] <- pl
 
