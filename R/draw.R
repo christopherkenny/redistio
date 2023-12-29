@@ -149,7 +149,17 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
             id = 'tabRight',
             shiny::tabPanel('Population', gt::gt_output('tab_pop')),
             shiny::tabPanel('Precinct', gt::gt_output('hover')),
-            shiny::tabPanel('Download', shiny::downloadButton('save_plan', label = 'Export plan')),
+            shiny::tabPanel(
+              'Download',
+              shiny::column(
+                12,
+                shiny::h5('Download assignment file'),
+                shiny::selectizeInput("download_id", "Select identifier column:",
+                                      choices = NULL, selected = 'redistio_id',
+                                      multiple = FALSE),
+                shiny::downloadButton('save_plan', label = 'Export plan')
+              )
+            ),
             selected = 'Precinct'
           )
         )
@@ -408,13 +418,18 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
     })
 
     # downloader ----
+    shiny::updateSelectizeInput(session, 'download_id',
+                                choices = names(shp), selected = 'redistio_id',
+                                server = TRUE
+    )
+
     output$save_plan <- shiny::downloadHandler(
       filename = function() {
         save_path
       },
       content = function(file) {
-        df <- data.frame(
-          row_id = seq_len(length(redistio_curr_plan$pl)),
+        df <- tibble::tibble(
+          !!input$download_id := shp[[input$download_id]],
           District = redistio_curr_plan$pl
         )
 
