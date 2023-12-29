@@ -158,8 +158,16 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
                                       choices = NULL, selected = 'redistio_id',
                                       multiple = FALSE),
                 shiny::downloadButton('save_plan', label = 'Export plan')
-              )
+              ),
             ),
+            # shiny::tabPanel('Fill',
+            #                 shiny::selectizeInput(
+            #                   inputId = 'fill',
+            #                   label = 'Fill color',
+            #                   choices = c('By district'),
+            #                   selected = c('By district')
+            #                 )
+            # ),
             selected = 'Precinct'
           )
         )
