@@ -151,22 +151,26 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
             shiny::tabPanel('Precinct', gt::gt_output('hover')),
             shiny::tabPanel(
               'Download',
-              shiny::column(
-                12,
                 shiny::h5('Download assignment file'),
                 shiny::selectizeInput("download_id", "Select identifier column:",
                                       choices = NULL, selected = 'redistio_id',
                                       multiple = FALSE),
                 shiny::downloadButton('save_plan', label = 'Export plan')
-              ),
             ),
             # shiny::tabPanel('Fill',
+            #                 shiny::h5('Select fill columns'),
             #                 shiny::selectizeInput(
-            #                   inputId = 'fill',
+            #                   inputId = 'fill_input',
             #                   label = 'Fill color',
             #                   choices = c('By district'),
             #                   selected = c('By district')
-            #                 )
+            #                 ),
+            #                 shiny::selectizeInput(
+            #                   inputId = 'denominator_input',
+            #                   label = 'Normalizing column',
+            #                   choices = NULL,
+            #                   selected = NULL
+            #                 ),
             # ),
             selected = 'Precinct'
           )
@@ -449,6 +453,18 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       }
     )
     shiny::outputOptions(output, 'save_plan', suspendWhenHidden = FALSE)
+
+    # fill mini panel ----
+    # shiny::updateSelectizeInput(session, 'fill_input',
+    #                      choices = c('By district', names(shp)[vapply(shp, is.numeric, logical(1))]),
+    #                      selected = 'By district',
+    #                      server = TRUE
+    # )
+    # shiny::updateSelectizeInput(session, 'denominator_input',
+    #                      choices = c('1', names(shp)[vapply(shp, is.numeric, logical(1))]),
+    #                      selected = '1',
+    #                      server = TRUE
+    # )
 
     # demographics panel ----
 
