@@ -15,7 +15,6 @@ redistio_options(
   use_algorithms = TRUE,
   alg_max_districts = 3,
   alg_max_sims = 100,
-  alg_counties = NULL,
   ...
 )
 }
@@ -39,8 +38,6 @@ redistio_options(
 \item{alg_max_districts}{maximum number of districts to use in algorithms}
 
 \item{alg_max_sims}{maximum number of simulations to use in algorithms}
-
-\item{alg_counties}{name of county column in \code{sf} object to use in algorithms}
 
 \item{...}{additional arguments (currently ignored)}
 }

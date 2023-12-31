@@ -260,6 +260,10 @@ draw <- function(shp, init_plan, ndists, palette,
               value = 10
             ),
             shiny::hr(),
+            shiny::selectizeInput("alg_counties_id", "Select county column:",
+                                  choices = c('NONE', names(shp)), selected = NULL,
+                                  multiple = FALSE),
+            shiny::hr(),
             shiny::actionButton(
               inputId = 'alg_run',
               label = 'Run algorithm',
@@ -690,21 +694,40 @@ draw <- function(shp, init_plan, ndists, palette,
           'Flip' = redist::redist_flip,
         )
 
-        if (input$alg_algorithm %in% c('SMC', 'Merge Split') &&
-            isTRUE(opts$alg_counties %||% def_opts$alg_counties %in% names(shp))) {
-          sims <- run_sims(map_sub(),
-            nsims = input$alg_nsims,
-            counties = !!rlang::sym(opts$alg_counties %||% def_opts$alg_counties)
-          ) |>
-            redist::match_numbers('redistio_plan')
+        if (input$alg_algorithm %in% c('SMC', 'Merge Split')
+            #isTRUE(opts$alg_counties %||% def_opts$alg_counties %in% names(shp))
+            ) {
+          if (input$alg_counties_id != 'NONE') {
+            sims <- run_sims(map_sub(),
+                             nsims = input$alg_nsims,
+                             counties = !!rlang::sym(input$alg_counties_id)
+            )
+          } else {
+            sims <- run_sims(map_sub(), nsims = input$alg_nsims)
+          }
+
         } else {
-          sims <- run_sims(map_sub(), nsims = input$alg_nsims) |>
+          if (input$alg_counties_id != 'NONE') {
+            cons <- redist::redist_constr(map_sub()) |>
+              redist::add_constr_edges_rem(0.4) |>
+              redist::add_constr_splits(strength = 0.25, admin = !!rlang::sym(input$alg_counties_id))
+            sims <- run_sims(map_sub(),
+                             nsims = input$alg_nsims,
+                             constraints = cons)
+          } else {
+            sims <- run_sims(map_sub(), nsims = input$alg_nsims)
+          }
+          sims <- run_sims(map_sub(), nsims = input$alg_nsims)
+        }
+        if (length(input$alg_district) > 1) {
+          sims <- sims |>
             redist::match_numbers('redistio_plan')
         }
 
-        redistio_alg_plan$pl <- redist::last_plan(sims)
         redistio_alg_plan$plans <- redist::get_plans_matrix(sims) |>
           apply(MARGIN = 2, FUN = function(col) district_order[col])
+        redistio_alg_plan$pl <- redistio_alg_plan$plans[, 2]
+
         sims_sum <- sims |>
           dplyr::mutate(
             dev = redist::plan_parity(map = map_sub())
