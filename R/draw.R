@@ -24,6 +24,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
                  save_path = tempfile(fileext = '.csv')) {
   # defaults ----
   def_opts <- redistio_options()
+  poss_panels <- c('draw', 'demographics', 'integrity', 'elections', 'algorithms')
 
   # run basic inputs ----
   if (missing(shp)) {
@@ -258,6 +259,21 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
 
   # Server ----
   server <- function(input, output, session) {
+
+    # panel controls ----
+    if (!use_algorithms) {
+      poss_panels <- setdiff(poss_panels, 'algorithms')
+    }
+    req_panels <- opts$panels %||% def_opts$panels
+    if (!all(req_panels %in% poss_panels)) {
+      stop('Invalid panel selection')
+    }
+    hide_panels <- setdiff(poss_panels, c(req_panels, 'draw'))
+    for (panel in hide_panels) {
+      shiny::hideTab(inputId = 'navbar', target = panel)
+    }
+
+    # reactives ----
     redistio_curr_plan <- shiny::reactiveValues(pl = init_plan)
     redistio_alg_plan <- shiny::reactiveValues(pl = NULL, plans = NULL)
     clicked <- shiny::reactiveValues(clickedMarker = NULL)

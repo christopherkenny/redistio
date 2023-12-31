@@ -6,6 +6,7 @@
 \usage{
 redistio_options(
   theme = "flatly",
+  panels = c("elections", "demographics", "integrity", "algorithms"),
   select_color = "purple",
   leaflet_height = "91vh",
   crs = 4326,
@@ -18,6 +19,8 @@ redistio_options(
 }
 \arguments{
 \item{theme}{a name of a bootswatch preset theme or other \code{bslib::bs_theme()} object}
+
+\item{panels}{which panels to display in the app, \code{'draw'} is always shown.}
 
 \item{select_color}{a color to use for highlighting selected districts}
 
