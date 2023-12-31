@@ -53,6 +53,7 @@ draw <- function(shp, init_plan, ndists, palette,
     split_cols <- split_cols(shp)
   }
 
+  # process shp components ----
   if (!sf::st_is_longlat(shp)) {
     shp <- sf::st_transform(shp, opts$crs %||% def_opts$crs)
   }
@@ -187,11 +188,15 @@ draw <- function(shp, init_plan, ndists, palette,
             shiny::tabPanel('Precinct', gt::gt_output('hover')),
             shiny::tabPanel(
               'Download',
-                shiny::h5('Download assignment file'),
-                shiny::selectizeInput("download_id", "Select identifier column:",
-                                      choices = NULL, selected = 'redistio_id',
-                                      multiple = FALSE),
-                shiny::downloadButton('save_plan', label = 'Export plan')
+              shiny::h5('Download assignment file'),
+              shiny::selectizeInput("download_id", "Select identifier column:",
+                                    choices = NULL, selected = 'redistio_id',
+                                    multiple = FALSE),
+              shiny::downloadButton('save_plan', label = 'Export plan'),
+              shiny::h5('Download shapefile'),
+              shiny::textInput('save_shp_path', label = 'Path to save shapefile',
+                               value = 'redistio.geojson'),
+              shiny::downloadButton('save_shp', label = 'Export shapefile')
             ),
             # shiny::tabPanel('Fill',
             #                 shiny::h5('Select fill columns'),
@@ -569,6 +574,23 @@ draw <- function(shp, init_plan, ndists, palette,
       }
     )
     shiny::outputOptions(output, 'save_plan', suspendWhenHidden = FALSE)
+
+    output$save_shp <- shiny::downloadHandler(
+      filename = function() {
+        input$save_shp_path
+      },
+      content = function(file) {
+        shp |>
+          tibble::as_tibble() |>
+          sf::st_as_sf() |>
+          dplyr::mutate(
+            District = redistio_curr_plan$pl
+          ) |>
+          dplyr::group_by(.data$District) |>
+          dplyr::summarise() |>
+          sf::st_write(file)
+      }
+    )
 
     # fill mini panel ----
     # shiny::updateSelectizeInput(session, 'fill_input',
