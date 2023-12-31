@@ -10,6 +10,8 @@ redistio_options(
   select_color = "purple",
   leaflet_height = "91vh",
   crs = 4326,
+  layer_weight = 1.5,
+  layer_color = "#000000",
   use_algorithms = TRUE,
   alg_max_districts = 3,
   alg_max_sims = 100,
@@ -27,6 +29,10 @@ redistio_options(
 \item{leaflet_height}{height to pass to \code{leaflet::leafletOutput()}}
 
 \item{crs}{a coordinate reference system to use in \code{leaflet::leaflet()}}
+
+\item{layer_weight}{a stroke width to use for layers in \code{leaflet::leaflet()}}
+
+\item{layer_color}{a color to use for layers in \code{leaflet::leaflet()}}
 
 \item{use_algorithms}{whether to use redistricting simulation algorithms}
 

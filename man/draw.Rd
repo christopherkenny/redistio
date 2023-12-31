@@ -9,10 +9,10 @@ draw(
   init_plan,
   ndists,
   palette,
+  layers = NULL,
   pop_tol = 0.05,
   adj_col = "adj",
   split_cols = guess_admins,
-  layers = NULL,
   opts = redistio_options(),
   save_path = tempfile(fileext = ".csv")
 )
@@ -26,13 +26,13 @@ draw(
 
 \item{palette}{Color palette to fill shapes with. Default is Polychrome 36.}
 
+\item{layers}{Named list of \code{sf} objects to overlay. Also takes column names in \code{shp} to group by.}
+
 \item{pop_tol}{the population tolerance.}
 
 \item{adj_col}{Name of column in \code{shp} that contains adjacency information.}
 
 \item{split_cols}{Name of column in \code{shp} that contain administrative units}
-
-\item{layers}{Named list of \code{sf} objects to overlay. Also takes column names in \code{shp} to group by.}
 
 \item{opts}{list of options. Default is \code{redistio_options()}}
 
@@ -47,6 +47,7 @@ Interactive Plan Drawing
 \examples{
 if (interactive()) {
   draw(dc, dc$ward)
+  draw(dc, dc$ward, layers = list(neighborhoods = 'adv_nbr'))
 }
 
 }

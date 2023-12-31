@@ -17,11 +17,13 @@
 #' @examples
 #' if (interactive()) {
 #'   draw(dc, dc$ward)
+#'   draw(dc, dc$ward, layers = list(neighborhoods = 'adv_nbr'))
 #' }
 #'
-draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
+draw <- function(shp, init_plan, ndists, palette,
+                 layers = NULL, pop_tol = 0.05,
                  adj_col = 'adj', split_cols = guess_admins,
-                 layers = NULL,
+
                  opts = redistio_options(),
                  save_path = tempfile(fileext = '.csv')) {
   # defaults ----
@@ -347,7 +349,8 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
             leaflet::addPolygons(
               data = layers[[i]],
               fill = FALSE,
-              color = '#000000',
+              weight = opts$layer_weight %||% def_opts$layer_weight,
+              color = opts$layer_color %||% def_opts$layer_color,
               group = names(layers)[i]
             )
         }
@@ -639,7 +642,6 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
 
         district_order <- map_sub()$redistio_plan |> unique()
 
-
         run_sims <- switch(input$alg_algorithm,
           'SMC' = redist::redist_smc,
           'Merge Split' = \(...) redist::redist_mergesplit(warmup = 0, ...),
@@ -658,7 +660,6 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
             redist::match_numbers('redistio_plan')
         }
 
-        # TODO: plan selection vs taking last
         redistio_alg_plan$pl <- redist::last_plan(sims)
         redistio_alg_plan$plans <- redist::get_plans_matrix(sims) |>
           apply(MARGIN = 2, FUN = function(col) district_order[col])
@@ -673,8 +674,7 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
           dplyr::select(dplyr::all_of(c('draw', 'dev')))
         alg_plans(sims_sum)
 
-
-        map_sub() |>
+        map_alg <- map_sub() |>
           leaflet::leaflet() |>
           leaflet::addTiles() |>
           leaflet::addPolygons(
@@ -686,6 +686,21 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
             color = '#000000',
             stroke = 0.5
           )
+
+        if (!is.null(layers)) {
+          for (i in seq_along(layers)) {
+            map_alg <- map_alg |>
+              leaflet::addPolygons(
+                data = layers[[i]],
+                fill = FALSE,
+                weight = opts$layer_weight %||% def_opts$layer_weight,
+                color = opts$layer_color %||% def_opts$layer_color,
+                group = names(layers)[i]
+              )
+          }
+        }
+
+        map_alg
       }) |>
         shiny::bindEvent(input$alg_run)
     }
