@@ -60,6 +60,8 @@
 <span>  pop_tol <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  adj_col <span class="op">=</span> <span class="st">"adj"</span>,</span>
 <span>  split_cols <span class="op">=</span> <span class="va">guess_admins</span>,</span>
+<span>  elect_cols <span class="op">=</span> <span class="va">guess_elections</span>,</span>
+<span>  demog_cols <span class="op">=</span> <span class="va">guesstimate_demographics</span>,</span>
 <span>  opts <span class="op">=</span> <span class="fu"><a href="redistio_options.html">redistio_options</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -95,7 +97,15 @@
 
 
 <dt>split_cols</dt>
-<dd><p>Name of column in <code>shp</code> that contain administrative units</p></dd>
+<dd><p>Names of column in <code>shp</code> that contain administrative units</p></dd>
+
+
+<dt>elect_cols</dt>
+<dd><p>Names of column in <code>shp</code> that contain election data</p></dd>
+
+
+<dt>demog_cols</dt>
+<dd><p>Names of column in <code>shp</code> that contain demographic data</p></dd>
 
 
 <dt>opts</dt>
