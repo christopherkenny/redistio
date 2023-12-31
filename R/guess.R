@@ -41,3 +41,44 @@ guess_admins <- function(shp) {
 
 
 }
+
+#' Guess which columns contain election data
+#'
+#' @param shp an `sf` tibble that you want to draw with
+#'
+#' @return a named `list` of columns
+#' @export
+#'
+#' @examples
+#' guess_elections(dc)
+guess_elections <- function(shp) {
+  elecs <- shp |>
+    sf::st_drop_geometry() |>
+    dplyr::as_tibble() |>
+    dplyr::select(dplyr::contains('_dem_'), dplyr::ends_with('_dem')) |>
+    names() |>
+    stringr::word(end = 2, sep = '_') |>
+    unique()
+
+  lapply(elecs, function(el) {
+    vote_d <- shp |>
+      dplyr::as_tibble() |>
+      dplyr::select(
+        dplyr::starts_with(paste0(el, "_dem")),
+        dplyr::starts_with(paste0(el, "_rep"))
+      )
+    if (ncol(vote_d) != 2) {
+      return(NULL)
+    } else {
+      list(
+        dem = names(vote_d)[1],
+        rep = names(vote_d)[2]
+      )
+    }
+  }) |>
+    stats::setNames(elecs) |>
+    purrr::compact()
+}
+
+
+

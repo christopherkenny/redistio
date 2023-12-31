@@ -8,6 +8,7 @@
 #' @param pop_tol the population tolerance.
 #' @param adj_col Name of column in `shp` that contains adjacency information.
 #' @param split_cols Name of column in `shp` that contain administrative units
+#' @param elect_cols Name of column in `shp` that contain election data
 #' @param opts list of options. Default is `redistio_options()`
 #'
 #' @return Shiny app
@@ -21,7 +22,9 @@
 #'
 draw <- function(shp, init_plan, ndists, palette,
                  layers = NULL, pop_tol = 0.05,
-                 adj_col = 'adj', split_cols = guess_admins,
+                 adj_col = 'adj',
+                 split_cols = guess_admins,
+                 elect_cols = guess_elections,
                  opts = redistio_options()) {
   # defaults ----
   def_opts <- redistio_options()
@@ -48,6 +51,18 @@ draw <- function(shp, init_plan, ndists, palette,
 
   if (rlang::is_closure(split_cols)) {
     split_cols <- split_cols(shp)
+  }
+
+  if (rlang::is_closure(elect_cols)) {
+    elect_cols <- elect_cols(shp)
+  }
+  for (i in seq_along(elect_cols)) {
+    nom <- names(elect_cols)[i]
+    shp <- shp |>
+      dplyr::mutate(
+        {{ nom }} := !!rlang::sym(elect_cols[[i]]$dem) /
+          (!!rlang::sym(elect_cols[[i]]$dem) + !!rlang::sym(elect_cols[[i]]$rep))
+      )
   }
 
   # process shp components ----
@@ -201,21 +216,23 @@ draw <- function(shp, init_plan, ndists, palette,
                                value = opts$save_shape_path %||% def_opts$save_shape_path),
               shiny::downloadButton('save_shp', label = 'Export shapefile')
             ),
-            # shiny::tabPanel('Fill',
-            #                 shiny::h5('Select fill columns'),
-            #                 shiny::selectizeInput(
-            #                   inputId = 'fill_input',
-            #                   label = 'Fill color',
-            #                   choices = c('By district'),
-            #                   selected = c('By district')
-            #                 ),
-            #                 shiny::selectizeInput(
-            #                   inputId = 'denominator_input',
-            #                   label = 'Normalizing column',
-            #                   choices = NULL,
-            #                   selected = NULL
-            #                 ),
-            # ),
+            shiny::tabPanel(
+              'Fill',
+              shiny::h5('Select fill columns'),
+              shiny::selectInput(
+                inputId = 'fill_input',
+                label = 'Precinct fill type',
+                choices = c('District', 'Demographics', 'Elections'),
+                selected = 'District'
+              ),
+              shiny::selectizeInput(
+                inputId = 'fill_column',
+                label = 'Precinct fill column',
+                choices = 'District',
+                selected = NULL,
+                multiple = FALSE
+              ),
+            ),
             selected = 'Precinct'
           )
         )
@@ -347,9 +364,11 @@ draw <- function(shp, init_plan, ndists, palette,
 
     alg_plans <- shiny::reactiveVal(alg_plans_static)
 
-    pal <- leaflet::colorFactor(
-      palette = as.character(palette[seq_len(ndists)]),
-      domain = seq_len(ndists)
+    pal <- shiny::reactiveVal(
+      leaflet::colorFactor(
+        palette = as.character(palette[seq_len(ndists)]),
+        domain = seq_len(ndists)
+      )
     )
 
     # undo ----
@@ -386,18 +405,19 @@ draw <- function(shp, init_plan, ndists, palette,
       base_map
     })
 
-    shiny::observe({
-      leaflet::leafletProxy('map', data = shp) |>
-        setShapeStyle(
-          layerId = ~redistio_id,
-          fillColor = ~ pal(init_plan),
-          # color = ~pal(init_plan),
-          stroke = TRUE,
-          weight = 0.5,
-          color = '#000000',
-          fillOpacity = 0.95
-        )
-    })
+    # superceded by reactive filling using the reactive pal
+    # shiny::observe({
+    #   leaflet::leafletProxy('map', data = shp) |>
+    #     setShapeStyle(
+    #       layerId = ~redistio_id,
+    #       fillColor = ~ pal()(init_plan),
+    #       # color = ~pal(init_plan),
+    #       stroke = TRUE,
+    #       weight = 0.5,
+    #       color = '#000000',
+    #       fillOpacity = 0.95
+    #     )
+    # })
 
     shiny::observeEvent(input$map_shape_click, {
       clicked$map_shape_click <- input$map_shape_click
@@ -432,7 +452,7 @@ draw <- function(shp, init_plan, ndists, palette,
             color = '#000000',
             # fill control
             fillOpacity = 0.95,
-            fillColor = ~ pal(redistio_curr_plan$pl)
+            fillColor = ~ pal()(redistio_curr_plan$pl)
           ) |>
           suppressWarnings()
       }
@@ -508,7 +528,7 @@ draw <- function(shp, init_plan, ndists, palette,
           color = '#000000',
           # fill control
           fillOpacity = 0.95,
-          fillColor = ~ pal(redistio_curr_plan$pl)
+          fillColor = ~ pal()(redistio_curr_plan$pl)
         )
 
       new_tb_pop <- val()
@@ -529,10 +549,6 @@ draw <- function(shp, init_plan, ndists, palette,
       if (!is.null(hov_reac_d())) {
         if (input$tabRight == 'Precinct') {
           output$hover <- gt::render_gt({
-            # # handle layers ----
-            # if (is.null(hov_reac_d()$id)) {
-            #   return(NULL)
-            # }
             # produce hover tables ----
             hov |>
               dplyr::select('group', 'rowname', paste0('V', hov_reac_d()$id)) |>
@@ -596,18 +612,72 @@ draw <- function(shp, init_plan, ndists, palette,
     )
 
     # fill mini panel ----
-    # shiny::updateSelectizeInput(session, 'fill_input',
-    #                      choices = c('By district', names(shp)[vapply(shp, is.numeric, logical(1))]),
-    #                      selected = 'By district',
-    #                      server = TRUE
-    # )
-    # shiny::updateSelectizeInput(session, 'denominator_input',
-    #                      choices = c('1', names(shp)[vapply(shp, is.numeric, logical(1))]),
-    #                      selected = '1',
-    #                      server = TRUE
-    # )
+    shiny::observeEvent(input$fill_input, {
+      if (input$fill_input == 'District') {
+        shiny::updateSelectizeInput(session, 'fill_column',
+                                    choices = c('District'),
+                                    selected = NULL,
+                                    server = FALSE
+        )
+        pal(leaflet::colorFactor(
+          palette = as.character(palette[seq_len(ndists)]),
+          domain = seq_len(ndists)
+        ))
 
-    # demographics panel ----
+      } else if (input$fill_input == 'Elections') {
+        shiny::updateSelectizeInput(session, 'fill_column',
+                                    choices = names(elect_cols),
+                                    selected = names(elect_cols)[1],
+                                    server = FALSE
+        )
+
+        shiny::updateVarSelectizeInput(session, 'fill_column', selected = names(elect_cols)[1])
+
+        pal(leaflet::colorNumeric(
+          palette = ggredist::ggredist$partisan,
+          domain = c(0, 1),
+          na.color = '#D3D3D3'
+        ))
+      } else { # if (input$fill_input == 'Demographics') {
+
+      }
+    })
+
+    shiny::observeEvent(input$fill_column, {
+      leaflet::leafletProxy('map', data = shp) |>
+        update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp)
+      # if (input$fill_column == 'District') {
+      #   leaflet::leafletProxy('map', data = shp) |>
+      #     setShapeStyle(
+      #       # data = shp,
+      #       layerId = ~redistio_id,
+      #       # line colors
+      #       stroke = TRUE,
+      #       weight = 1,
+      #       color = '#000000',
+      #       # fill control
+      #       fillOpacity = 0.95,
+      #       fillColor = ~pal()(redistio_curr_plan$pl)
+      #     )
+      # } else {
+      #   leaflet::leafletProxy('map', data = shp) |>
+      #     setShapeStyle(
+      #       # data = shp,
+      #       layerId = ~redistio_id,
+      #       # line colors
+      #       stroke = TRUE,
+      #       weight = 1,
+      #       color = '#000000',
+      #       # fill control
+      #       fillOpacity = 0.95,
+      #       fillColor = ~pal()(shp[[input$fill_column]])
+      #     )
+      # }
+
+      }, ignoreInit = FALSE)
+
+
+      # demographics panel ----
 
     output$demographics <- gt::render_gt({
       list(
@@ -707,6 +777,11 @@ draw <- function(shp, init_plan, ndists, palette,
 
     # algorithms panel ----
     if (use_algorithms) {
+      alg_pal <- leaflet::colorFactor(
+        palette = as.character(palette[seq_len(ndists)]),
+        domain = seq_len(ndists)
+      )
+
       output$alg_map <- leaflet::renderLeaflet({
         map_sub(shp |>
           dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
@@ -773,10 +848,10 @@ draw <- function(shp, init_plan, ndists, palette,
             layerId = ~redistio_id,
             weight = 1,
             label = ~fmt_pop,
-            fillColor = pal(redistio_alg_plan$pl),
+            fillColor = alg_pal(redistio_alg_plan$pl),
             fillOpacity = 0.95,
             color = '#000000',
-            stroke = 0.5
+            stroke = TRUE
           )
 
         if (!is.null(layers)) {
@@ -836,7 +911,7 @@ draw <- function(shp, init_plan, ndists, palette,
           color = '#000000',
           # fill control
           fillOpacity = 0.95,
-          fillColor = ~ pal(redistio_alg_plan$plans[, input$alg_summary_rows_selected])
+          fillColor = ~ pal()(redistio_alg_plan$plans[, input$alg_summary_rows_selected])
         )
     })
 
@@ -857,7 +932,7 @@ draw <- function(shp, init_plan, ndists, palette,
           color = '#000000',
           # fill control
           fillOpacity = 0.95,
-          fillColor = ~ pal(redistio_curr_plan$pl)
+          fillColor = ~ pal()(redistio_curr_plan$pl)
         )
 
       leaflet::leafletProxy('alg_map') |>

@@ -16,19 +16,20 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports: 
-    bslib, 
-    dplyr, 
-    DT, 
-    geomander, 
-    gt, 
-    leaflet, 
-    purrr, 
-    redistmetrics, 
-    rlang, 
-    scales, 
-    sf, 
-    shiny, 
-    stringr, 
+    bslib,
+    dplyr,
+    DT,
+    geomander,
+    ggredist,
+    gt,
+    leaflet,
+    purrr,
+    redistmetrics,
+    rlang,
+    scales,
+    sf,
+    shiny,
+    stringr,
     tibble
 Depends: 
     R (>= 4.1.0)

@@ -2,6 +2,7 @@
 
 export(draw)
 export(guess_admins)
+export(guess_elections)
 export(hover_precinct)
 export(redistio_options)
 importFrom(rlang,"%||%")
