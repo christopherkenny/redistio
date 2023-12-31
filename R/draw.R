@@ -60,7 +60,11 @@ draw <- function(shp, init_plan, ndists, palette,
 
   # handle palettes ----
   if (missing(palette)) {
-    palette <- suppressWarnings(grDevices::palette.colors(n = ndists, 'Polychrome 36'))
+    if (rlang::is_installed('crayons')) {
+      palette <- crayons::crayons$no_48
+    } else {
+      palette <- suppressWarnings(grDevices::palette.colors(n = ndists, 'Polychrome 36'))
+    }
   }
   palette <- as.character(palette)
   if (length(palette) != ndists) {
