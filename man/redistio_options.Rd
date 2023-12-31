@@ -8,6 +8,9 @@ redistio_options(
   theme = "flatly",
   panels = c("elections", "demographics", "integrity", "algorithms"),
   select_color = "purple",
+  palette_pop = "Purples",
+  palette_pct = "PuOr",
+  palette_party = ggredist::ggredist$partisan,
   leaflet_height = "91vh",
   crs = 4326,
   layer_weight = 1.5,
@@ -26,6 +29,12 @@ redistio_options(
 \item{panels}{which panels to display in the app, \code{'draw'} is always shown.}
 
 \item{select_color}{a color to use for highlighting selected districts}
+
+\item{palette_pop}{a color palette to use for whole people}
+
+\item{palette_pct}{a color palette to use for percentages of people}
+
+\item{palette_party}{a color palette to use for parties}
 
 \item{leaflet_height}{height to pass to \code{leaflet::leafletOutput()}}
 

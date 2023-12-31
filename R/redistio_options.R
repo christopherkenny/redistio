@@ -3,6 +3,9 @@
 #' @param theme a name of a bootswatch preset theme or other `bslib::bs_theme()` object
 #' @param panels which panels to display in the app, `'draw'` is always shown.
 #' @param select_color a color to use for highlighting selected districts
+#' @param palette_pop a color palette to use for whole people
+#' @param palette_pct a color palette to use for percentages of people
+#' @param palette_party a color palette to use for parties
 #' @param leaflet_height height to pass to `leaflet::leafletOutput()`
 #' @param crs a coordinate reference system to use in `leaflet::leaflet()`
 #' @param layer_weight a stroke width to use for layers in `leaflet::leaflet()`
@@ -22,6 +25,9 @@
 redistio_options <- function(theme = 'flatly',
                              panels = c('elections', 'demographics', 'integrity', 'algorithms'),
                              select_color = 'purple',
+                             palette_pop = 'Purples',
+                             palette_pct = 'PuOr',
+                             palette_party = ggredist::ggredist$partisan,
                              leaflet_height = '91vh', crs = 4326,
                              layer_weight = 1.5, layer_color = '#000000',
                              use_algorithms = TRUE, alg_max_districts = 3,
@@ -33,6 +39,9 @@ redistio_options <- function(theme = 'flatly',
     theme = theme,
     panels = panels,
     select_color = select_color,
+    palette_pop = palette_pop,
+    palette_pct = palette_pct,
+    palette_party = palette_party,
     leaflet_height = leaflet_height,
     crs = crs,
     layer_weight = layer_weight,

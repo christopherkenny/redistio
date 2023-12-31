@@ -633,7 +633,7 @@ draw <- function(shp, init_plan, ndists, palette,
                                     server = FALSE
         )
         pal(leaflet::colorNumeric(
-          palette = ggredist::ggredist$partisan,
+          palette = opts$palette_party %||% def_opts$palette_party,
           domain = c(0, 1),
           na.color = '#D3D3D3'
         ))
@@ -651,13 +651,13 @@ draw <- function(shp, init_plan, ndists, palette,
       if (input$fill_input == 'Demographics') {
         if (input$fill_column %in% c('pop', 'vap', 'cvap')) {
           pal(leaflet::colorNumeric(
-            palette = 'Purples',
+            palette = opts$palette_pop %||% def_opts$palette_pop,
             domain = c(0, max(shp[[input$fill_column]], na.rm = TRUE)),
             na.color = '#D3D3D3'
           ))
         } else {
           pal(leaflet::colorNumeric(
-            palette = 'PuOr',
+            palette = opts$palette_pct %||% def_opts$palette_pct,
             domain = c(0, 1),
             na.color = '#D3D3D3'
           ))
