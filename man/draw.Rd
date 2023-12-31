@@ -13,8 +13,7 @@ draw(
   pop_tol = 0.05,
   adj_col = "adj",
   split_cols = guess_admins,
-  opts = redistio_options(),
-  save_path = tempfile(fileext = ".csv")
+  opts = redistio_options()
 )
 }
 \arguments{
@@ -35,8 +34,6 @@ draw(
 \item{split_cols}{Name of column in \code{shp} that contain administrative units}
 
 \item{opts}{list of options. Default is \code{redistio_options()}}
-
-\item{save_path}{Output path to save progress to.}
 }
 \value{
 Shiny app

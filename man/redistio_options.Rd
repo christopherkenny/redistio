@@ -15,6 +15,8 @@ redistio_options(
   use_algorithms = TRUE,
   alg_max_districts = 3,
   alg_max_sims = 100,
+  save_assignment_path = "redistio.csv",
+  save_shape_path = "reidstio.geojson",
   ...
 )
 }
@@ -38,6 +40,10 @@ redistio_options(
 \item{alg_max_districts}{maximum number of districts to use in algorithms}
 
 \item{alg_max_sims}{maximum number of simulations to use in algorithms}
+
+\item{save_assignment_path}{Output path to save assignment file to.}
+
+\item{save_shape_path}{Output path to save shapefile to.}
 
 \item{...}{additional arguments (currently ignored)}
 }

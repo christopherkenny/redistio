@@ -9,7 +9,6 @@
 #' @param adj_col Name of column in `shp` that contains adjacency information.
 #' @param split_cols Name of column in `shp` that contain administrative units
 #' @param opts list of options. Default is `redistio_options()`
-#' @param save_path Output path to save progress to.
 #'
 #' @return Shiny app
 #' @export
@@ -23,9 +22,7 @@
 draw <- function(shp, init_plan, ndists, palette,
                  layers = NULL, pop_tol = 0.05,
                  adj_col = 'adj', split_cols = guess_admins,
-
-                 opts = redistio_options(),
-                 save_path = tempfile(fileext = '.csv')) {
+                 opts = redistio_options()) {
   # defaults ----
   def_opts <- redistio_options()
   poss_panels <- c('draw', 'demographics', 'integrity', 'elections', 'algorithms')
@@ -189,13 +186,15 @@ draw <- function(shp, init_plan, ndists, palette,
             shiny::tabPanel(
               'Download',
               shiny::h5('Download assignment file'),
+              shiny::textInput('save_path', label = 'Path to save assignment file',
+                               value = opts$save_assignment_path %||% def_opts$save_assignment_path),
               shiny::selectizeInput("download_id", "Select identifier column:",
                                     choices = NULL, selected = 'redistio_id',
                                     multiple = FALSE),
               shiny::downloadButton('save_plan', label = 'Export plan'),
               shiny::h5('Download shapefile'),
               shiny::textInput('save_shp_path', label = 'Path to save shapefile',
-                               value = 'redistio.geojson'),
+                               value = opts$save_shape_path %||% def_opts$save_shape_path),
               shiny::downloadButton('save_shp', label = 'Export shapefile')
             ),
             # shiny::tabPanel('Fill',
@@ -558,7 +557,7 @@ draw <- function(shp, init_plan, ndists, palette,
 
     output$save_plan <- shiny::downloadHandler(
       filename = function() {
-        save_path
+        input$save_path
       },
       content = function(file) {
         df <- tibble::tibble(
