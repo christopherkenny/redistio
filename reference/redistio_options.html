@@ -55,6 +55,9 @@
 <span>  theme <span class="op">=</span> <span class="st">"flatly"</span>,</span>
 <span>  panels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"elections"</span>, <span class="st">"demographics"</span>, <span class="st">"integrity"</span>, <span class="st">"algorithms"</span><span class="op">)</span>,</span>
 <span>  select_color <span class="op">=</span> <span class="st">"purple"</span>,</span>
+<span>  palette_pop <span class="op">=</span> <span class="st">"Purples"</span>,</span>
+<span>  palette_pct <span class="op">=</span> <span class="st">"PuOr"</span>,</span>
+<span>  palette_party <span class="op">=</span> <span class="fu">ggredist</span><span class="fu">::</span><span class="va"><a href="https://alarm-redist.github.io/ggredist/reference/ggredist.html" class="external-link">ggredist</a></span><span class="op">$</span><span class="va">partisan</span>,</span>
 <span>  leaflet_height <span class="op">=</span> <span class="st">"91vh"</span>,</span>
 <span>  crs <span class="op">=</span> <span class="fl">4326</span>,</span>
 <span>  layer_weight <span class="op">=</span> <span class="fl">1.5</span>,</span>
@@ -80,6 +83,18 @@
 
 <dt>select_color</dt>
 <dd><p>a color to use for highlighting selected districts</p></dd>
+
+
+<dt>palette_pop</dt>
+<dd><p>a color palette to use for whole people</p></dd>
+
+
+<dt>palette_pct</dt>
+<dd><p>a color palette to use for percentages of people</p></dd>
+
+
+<dt>palette_party</dt>
+<dd><p>a color palette to use for parties</p></dd>
 
 
 <dt>leaflet_height</dt>
@@ -142,6 +157,19 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $select_color</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "purple"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $palette_pop</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Purples"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $palette_pct</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "PuOr"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $palette_party</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] "#A0442C" "#B25D4C" "#C27568" "#D18E84" "#DFA8A0" "#EBC2BC" "#F6DCD9"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [8] "#F9F9F9" "#DAE2F4" "#BDCCEA" "#9FB6DE" "#82A0D2" "#638BC6" "#3D77BB"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [15] "#0063B1"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "palette"   "character"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $leaflet_height</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "91vh"</span>
