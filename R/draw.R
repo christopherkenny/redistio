@@ -3,6 +3,7 @@
 #' @param shp an `sf` tibble that you want to draw with
 #' @param init_plan Plan to initialize with.
 #' @param ndists Number of districts to draw if `init_plan` is not supplied.
+#' @param layers Named list of `sf` objects to overlay. Also takes column names in `shp` to group by.
 #' @param palette Color palette to fill shapes with. Default is Polychrome 36.
 #' @param pop_tol the population tolerance.
 #' @param adj_col Name of column in `shp` that contains adjacency information.
@@ -20,6 +21,7 @@
 #'
 draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
                  adj_col = 'adj', split_cols = guess_admins,
+                 layers = NULL,
                  opts = redistio_options(),
                  save_path = tempfile(fileext = '.csv')) {
   # defaults ----
@@ -89,6 +91,30 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
   ) |>
     dplyr::bind_rows(.id = 'group') |>
     format_alarm_names()
+
+  # prep layers -----
+  if (!is.null(layers)) {
+    sf_entries <- which(vapply(layers, function(x) inherits(x, 'sf'), logical(1)))
+    char_entries <- which(vapply(layers, is.character, logical(1)))
+    if ((length(sf_entries) + length(char_entries)) != length(layers)) {
+      stop('`layers` must be a list of `sf` objects and character vectors.')
+    }
+    for (i in seq_along(char_entries)) {
+      nom <- layers[[char_entries[i]]]
+      layers[[char_entries[i]]] <- shp |>
+        dplyr::group_by(!!rlang::sym(layers[[char_entries[i]]])) |>
+        dplyr::summarize()
+      if (is.null(names(layers)) || names(layers)[char_entries[i]] == '') {
+        names(layers)[char_entries[i]] <- nom
+      }
+    }
+    if (is.null(names(layers))) {
+      names(layers) <- paste0('layer_', seq_along(layers))
+    }
+    if (any(names(layers) == '')) {
+      names(layers)[names(layers) == ''] <- paste0('layer_', seq_along(layers))
+    }
+  }
 
   # other prep ----
 
@@ -261,10 +287,11 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
   server <- function(input, output, session) {
 
     # panel controls ----
+    req_panels <- opts$panels %||% def_opts$panels
     if (!use_algorithms) {
       poss_panels <- setdiff(poss_panels, 'algorithms')
+      req_panels <- setdiff(req_panels, 'algorithms')
     }
-    req_panels <- opts$panels %||% def_opts$panels
     if (!all(req_panels %in% poss_panels)) {
       stop('Invalid panel selection')
     }
@@ -307,13 +334,30 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
     # draw panel ----
 
     output$map <- leaflet::renderLeaflet({
-      leaflet::leaflet(data = shp) |>
+      base_map <- leaflet::leaflet(data = shp) |>
         leaflet::addTiles() |>
         leaflet::addPolygons(
           layerId = ~redistio_id,
           weight = 1,
           label = ~fmt_pop
         )
+      if (!is.null(layers)) {
+        for (i in seq_along(layers)) {
+          base_map <- base_map |>
+            leaflet::addPolygons(
+              data = layers[[i]],
+              fill = FALSE,
+              color = '#000000',
+              group = names(layers)[i]
+            )
+        }
+        base_map <- base_map |>
+          leaflet::addLayersControl(
+            overlayGroups = names(layers),
+            options = leaflet::layersControlOptions(collapsed = FALSE)
+          )
+      }
+      base_map
     })
 
     shiny::observe({
@@ -426,6 +470,11 @@ draw <- function(shp, init_plan, ndists, palette, pop_tol = 0.05,
       if (!is.null(hov_reac_d())) {
         if (input$tabRight == 'Precinct') {
           output$hover <- gt::render_gt({
+            # handle layers ----
+            if (is.null(hov_reac_d()$id)) {
+              return(NULL)
+            }
+            # produce hover tables ----
             hov |>
               dplyr::select('group', 'rowname', paste0('V', hov_reac_d()$id)) |>
               gt::gt() |>
