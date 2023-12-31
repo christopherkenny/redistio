@@ -373,7 +373,8 @@ draw <- function(shp, init_plan, ndists, palette,
               fill = FALSE,
               weight = opts$layer_weight %||% def_opts$layer_weight,
               color = opts$layer_color %||% def_opts$layer_color,
-              group = names(layers)[i]
+              group = names(layers)[i],
+              options = leaflet::pathOptions(interactive = FALSE)
             )
         }
         base_map <- base_map |>
@@ -397,7 +398,6 @@ draw <- function(shp, init_plan, ndists, palette,
           fillOpacity = 0.95
         )
     })
-
 
     shiny::observeEvent(input$map_shape_click, {
       clicked$map_shape_click <- input$map_shape_click
@@ -529,10 +529,10 @@ draw <- function(shp, init_plan, ndists, palette,
       if (!is.null(hov_reac_d())) {
         if (input$tabRight == 'Precinct') {
           output$hover <- gt::render_gt({
-            # handle layers ----
-            if (is.null(hov_reac_d()$id)) {
-              return(NULL)
-            }
+            # # handle layers ----
+            # if (is.null(hov_reac_d()$id)) {
+            #   return(NULL)
+            # }
             # produce hover tables ----
             hov |>
               dplyr::select('group', 'rowname', paste0('V', hov_reac_d()$id)) |>
