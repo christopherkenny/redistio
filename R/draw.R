@@ -164,7 +164,12 @@ draw <- function(shp, init_plan, ndists, palette,
       shiny::fluidRow(
         shiny::column( # color selector
           2,
-          DT::DTOutput(outputId = 'district', width = '30vh', height = 'auto', ),
+          DT::DTOutput(outputId = 'district', width = '30vh', height = '81vh'),
+          shiny::actionButton(
+            inputId = 'undo',
+            label = 'Undo last change',
+            icon = shiny::icon('rotate-left')
+          )
         ),
         shiny::column( # interactive mapper
           8,
@@ -333,6 +338,9 @@ draw <- function(shp, init_plan, ndists, palette,
       domain = seq_len(ndists)
     )
 
+    # undo ----
+    undo_l <- shiny::reactiveVal(undo_log(l = undo_init(10L), pl = init_plan))
+
     # draw panel ----
 
     output$map <- leaflet::renderLeaflet({
@@ -391,11 +399,14 @@ draw <- function(shp, init_plan, ndists, palette,
         }
 
         idx <- which(shp$redistio_id == click$id)
-        redistio_curr_plan$pl[idx] <- ifelse(input$district_rows_selected == 1, NA_integer_, input$district_rows_selected - 1L)
+        new_dist <- ifelse(input$district_rows_selected == 1, NA_integer_, input$district_rows_selected - 1L)
+        redistio_curr_plan$pl[idx] <- new_dist
+
+        undo_l(undo_log(undo_l(), redistio_curr_plan$pl))
+
         new_tb_pop <- val()
         new_tb_pop$Population <- distr_pop(shp$pop, total = tot_pop, plan = redistio_curr_plan$pl, ndists = ndists)
         new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - c(0L, rep(tgt_pop, ndists)))
-        # print(new_tb_pop)
         val(new_tb_pop)
 
         leaflet::leafletProxy('map', data = shp) |>
@@ -414,8 +425,7 @@ draw <- function(shp, init_plan, ndists, palette,
     )
 
     # district stats ----
-    output$district <- DT::renderDT(
-      {
+    output$district <- DT::renderDT({
         shiny::isolate(val()) |>
           DT::datatable(
             options = list(
@@ -461,6 +471,38 @@ draw <- function(shp, init_plan, ndists, palette,
           footnote = pretty_bounds
         )
     })
+
+    # undo logic ----
+    shiny::observeEvent(input$undo, {
+
+      # don't do anything if there's nothing to do
+      if (undo_l()$undo_index <= 1L) {
+        return(NULL)
+      }
+
+      undo_l(undo_once(undo_l()))
+
+      last_pl <- undo_l()$undo[[undo_l()$undo_index]]
+      redistio_curr_plan$pl <- last_pl
+
+      leaflet::leafletProxy('map', data = shp) |>
+        setShapeStyle(
+          # data = shp,
+          layerId = ~redistio_id,
+          # line colors
+          stroke = TRUE, weight = 1,
+          color = '#000000',
+          # fill control
+          fillOpacity = 0.95,
+          fillColor = ~ pal(redistio_curr_plan$pl)
+        )
+
+      new_tb_pop <- val()
+      new_tb_pop$Population <- distr_pop(shp$pop, total = tot_pop, plan = redistio_curr_plan$pl, ndists = ndists)
+      new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - c(0L, rep(tgt_pop, ndists)))
+      val(new_tb_pop)
+    })
+
 
     # reactive mouseover
     hov_reac <- shiny::reactive({
@@ -705,8 +747,7 @@ draw <- function(shp, init_plan, ndists, palette,
         shiny::bindEvent(input$alg_run)
     }
 
-    output$alg_summary <- DT::renderDT(
-      {
+    output$alg_summary <- DT::renderDT({
         shiny::isolate(alg_plans()) |>
           DT::datatable(
             options = list(
@@ -754,6 +795,8 @@ draw <- function(shp, init_plan, ndists, palette,
       pl <- redistio_alg_plan$plans[, input$alg_summary_rows_selected]
       idx <- which(redistio_curr_plan$pl %in% input$alg_district)
       redistio_curr_plan$pl[idx] <- pl
+
+      undo_l(undo_log(undo_l(), redistio_curr_plan$pl))
 
       leaflet::leafletProxy('map', data = shp) |>
         setShapeStyle(
