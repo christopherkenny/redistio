@@ -7,8 +7,9 @@
 #' @param palette Color palette to fill shapes with. Default is Polychrome 36.
 #' @param pop_tol the population tolerance.
 #' @param adj_col Name of column in `shp` that contains adjacency information.
-#' @param split_cols Name of column in `shp` that contain administrative units
-#' @param elect_cols Name of column in `shp` that contain election data
+#' @param split_cols Names of column in `shp` that contain administrative units
+#' @param elect_cols Names of column in `shp` that contain election data
+#' @param demog_cols Names of column in `shp` that contain demographic data
 #' @param opts list of options. Default is `redistio_options()`
 #'
 #' @return Shiny app
@@ -25,6 +26,7 @@ draw <- function(shp, init_plan, ndists, palette,
                  adj_col = 'adj',
                  split_cols = guess_admins,
                  elect_cols = guess_elections,
+                 demog_cols = guesstimate_demographics,
                  opts = redistio_options()) {
   # defaults ----
   def_opts <- redistio_options()
@@ -63,6 +65,16 @@ draw <- function(shp, init_plan, ndists, palette,
         {{ nom }} := !!rlang::sym(elect_cols[[i]]$dem) /
           (!!rlang::sym(elect_cols[[i]]$dem) + !!rlang::sym(elect_cols[[i]]$rep))
       )
+  }
+  if (rlang::is_closure(demog_cols)) {
+    demog_cols_eval <- demog_cols(shp)
+    demog_cols <- names(demog_cols_eval)
+    demog_cols <- c(intersect(names(shp), c('pop', 'vap', 'cvap')), demog_cols)
+    demog_cols <- unique(demog_cols)
+  }
+  if (is.data.frame(demog_cols_eval)) {
+    shp <- dplyr::bind_cols(shp, demog_cols_eval) |>
+      sf::st_as_sf()
   }
 
   # process shp components ----
@@ -444,17 +456,7 @@ draw <- function(shp, init_plan, ndists, palette,
         val(new_tb_pop)
 
         leaflet::leafletProxy('map', data = shp) |>
-          setShapeStyle(
-            # data = shp,
-            layerId = ~redistio_id,
-            # line colors
-            stroke = TRUE, weight = 1,
-            color = '#000000',
-            # fill control
-            fillOpacity = 0.95,
-            fillColor = ~ pal()(redistio_curr_plan$pl)
-          ) |>
-          suppressWarnings()
+          update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp)
       }
     )
 
@@ -630,49 +632,39 @@ draw <- function(shp, init_plan, ndists, palette,
                                     selected = names(elect_cols)[1],
                                     server = FALSE
         )
-
-        shiny::updateVarSelectizeInput(session, 'fill_column', selected = names(elect_cols)[1])
-
         pal(leaflet::colorNumeric(
           palette = ggredist::ggredist$partisan,
           domain = c(0, 1),
           na.color = '#D3D3D3'
         ))
-      } else { # if (input$fill_input == 'Demographics') {
-
+      } else {
+        shiny::updateSelectizeInput(session, 'fill_column',
+                                    choices = demog_cols,
+                                    selected = demog_cols[1],
+                                    server = FALSE
+        )
+        # have to update pal depending on fill column, no new pal
       }
     })
 
     shiny::observeEvent(input$fill_column, {
+      if (input$fill_input == 'Demographics') {
+        if (input$fill_column %in% c('pop', 'vap', 'cvap')) {
+          pal(leaflet::colorNumeric(
+            palette = 'Purples',
+            domain = c(0, max(shp[[input$fill_column]], na.rm = TRUE)),
+            na.color = '#D3D3D3'
+          ))
+        } else {
+          pal(leaflet::colorNumeric(
+            palette = 'PuOr',
+            domain = c(0, 1),
+            na.color = '#D3D3D3'
+          ))
+        }
+      }
       leaflet::leafletProxy('map', data = shp) |>
         update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp)
-      # if (input$fill_column == 'District') {
-      #   leaflet::leafletProxy('map', data = shp) |>
-      #     setShapeStyle(
-      #       # data = shp,
-      #       layerId = ~redistio_id,
-      #       # line colors
-      #       stroke = TRUE,
-      #       weight = 1,
-      #       color = '#000000',
-      #       # fill control
-      #       fillOpacity = 0.95,
-      #       fillColor = ~pal()(redistio_curr_plan$pl)
-      #     )
-      # } else {
-      #   leaflet::leafletProxy('map', data = shp) |>
-      #     setShapeStyle(
-      #       # data = shp,
-      #       layerId = ~redistio_id,
-      #       # line colors
-      #       stroke = TRUE,
-      #       weight = 1,
-      #       color = '#000000',
-      #       # fill control
-      #       fillOpacity = 0.95,
-      #       fillColor = ~pal()(shp[[input$fill_column]])
-      #     )
-      # }
 
       }, ignoreInit = FALSE)
 
@@ -911,7 +903,7 @@ draw <- function(shp, init_plan, ndists, palette,
           color = '#000000',
           # fill control
           fillOpacity = 0.95,
-          fillColor = ~ pal()(redistio_alg_plan$plans[, input$alg_summary_rows_selected])
+          fillColor = ~alg_pal(redistio_alg_plan$plans[, input$alg_summary_rows_selected])
         )
     })
 
@@ -924,16 +916,7 @@ draw <- function(shp, init_plan, ndists, palette,
       undo_l(undo_log(undo_l(), redistio_curr_plan$pl))
 
       leaflet::leafletProxy('map', data = shp) |>
-        setShapeStyle(
-          # data = shp,
-          layerId = ~redistio_id,
-          # line colors
-          stroke = TRUE, weight = 1,
-          color = '#000000',
-          # fill control
-          fillOpacity = 0.95,
-          fillColor = ~ pal()(redistio_curr_plan$pl)
-        )
+        update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp)
 
       leaflet::leafletProxy('alg_map') |>
         leaflet::clearTiles() |>

@@ -71,7 +71,8 @@ update_shape_style <- function(leafl, fc, pal, rcp, shp) {
         # fill control
         fillOpacity = 0.95,
         fillColor = ~pal(rcp)
-      )
+      ) |>
+      leaflet::removeControl('legend')
   } else {
     leafl |>
       setShapeStyle(
@@ -84,6 +85,15 @@ update_shape_style <- function(leafl, fc, pal, rcp, shp) {
         # fill control
         fillOpacity = 0.95,
         fillColor = ~pal(shp[[fc]])
+      ) |>
+      leaflet::removeControl('legend') |>
+      leaflet::addLegend(
+        pal = pal,
+        values = shp[[fc]],
+        title = fc,
+        opacity = 0.95,
+        position = 'bottomright',
+        layerId = 'legend'
       )
   }
 }

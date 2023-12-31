@@ -14,6 +14,7 @@ draw(
   adj_col = "adj",
   split_cols = guess_admins,
   elect_cols = guess_elections,
+  demog_cols = guesstimate_demographics,
   opts = redistio_options()
 )
 }
@@ -32,9 +33,11 @@ draw(
 
 \item{adj_col}{Name of column in \code{shp} that contains adjacency information.}
 
-\item{split_cols}{Name of column in \code{shp} that contain administrative units}
+\item{split_cols}{Names of column in \code{shp} that contain administrative units}
 
-\item{elect_cols}{Name of column in \code{shp} that contain election data}
+\item{elect_cols}{Names of column in \code{shp} that contain election data}
+
+\item{demog_cols}{Names of column in \code{shp} that contain demographic data}
 
 \item{opts}{list of options. Default is \code{redistio_options()}}
 }

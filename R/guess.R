@@ -80,5 +80,44 @@ guess_elections <- function(shp) {
     purrr::compact()
 }
 
+#' Guess and estimate which columns contain demographic data
+#'
+#' @param shp an `sf` tibble that you want to draw with
+#'
+#' @return a named `list` of columns
+#' @export
+#'
+#' @examples
+#' guesstimate_demographics(dc)
+guesstimate_demographics <- function(shp) {
 
+  shp <- shp |>
+    sf::st_drop_geometry() |>
+    dplyr::as_tibble()
+
+  cols <- list()
+
+  if ('pop' %in% names(shp)) {
+    cols$pop <- shp |>
+      dplyr::mutate(across(dplyr::starts_with('pop_'), function(x) x / .data$pop, .names = 'pct_{col}')) |>
+      dplyr::select(dplyr::starts_with('pct_pop'))
+  }
+  if ('vap' %in% names(shp)) {
+    cols$vap <- shp |>
+      dplyr::mutate(across(dplyr::starts_with('vap_'), function(x) x / .data$vap, .names = 'pct_{col}')) |>
+      dplyr::select(dplyr::starts_with('pct_vap'))
+  }
+  if ('cvap' %in% names(shp)) {
+    cols$cvap <- shp |>
+      dplyr::mutate(across(dplyr::starts_with('cvap_'), function(x) x / .data$cvap, .names = 'pct_{col}')) |>
+      dplyr::select(dplyr::starts_with('pct_cvap'))
+  }
+
+  if (length(cols) > 0) {
+    cols |>
+      dplyr::bind_cols()
+  } else {
+    NULL
+  }
+}
 
