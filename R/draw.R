@@ -164,12 +164,12 @@ draw <- function(shp, init_plan, ndists, palette,
       shiny::fluidRow(
         shiny::column( # color selector
           2,
-          DT::DTOutput(outputId = 'district', width = '30vh', height = '81vh'),
           shiny::actionButton(
             inputId = 'undo',
             label = 'Undo last change',
             icon = shiny::icon('rotate-left')
-          )
+          ),
+          DT::DTOutput(outputId = 'district', width = '30vh', height = 'auto')
         ),
         shiny::column( # interactive mapper
           8,
