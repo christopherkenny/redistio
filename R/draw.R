@@ -57,6 +57,8 @@ draw <- function(shp, init_plan, ndists, palette,
     shp <- sf::st_transform(shp, opts$crs %||% def_opts$crs)
   }
 
+  shp <- shp |>
+    sf::st_make_valid()
 
   # handle palettes ----
   if (missing(palette)) {
