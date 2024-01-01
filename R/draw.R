@@ -726,7 +726,8 @@ draw <- function(shp, init_plan, ndists, palette,
         }
       } else {
         int_l <- list(
-          rict_population(shp, redistio_curr_plan$pl, as_gt = FALSE)
+          rict_population(shp, redistio_curr_plan$pl, as_gt = FALSE),
+          rict_contiguity(shp, plan = redistio_curr_plan$pl, as_gt = FALSE)
         )
       }
 

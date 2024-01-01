@@ -30,12 +30,13 @@ rict_population <- function(map, plan, as_gt = TRUE) {
 
 rict_contiguity <- function(map, plan, as_gt = TRUE) {
 
-  map$District <- plan
+  plan[is.na(plan)] <- max(plan, na.rm = TRUE) + 1L
   df <- geomander::check_contiguity(adj = map$adj, group = plan) |>
     dplyr::group_by(District = .data$group) |>
     dplyr::summarise(Pieces = max(.data$component)) |>
     dplyr::mutate(
-      District = as.integer(.data$District)
+      District = as.integer(.data$District),
+      District = ifelse(District == max(plan, na.rm = TRUE) + 1L, NA_integer_, District)
     )
 
   if (as_gt) {
