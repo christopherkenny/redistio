@@ -472,7 +472,8 @@ draw <- function(shp, init_plan, ndists, palette,
             rownames = FALSE,
             escape = FALSE,
             selection = list(target = 'row', mode = 'single', selected = 2),
-            fillContainer = TRUE
+            fillContainer = TRUE,
+            colnames = c('District', 'Pop.', 'Dev.')
           ) |>
           DT::formatRound(columns = c('Population', 'Deviation'), digits = 0)
       },
@@ -730,7 +731,6 @@ draw <- function(shp, init_plan, ndists, palette,
           rict_contiguity(shp, plan = redistio_curr_plan$pl, as_gt = FALSE)
         )
       }
-
       int_l |>
         purrr::reduce(.f = dplyr::left_join, by = 'District') |>
         gt::gt() |>
