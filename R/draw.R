@@ -247,6 +247,7 @@ draw <- function(shp, init_plan, ndists, palette,
             ),
             shiny::tabPanel(
               'Lock',
+              shiny::tags$style(lock_css),
                 if (!rlang::is_installed('shinyWidgets')) {
                   shiny::checkboxGroupInput(
                     inputId = 'locks',
@@ -259,11 +260,25 @@ draw <- function(shp, init_plan, ndists, palette,
                     inputId = "locks",
                     label = "Lock districts",
                     choices = seq_len(ndists),
-                    status = "primary",
-                    checkIcon = list(yes = icon("lock"), no = icon("lock-open")),
+                    status = "lockClass",
+                    checkIcon = list(
+                      yes = shiny::icon("lock"),
+                      no = shiny::icon("lock-open")
+                    ),
                     direction = 'vertical'
                   )
                 }
+            ),
+            shiny::tabPanel(
+              'District colors',
+              lapply(seq_len(ndists), function(i) {
+                colourpicker::colourInput(
+                  inputId = paste0('color_', i),
+                  label = paste0('District ', i, ' color'),
+                  value = palette[[i]] %||% palette[[i]]
+                )
+              }),
+              style = "overflow-y: scroll; max-height: 70vh"
             ),
             selected = 'Precinct'
           )
@@ -374,6 +389,7 @@ draw <- function(shp, init_plan, ndists, palette,
     redistio_curr_plan <- shiny::reactiveValues(pl = init_plan)
     redistio_alg_plan <- shiny::reactiveValues(pl = NULL, plans = NULL)
     clicked <- shiny::reactiveValues(clickedMarker = NULL)
+    palette_reactive <- shiny::reactiveVal(palette)
 
     tab_pop_static <- dplyr::tibble(
       District = paste0(
@@ -398,7 +414,7 @@ draw <- function(shp, init_plan, ndists, palette,
 
     pal <- shiny::reactiveVal(
       leaflet::colorFactor(
-        palette = as.character(palette[seq_len(ndists)]),
+        palette = as.character(palette),
         domain = seq_len(ndists)
       )
     )
@@ -633,7 +649,7 @@ draw <- function(shp, init_plan, ndists, palette,
                                     server = FALSE
         )
         pal(leaflet::colorFactor(
-          palette = as.character(palette[seq_len(ndists)]),
+          palette = as.character(palette_reactive()),
           domain = seq_len(ndists)
         ))
 
@@ -676,11 +692,31 @@ draw <- function(shp, init_plan, ndists, palette,
       }
       leaflet::leafletProxy('map', data = shp) |>
         update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp)
-
       }, ignoreInit = FALSE)
 
+    # district color mini panel ----
+    shiny::observeEvent(
+      eventExpr = lapply(seq_len(ndists), function(i) {
+        input[[paste0('color_', i)]]
+      }),
+      handlerExpr = {
+        palette_reactive(
+          vapply(seq_len(ndists), function(i) {
+            input[[paste0('color_', i)]]
+          }, FUN.VALUE = character(1))
+        )
 
-      # demographics panel ----
+        if (input$fill_input == 'District') {
+          pal(leaflet::colorFactor(
+            palette = as.character(palette_reactive()),
+            domain = seq_len(ndists)
+          ))
+          leaflet::leafletProxy('map', data = shp) |>
+            update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp)
+        }
+      })
+
+    # demographics panel ----
 
     output$demographics <- gt::render_gt({
       list(

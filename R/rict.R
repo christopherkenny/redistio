@@ -36,7 +36,7 @@ rict_contiguity <- function(map, plan, as_gt = TRUE) {
     dplyr::summarise(Pieces = max(.data$component)) |>
     dplyr::mutate(
       District = as.integer(.data$District),
-      District = ifelse(District == max(plan, na.rm = TRUE) + 1L, NA_integer_, District)
+      District = ifelse(.data$District == max(plan, na.rm = TRUE) + 1L, NA_integer_, .data$District)
     )
 
   if (as_gt) {

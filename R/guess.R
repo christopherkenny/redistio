@@ -99,17 +99,17 @@ guesstimate_demographics <- function(shp) {
 
   if ('pop' %in% names(shp)) {
     cols$pop <- shp |>
-      dplyr::mutate(across(dplyr::starts_with('pop_'), function(x) x / .data$pop, .names = 'pct_{col}')) |>
+      dplyr::mutate(dplyr::across(dplyr::starts_with('pop_'), function(x) x / .data$pop, .names = 'pct_{col}')) |>
       dplyr::select(dplyr::starts_with('pct_pop'))
   }
   if ('vap' %in% names(shp)) {
     cols$vap <- shp |>
-      dplyr::mutate(across(dplyr::starts_with('vap_'), function(x) x / .data$vap, .names = 'pct_{col}')) |>
+      dplyr::mutate(dplyr::across(dplyr::starts_with('vap_'), function(x) x / .data$vap, .names = 'pct_{col}')) |>
       dplyr::select(dplyr::starts_with('pct_vap'))
   }
   if ('cvap' %in% names(shp)) {
     cols$cvap <- shp |>
-      dplyr::mutate(across(dplyr::starts_with('cvap_'), function(x) x / .data$cvap, .names = 'pct_{col}')) |>
+      dplyr::mutate(dplyr::across(dplyr::starts_with('cvap_'), function(x) x / .data$cvap, .names = 'pct_{col}')) |>
       dplyr::select(dplyr::starts_with('pct_cvap'))
   }
 
