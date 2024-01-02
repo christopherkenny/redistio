@@ -202,7 +202,26 @@ draw <- function(shp, init_plan, ndists, palette,
           bslib::accordion(
             bslib::accordion_panel(
               'Edit districts',
-              DT::DTOutput(outputId = 'district')
+              DT::DTOutput(outputId = 'district'),
+              icon = shiny::icon('paintbrush')
+            ),
+            bslib::accordion_panel(
+              'Fill',
+              shiny::h5('Select fill columns'),
+              shiny::selectInput(
+                inputId = 'fill_input',
+                label = 'Precinct fill type',
+                choices = c('District', 'Demographics', 'Elections'),
+                selected = 'District'
+              ),
+              shiny::selectizeInput(
+                inputId = 'fill_column',
+                label = 'Precinct fill column',
+                choices = 'District',
+                selected = NULL,
+                multiple = FALSE
+              ),
+             icon = shiny::icon('palette')
             )
           )
         ),
@@ -237,23 +256,6 @@ draw <- function(shp, init_plan, ndists, palette,
                 shiny::textInput('save_shp_path', label = 'Path to save shapefile',
                                  value = opts$save_shape_path %||% def_opts$save_shape_path),
                 shiny::downloadButton('save_shp', label = 'Export shapefile')
-              ),
-              bslib::nav_panel(
-                'Fill',
-                shiny::h5('Select fill columns'),
-                shiny::selectInput(
-                  inputId = 'fill_input',
-                  label = 'Precinct fill type',
-                  choices = c('District', 'Demographics', 'Elections'),
-                  selected = 'District'
-                ),
-                shiny::selectizeInput(
-                  inputId = 'fill_column',
-                  label = 'Precinct fill column',
-                  choices = 'District',
-                  selected = NULL,
-                  multiple = FALSE
-                ),
               ),
               bslib::nav_panel(
                 'Lock',
@@ -325,7 +327,6 @@ draw <- function(shp, init_plan, ndists, palette,
         bslib::layout_columns(
           col_widths = c(2, 8, 2),
           bslib::card( # selector
-            #2,
             shiny::selectizeInput(
               inputId = 'alg_district',
               label = paste0('Districts to redraw (up to ', min(opts$alg_max_districts %||% def_opts$alg_max_districts, ndists), ')'),
@@ -358,14 +359,12 @@ draw <- function(shp, init_plan, ndists, palette,
             )
           ),
           bslib::card( # interactive mapper
-            #width = 8,
             leaflet::leafletOutput(
               outputId = 'alg_map',
               height = opts$leaflet_height %||% def_opts$leaflet_height,
             )
           ),
           bslib::card( # details area
-            #width = 2,
             DT::DTOutput(outputId = 'alg_summary', width = '30vh', height = '80vh'),
             shiny::tags$hr(),
             shiny::actionButton(
@@ -513,7 +512,7 @@ draw <- function(shp, init_plan, ndists, palette,
         shiny::isolate(val()) |>
           DT::datatable(
             options = list(
-              dom = 't', ordering = FALSE, scrollX = TRUE, scrollY = '80vh', # TODO make changeable
+              dom = 't', ordering = FALSE, scrollX = TRUE, scrollY = '40vh', # TODO make changeable
               pageLength = ndists + 1L
             ),
             style = 'bootstrap',
