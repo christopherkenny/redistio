@@ -202,8 +202,9 @@ draw <- function(shp, init_plan, ndists, palette,
           bslib::accordion(
             bslib::accordion_panel(
               'Edit districts',
-              DT::DTOutput(outputId = 'district'),
-              icon = shiny::icon('paintbrush')
+              DT::DTOutput(outputId = 'district', fill = TRUE),
+              icon = shiny::icon('paintbrush')#,
+              #style = 'min-height: 60vh'
             ),
             bslib::accordion_panel(
               'Fill',
@@ -512,7 +513,7 @@ draw <- function(shp, init_plan, ndists, palette,
         shiny::isolate(val()) |>
           DT::datatable(
             options = list(
-              dom = 't', ordering = FALSE, scrollX = TRUE, scrollY = '40vh', # TODO make changeable
+              dom = 't', ordering = FALSE, scrollY = paste0(min(ndists * 10, 90), 'vh'), #scrollX = TRUE, #, # TODO make changeable
               pageLength = ndists + 1L
             ),
             style = 'bootstrap',
@@ -520,7 +521,8 @@ draw <- function(shp, init_plan, ndists, palette,
             escape = FALSE,
             selection = list(target = 'row', mode = 'single', selected = 2),
             fillContainer = TRUE,
-            colnames = c('District', 'Pop.', 'Dev.')
+            colnames = c('District', 'Pop.', 'Dev.')#,
+            #class = 'compact'
           ) |>
           DT::formatRound(columns = c('Population', 'Deviation'), digits = 0)
       },
