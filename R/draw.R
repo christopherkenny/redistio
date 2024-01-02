@@ -47,6 +47,8 @@ draw <- function(shp, init_plan, ndists, palette,
     ndists <- length(unique(init_plan))
   }
 
+  shp$redistio_id <- as.character(seq_len(length.out = nrow(shp)))
+
   if (!adj_col %in% names(shp)) {
     shp$adj <- geomander::adjacency(shp)
   }
@@ -73,8 +75,13 @@ draw <- function(shp, init_plan, ndists, palette,
     demog_cols <- unique(demog_cols)
   }
   if (is.data.frame(demog_cols_eval)) {
-    shp <- dplyr::bind_cols(shp, demog_cols_eval) |>
-      sf::st_as_sf()
+    shp <- shp |>
+      dplyr::left_join(
+        y = demog_cols_eval |>
+          dplyr::mutate(
+            redistio_id = as.character(dplyr::row_number())
+          ),
+        by = 'redistio_id')
   }
 
   # process shp components ----
@@ -105,7 +112,6 @@ draw <- function(shp, init_plan, ndists, palette,
     }
   }
 
-  shp$redistio_id <- as.character(seq_len(length.out = nrow(shp)))
   shp$fmt_pop <- scales::label_comma()(shp$pop)
   tot_pop <- sum(shp$pop)
 
@@ -181,73 +187,77 @@ draw <- function(shp, init_plan, ndists, palette,
   }
 
 
-  ui <- shiny::navbarPage(
+  ui <- bslib::page_navbar(
     title = 'redistio',
     theme = bslib::bs_theme(preset = (opts$theme %||% def_opts$theme)),
     id = 'navbar',
     header = shiny::tags$head(shiny::tags$link(rel = 'shortcut icon', href = 'https://raw.githubusercontent.com/christopherkenny/redistio/main/man/figures/logo.png')),
     # draw panel ----
-    shiny::tabPanel(
+    bslib::nav_panel(
       title = 'draw',
       the_javascripts,
       selection_html,
-      theme = bslib::bs_theme(preset = (opts$theme %||% def_opts$theme)),
-      shiny::fluidRow(
-        shiny::column( # color selector
-          2,
-          shiny::actionButton(
-            inputId = 'undo',
-            label = 'Undo last change',
-            icon = shiny::icon('rotate-left')
-          ),
-          DT::DTOutput(outputId = 'district', width = '30vh', height = 'auto')
-        ),
-        shiny::column( # interactive mapper
-          8,
-          leaflet::leafletOutput(
-            outputId = 'map',
-            height = opts$leaflet_height %||% def_opts$leaflet_height,
+      bslib::page_sidebar(
+        sidebar = bslib::sidebar( # color selector
+          bslib::accordion(
+            bslib::accordion_panel(
+              'Edit districts',
+              DT::DTOutput(outputId = 'district')
+            )
           )
         ),
-        shiny::column( # details area
-          2, shiny::tabsetPanel(
-            id = 'tabRight',
-            shiny::tabPanel('Population', gt::gt_output('tab_pop')),
-            shiny::tabPanel('Precinct', gt::gt_output('hover')),
-            shiny::tabPanel(
-              'Download',
-              shiny::h5('Download assignment file'),
-              shiny::textInput('save_path', label = 'Path to save assignment file',
-                               value = opts$save_assignment_path %||% def_opts$save_assignment_path),
-              shiny::selectizeInput("download_id", "Select identifier column:",
-                                    choices = NULL, selected = 'redistio_id',
-                                    multiple = FALSE),
-              shiny::downloadButton('save_plan', label = 'Export plan'),
-              shiny::h5('Download shapefile'),
-              shiny::textInput('save_shp_path', label = 'Path to save shapefile',
-                               value = opts$save_shape_path %||% def_opts$save_shape_path),
-              shiny::downloadButton('save_shp', label = 'Export shapefile')
-            ),
-            shiny::tabPanel(
-              'Fill',
-              shiny::h5('Select fill columns'),
-              shiny::selectInput(
-                inputId = 'fill_input',
-                label = 'Precinct fill type',
-                choices = c('District', 'Demographics', 'Elections'),
-                selected = 'District'
+        bslib::layout_columns(
+          col_widths = c(9, 3),
+          bslib::card( # interactive mapper
+            #8,
+            full_screen = TRUE,
+            leaflet::leafletOutput(
+              outputId = 'map',
+              height = opts$leaflet_height %||% def_opts$leaflet_height,
+            )
+          ),
+          bslib::card( # details area
+            #2,
+            bslib::navset_bar(
+              id = 'tabRight',
+              bslib::nav_panel(title = 'Population', gt::gt_output('tab_pop')),
+              bslib::nav_panel(title = 'Precinct', gt::gt_output('hover')),
+              bslib::nav_menu(
+                title = 'More options',
+              bslib::nav_panel(
+                'Download',
+                shiny::h5('Download assignment file'),
+                shiny::textInput('save_path', label = 'Path to save assignment file',
+                                 value = opts$save_assignment_path %||% def_opts$save_assignment_path),
+                shiny::selectizeInput("download_id", "Select identifier column:",
+                                      choices = NULL, selected = 'redistio_id',
+                                      multiple = FALSE),
+                shiny::downloadButton('save_plan', label = 'Export plan'),
+                shiny::h5('Download shapefile'),
+                shiny::textInput('save_shp_path', label = 'Path to save shapefile',
+                                 value = opts$save_shape_path %||% def_opts$save_shape_path),
+                shiny::downloadButton('save_shp', label = 'Export shapefile')
               ),
-              shiny::selectizeInput(
-                inputId = 'fill_column',
-                label = 'Precinct fill column',
-                choices = 'District',
-                selected = NULL,
-                multiple = FALSE
+              bslib::nav_panel(
+                'Fill',
+                shiny::h5('Select fill columns'),
+                shiny::selectInput(
+                  inputId = 'fill_input',
+                  label = 'Precinct fill type',
+                  choices = c('District', 'Demographics', 'Elections'),
+                  selected = 'District'
+                ),
+                shiny::selectizeInput(
+                  inputId = 'fill_column',
+                  label = 'Precinct fill column',
+                  choices = 'District',
+                  selected = NULL,
+                  multiple = FALSE
+                ),
               ),
-            ),
-            shiny::tabPanel(
-              'Lock',
-              shiny::tags$style(lock_css),
+              bslib::nav_panel(
+                'Lock',
+                shiny::tags$style(lock_css),
                 if (!rlang::is_installed('shinyWidgets')) {
                   shiny::checkboxGroupInput(
                     inputId = 'locks',
@@ -268,51 +278,54 @@ draw <- function(shp, init_plan, ndists, palette,
                     direction = 'vertical'
                   )
                 }
-            ),
-            shiny::tabPanel(
-              'District colors',
-              lapply(seq_len(ndists), function(i) {
-                colourpicker::colourInput(
-                  inputId = paste0('color_', i),
-                  label = paste0('District ', i, ' color'),
-                  value = palette[[i]] %||% palette[[i]]
-                )
-              }),
-              style = "overflow-y: scroll; max-height: 70vh"
-            ),
-            selected = 'Precinct'
+              ),
+              bslib::nav_panel(
+                'District colors',
+                lapply(seq_len(ndists), function(i) {
+                  colourpicker::colourInput(
+                    inputId = paste0('color_', i),
+                    label = paste0('District ', i, ' color'),
+                    value = palette[[i]] %||% palette[[i]]
+                  )
+                }),
+                style = "overflow-y: scroll; max-height: 70vh"
+              )),
+              selected = 'Precinct'
+            )
           )
         )
-      )
+      ),
+
     ),
     # demographics panel ----
-    shiny::tabPanel(
+    bslib::nav_panel(
       title = 'demographics',
-      shiny::fluidRow(
+      bslib::page_fillable(
         gt::gt_output('demographics')
       )
     ),
     # traditional redistricting panel ----
-    shiny::tabPanel(
+    bslib::nav_panel(
       title = 'integrity',
-      shiny::fluidRow(
+      bslib::page_fillable(
         gt::gt_output('integrity')
       )
     ),
     # elections panel ----
-    shiny::tabPanel(
+    bslib::nav_panel(
       title = 'elections',
-      shiny::fluidRow(
+      bslib::page_fillable(
         gt::gt_output('elections')
       )
     ),
     # algorithms panel ----
     if (use_algorithms) {
-      shiny::tabPanel(
+      bslib::nav_panel(
         title = 'algorithms',
-        shiny::fluidRow(
-          shiny::column( # selector
-            2,
+        bslib::layout_columns(
+          col_widths = c(2, 8, 2),
+          bslib::card( # selector
+            #2,
             shiny::selectizeInput(
               inputId = 'alg_district',
               label = paste0('Districts to redraw (up to ', min(opts$alg_max_districts %||% def_opts$alg_max_districts, ndists), ')'),
@@ -344,15 +357,15 @@ draw <- function(shp, init_plan, ndists, palette,
               icon = shiny::icon('circle-play')
             )
           ),
-          shiny::column( # interactive mapper
-            width = 8,
+          bslib::card( # interactive mapper
+            #width = 8,
             leaflet::leafletOutput(
               outputId = 'alg_map',
               height = opts$leaflet_height %||% def_opts$leaflet_height,
             )
           ),
-          shiny::column( # details area
-            width = 2,
+          bslib::card( # details area
+            #width = 2,
             DT::DTOutput(outputId = 'alg_summary', width = '30vh', height = '80vh'),
             shiny::tags$hr(),
             shiny::actionButton(
@@ -364,8 +377,17 @@ draw <- function(shp, init_plan, ndists, palette,
         )
       )
     } else {
-      NULL
-    }
+     NULL
+    },
+    bslib::nav_spacer(),
+    bslib::nav_item(
+      shiny::actionButton(
+        inputId = 'undo',
+        label = 'Undo last change',
+        icon = shiny::icon('rotate-left'),
+        class = 'btn-primary'
+      ),
+    )
   )
 
   # Server ----
@@ -514,6 +536,8 @@ draw <- function(shp, init_plan, ndists, palette,
         resetPaging = FALSE, clearSelection = 'none'
       )
     })
+
+    shiny::outputOptions(output, 'district', suspendWhenHidden = FALSE)
 
     output$tab_pop <- gt::render_gt({
       val() |>
@@ -982,6 +1006,7 @@ draw <- function(shp, init_plan, ndists, palette,
         resetPaging = FALSE, clearSelection = 'none'
       )
     })
+
   }
 
   # run app ----
