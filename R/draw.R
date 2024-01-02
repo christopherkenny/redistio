@@ -521,8 +521,7 @@ draw <- function(shp, init_plan, ndists, palette,
             escape = FALSE,
             selection = list(target = 'row', mode = 'single', selected = 2),
             fillContainer = TRUE,
-            colnames = c('District', 'Pop.', 'Dev.')#,
-            #class = 'compact'
+            colnames = c('District', 'Pop.', 'Dev.')
           ) |>
           DT::formatRound(columns = c('Population', 'Deviation'), digits = 0)
       },
