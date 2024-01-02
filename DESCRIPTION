@@ -29,6 +29,7 @@ Imports:
     scales,
     sf,
     shiny,
+    shinyWidgets,
     stringr,
     tibble
 Depends: 

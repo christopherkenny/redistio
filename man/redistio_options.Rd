@@ -15,6 +15,7 @@ redistio_options(
   crs = 4326,
   layer_weight = 1.5,
   layer_color = "#000000",
+  locked_districts = NULL,
   use_algorithms = TRUE,
   alg_max_districts = 3,
   alg_max_sims = 100,
@@ -43,6 +44,8 @@ redistio_options(
 \item{layer_weight}{a stroke width to use for layers in \code{leaflet::leaflet()}}
 
 \item{layer_color}{a color to use for layers in \code{leaflet::leaflet()}}
+
+\item{locked_districts}{districts to lock on app start to stop edits}
 
 \item{use_algorithms}{whether to use redistricting simulation algorithms}
 

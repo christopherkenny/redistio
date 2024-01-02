@@ -245,6 +245,26 @@ draw <- function(shp, init_plan, ndists, palette,
                 multiple = FALSE
               ),
             ),
+            shiny::tabPanel(
+              'Lock',
+                if (!rlang::is_installed('shinyWidgets')) {
+                  shiny::checkboxGroupInput(
+                    inputId = 'locks',
+                    choices = seq_len(ndists),
+                    label = 'Lock districts',
+                    selected = opts$locked_districts %||% def_opts$locked_districts
+                  )
+                } else {
+                  shinyWidgets::checkboxGroupButtons(
+                    inputId = "locks",
+                    label = "Lock districts",
+                    choices = seq_len(ndists),
+                    status = "primary",
+                    checkIcon = list(yes = icon("lock"), no = icon("lock-open")),
+                    direction = 'vertical'
+                  )
+                }
+            ),
             selected = 'Precinct'
           )
         )
@@ -417,20 +437,6 @@ draw <- function(shp, init_plan, ndists, palette,
       base_map
     })
 
-    # superceded by reactive filling using the reactive pal
-    # shiny::observe({
-    #   leaflet::leafletProxy('map', data = shp) |>
-    #     setShapeStyle(
-    #       layerId = ~redistio_id,
-    #       fillColor = ~ pal()(init_plan),
-    #       # color = ~pal(init_plan),
-    #       stroke = TRUE,
-    #       weight = 0.5,
-    #       color = '#000000',
-    #       fillOpacity = 0.95
-    #     )
-    # })
-
     shiny::observeEvent(input$map_shape_click, {
       clicked$map_shape_click <- input$map_shape_click
     })
@@ -446,6 +452,10 @@ draw <- function(shp, init_plan, ndists, palette,
 
         idx <- which(shp$redistio_id == click$id)
         new_dist <- ifelse(input$district_rows_selected == 1, NA_integer_, input$district_rows_selected - 1L)
+        if (redistio_curr_plan$pl[idx] %in% input$locks || new_dist %in% input$locks) {
+          return(NULL)
+        }
+
         redistio_curr_plan$pl[idx] <- new_dist
 
         undo_l(undo_log(undo_l(), redistio_curr_plan$pl))
