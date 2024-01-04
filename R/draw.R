@@ -199,6 +199,7 @@ draw <- function(shp, init_plan, ndists, palette,
       selection_html,
       bslib::page_sidebar(
         sidebar = bslib::sidebar( # color selector
+          width = 300,
           bslib::accordion(
             bslib::accordion_panel(
               'Edit districts',
@@ -448,7 +449,8 @@ draw <- function(shp, init_plan, ndists, palette,
 
     output$map <- leaflet::renderLeaflet({
       base_map <- leaflet::leaflet(data = shp) |>
-        leaflet::addTiles() |>
+        #leaflet::addTiles() |>
+        leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron) |>
         leaflet::addPolygons(
           layerId = ~redistio_id,
           weight = 1,
