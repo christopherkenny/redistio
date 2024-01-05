@@ -453,8 +453,8 @@ draw <- function(shp, init_plan, ndists, palette,
 
     output$map <- leaflet::renderLeaflet({
       base_map <- leaflet::leaflet(data = shp) |>
-        #leaflet::addTiles() |>
-        leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron) |>
+        leaflet::addTiles() |>
+       # leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron) |>
         leaflet::addPolygons(
           layerId = ~redistio_id,
           weight = 1,
