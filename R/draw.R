@@ -294,6 +294,10 @@ draw <- function(shp, init_plan, ndists, palette,
                 }),
                 style = "overflow-y: scroll; max-height: 70vh"
               )),
+              bslib::nav_panel(
+                'Tools',
+                discontiguousUI('discontiguous')
+              ),
               selected = 'Precinct'
             )
           )
@@ -741,6 +745,10 @@ draw <- function(shp, init_plan, ndists, palette,
             update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp)
         }
       })
+
+    # tools mini panel ----
+    discontiguousServer('discontiguous', redistio_curr_plan, shp$adj, shp,
+                        reactive(leaflet::leafletProxy('map')))
 
     # demographics panel ----
 
