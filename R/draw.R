@@ -44,7 +44,9 @@ draw <- function(shp, init_plan, ndists, palette,
       init_plan <- rep(NA_integer_, nrow(shp))
     }
   } else {
-    ndists <- length(unique(init_plan))
+    if (missing(ndists)) {
+      ndists <- length(unique(init_plan))
+    }
   }
 
   shp$redistio_id <- as.character(seq_len(length.out = nrow(shp)))
