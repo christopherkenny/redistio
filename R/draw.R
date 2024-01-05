@@ -197,38 +197,43 @@ draw <- function(shp, init_plan, ndists, palette,
       title = 'draw',
       the_javascripts,
       selection_html,
-      bslib::page_sidebar(
-        sidebar = bslib::sidebar( # color selector
-          width = 300,
-          bslib::accordion(
-            bslib::accordion_panel(
-              'Edit districts',
-              DT::DTOutput(outputId = 'district', fill = TRUE),
-              icon = shiny::icon('paintbrush')#,
-              #style = 'min-height: 60vh'
-            ),
-            bslib::accordion_panel(
-              'Fill',
-              shiny::h5('Select fill columns'),
-              shiny::selectInput(
-                inputId = 'fill_input',
-                label = 'Precinct fill type',
-                choices = c('District', 'Demographics', 'Elections'),
-                selected = 'District'
+      bslib::page_fillable(
+        bslib::layout_sidebar(
+          border_radius = FALSE,
+          fillable = TRUE,
+          class = "p-0",
+          sidebar = bslib::sidebar( # color selector
+            width = 300,
+            bslib::accordion(
+              bslib::accordion_panel(
+                'Edit districts',
+                DT::DTOutput(outputId = 'district', fill = TRUE),
+                icon = shiny::icon('paintbrush')#,
+                #style = 'min-height: 60vh'
               ),
-              shiny::selectizeInput(
-                inputId = 'fill_column',
-                label = 'Precinct fill column',
-                choices = 'District',
-                selected = NULL,
-                multiple = FALSE
-              ),
-             icon = shiny::icon('palette')
+              bslib::accordion_panel(
+                'Fill',
+                shiny::h5('Select fill columns'),
+                shiny::selectInput(
+                  inputId = 'fill_input',
+                  label = 'Precinct fill type',
+                  choices = c('District', 'Demographics', 'Elections'),
+                  selected = 'District'
+                ),
+                shiny::selectizeInput(
+                  inputId = 'fill_column',
+                  label = 'Precinct fill column',
+                  choices = 'District',
+                  selected = NULL,
+                  multiple = FALSE
+                ),
+                icon = shiny::icon('palette')
+              )
             )
-          )
-        ),
-        bslib::layout_columns(
-          col_widths = c(9, 3),
+          ),
+
+        bslib::layout_sidebar(
+          border = FALSE,
           bslib::card( # interactive mapper
             #8,
             full_screen = TRUE,
@@ -237,8 +242,9 @@ draw <- function(shp, init_plan, ndists, palette,
               height = opts$leaflet_height %||% def_opts$leaflet_height,
             )
           ),
-          bslib::card( # details area
-            #2,
+          sidebar = bslib::sidebar( # details area
+            position = 'right',
+            width = 300,
             bslib::navset_bar(
               id = 'tabRight',
               bslib::nav_panel(title = 'Population', gt::gt_output('tab_pop')),
@@ -303,8 +309,8 @@ draw <- function(shp, init_plan, ndists, palette,
             )
           )
         )
+        )
       ),
-
     ),
     # demographics panel ----
     bslib::nav_panel(
