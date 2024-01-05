@@ -42,8 +42,11 @@ discontiguousServer <- function(id, plan, adj, shp, map_reac) {
 
     # get contiguity on refresh only
     shiny::observeEvent(input$refresh, {
-      long_pieces <- geomander::check_contiguity(adj, plan$pl) |>
+      plan2 <- plan$pl
+      plan2[is.na(plan2)] <- max(plan$pl, na.rm = TRUE) + 1L
+      long_pieces <- geomander::check_contiguity(adj, plan2) |>
         dplyr::mutate(redistio_id = dplyr::row_number()) |>
+        dplyr::filter(!is.na(plan$pl)) |>
         dplyr::group_by(.data$group_number) |>
         dplyr::mutate(n = max(.data$component)) |>
         dplyr::ungroup() |>
