@@ -36,7 +36,7 @@ unassignedServer <- function(id, plan, shp, map_reac) {
 
   shiny::moduleServer(id, function(input, output, session) {
 
-    nas <- reactiveVal(NULL)
+    nas <- shiny::reactiveVal(NULL)
     current <- shiny::reactiveVal(FALSE)
 
     # get NAs on refresh only

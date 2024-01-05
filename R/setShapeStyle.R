@@ -1,3 +1,4 @@
+# adapted from leaflet contributors
 setShapeStyle <- function(map, data = leaflet::getMapData(map), layerId,
                           stroke = NULL, color = NULL,
                           weight = NULL, opacity = NULL,

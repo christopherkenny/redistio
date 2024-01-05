@@ -37,7 +37,7 @@ discontiguousServer <- function(id, plan, adj, shp, map_reac) {
 
   shiny::moduleServer(id, function(input, output, session) {
 
-    cont <- reactiveVal(tibble::tibble())
+    cont <- shiny::reactiveVal(tibble::tibble())
     current <- shiny::reactiveVal(FALSE)
 
     # get contiguity on refresh only
@@ -50,7 +50,7 @@ discontiguousServer <- function(id, plan, adj, shp, map_reac) {
         dplyr::group_by(.data$group_number) |>
         dplyr::mutate(n = max(.data$component)) |>
         dplyr::ungroup() |>
-        dplyr::filter(n > 1) |>
+        dplyr::filter(.data$n > 1) |>
         dplyr::group_by(.data$group_number, .data$component) |>
         dplyr::summarise(
           rows = list(.data$redistio_id)
