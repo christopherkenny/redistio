@@ -293,11 +293,12 @@ draw <- function(shp, init_plan, ndists, palette,
                   )
                 }),
                 style = "overflow-y: scroll; max-height: 70vh"
-              )),
+              ),
               bslib::nav_panel(
                 'Tools',
-                discontiguousUI('discontiguous')
-              ),
+                discontiguousUI('discontiguous'),
+                unassignedUI('unassigned')
+              )),
               selected = 'Precinct'
             )
           )
@@ -730,11 +731,23 @@ draw <- function(shp, init_plan, ndists, palette,
         input[[paste0('color_', i)]]
       }),
       handlerExpr = {
+        # update palette
         palette_reactive(
           vapply(seq_len(ndists), function(i) {
             input[[paste0('color_', i)]]
           }, FUN.VALUE = character(1))
         )
+
+        # update selection table
+        new_color_tbl <- val()
+        new_color_tbl$District <- paste0(
+          "<p style='background-color:",
+          palette_reactive()[c(NA_integer_, seq_len(ndists))],
+          "; text-align:center;'> ",
+          c(as.character(shiny::icon('eraser')), seq_len(ndists)),
+          ' </p>'
+        )
+        val(new_color_tbl)
 
         if (input$fill_input == 'District') {
           pal(leaflet::colorFactor(
@@ -748,7 +761,10 @@ draw <- function(shp, init_plan, ndists, palette,
 
     # tools mini panel ----
     discontiguousServer('discontiguous', redistio_curr_plan, shp$adj, shp,
-                        reactive(leaflet::leafletProxy('map')))
+                        shiny::reactive(leaflet::leafletProxy('map')))
+
+    unassignedServer('unassigned', redistio_curr_plan, shp,
+                     shiny::reactive(leaflet::leafletProxy('map')))
 
     # demographics panel ----
 

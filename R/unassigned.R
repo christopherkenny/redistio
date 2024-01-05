@@ -1,6 +1,6 @@
-discontiguousUI <- function(id) {
+unassignedUI <- function(id) {
   shiny::tagList(
-    shiny::h4('Discontiguous Pieces'),
+    shiny::h4('Unassigned Precincts'),
     # refresh button ~ don't want it to auto-refresh while edits are happening
     shiny::actionButton(
       inputId = shiny::NS(id, 'refresh'),
@@ -9,7 +9,7 @@ discontiguousUI <- function(id) {
     ),
 
     # print `x` pieces of `total` pieces
-    shiny::textOutput(shiny::NS(id, 'status')),
+    shiny::textOutput(shiny::NS(id, 'status2')),
 
     bslib::layout_column_wrap(
       width = 1 / 2,
@@ -29,30 +29,19 @@ discontiguousUI <- function(id) {
   )
 }
 
-discontiguousServer <- function(id, plan, adj, shp, map_reac) {
+unassignedServer <- function(id, plan, shp, map_reac) {
   stopifnot(shiny::is.reactivevalues(plan))
   stopifnot(shiny::is.reactive(map_reac))
-  stopifnot(!shiny::is.reactive(adj))
   stopifnot(!shiny::is.reactive(shp))
 
   shiny::moduleServer(id, function(input, output, session) {
 
-    cont <- reactiveVal(tibble::tibble())
+    nas <- reactiveVal(NULL)
     current <- shiny::reactiveVal(FALSE)
 
-    # get contiguity on refresh only
+    # get NAs on refresh only
     shiny::observeEvent(input$refresh, {
-      long_pieces <- geomander::check_contiguity(adj, plan$pl) |>
-        dplyr::mutate(redistio_id = dplyr::row_number()) |>
-        dplyr::group_by(.data$group_number) |>
-        dplyr::mutate(n = max(.data$component)) |>
-        dplyr::ungroup() |>
-        dplyr::filter(n > 1) |>
-        dplyr::group_by(.data$group_number, .data$component) |>
-        dplyr::summarise(
-          rows = list(.data$redistio_id)
-        )
-      cont(long_pieces)
+      nas(which(is.na(plan$pl)))
       if (!is.logical(current())) {
         bb <- sf::st_bbox(shp)
         map_reac() |>
@@ -66,20 +55,19 @@ discontiguousServer <- function(id, plan, adj, shp, map_reac) {
       current(FALSE)
     })
 
-
     # show status
-    output$status <- shiny::renderText({
-      paste0('Showing piece ',
-             ifelse(is.logical(current()), 0L, ifelse(current() == 0L, nrow(cont()), current())),
-             ' of ', nrow(cont()), ' discontiguities')
+    output$status2 <- shiny::renderText({
+      paste0('Showing ',
+             ifelse(is.logical(current()), 0L, ifelse(current() == 0L, length(nas()), current())),
+             ' of ', length(nas()), ' unassigned precincts')
     })
 
     # handle zooming to things:
     shiny::observeEvent(input$nextbutton, {
-      if (nrow(cont()) == 0L) return(NULL)
-      current(current() %% nrow(cont()) + 1L)
+      if (length(nas()) == 0L) return(NULL)
+      current(current() %% length(nas()) + 1L)
 
-      bb <- sf::st_bbox(shp[cont()$rows[[current()]], ])
+      bb <- sf::st_bbox(shp[nas()[current()], ])
       map_reac() |>
         leaflet::fitBounds(
           lng1 = unname(bb['xmin']),
@@ -90,13 +78,13 @@ discontiguousServer <- function(id, plan, adj, shp, map_reac) {
     })
 
     shiny::observeEvent(input$previousbutton, {
-      if (nrow(cont()) == 0L) return(NULL)
+      if (length(nas()) == 0L) return(NULL)
       if (is.logical(current())) {
-        current(nrow(cont()))
+        current(length(nas()))
       } else {
-        current((current() - 2L) %% nrow(cont()) + 1)
+        current((current() - 2L) %% length(nas()) + 1)
       }
-      bb <- sf::st_bbox(shp[cont()$rows[[current()]], ])
+      bb <- sf::st_bbox(shp[nas()[current()], ])
       map_reac() |>
         leaflet::fitBounds(
           lng1 = unname(bb['xmin']),
