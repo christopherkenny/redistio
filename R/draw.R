@@ -526,7 +526,7 @@ draw <- function(shp, init_plan, ndists, palette,
         shiny::isolate(val()) |>
           DT::datatable(
             options = list(
-              dom = 't', ordering = FALSE, scrollY = paste0(min(ndists * 10, 90), 'vh'), #scrollX = TRUE, #, # TODO make changeable
+              dom = 't', ordering = FALSE, scrollY = paste0(min(ndists * 7, 90), 'vh'), #scrollX = TRUE, #, # TODO make changeable
               pageLength = ndists + 1L
             ),
             style = 'bootstrap',
