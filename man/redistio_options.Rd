@@ -43,7 +43,7 @@ redistio_options(
 
 \item{layer_weight}{a stroke width to use for layers in \code{leaflet::leaflet()}}
 
-\item{layer_color}{a color to use for layers in \code{leaflet::leaflet()}}
+\item{layer_color}{colors to use for layers in \code{leaflet::leaflet()}}
 
 \item{locked_districts}{districts to lock on app start to stop edits}
 

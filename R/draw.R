@@ -114,6 +114,14 @@ draw <- function(shp, init_plan, ndists, palette,
     }
   }
 
+  # prep layer colors ----
+  if (!is.null(layers)) {
+    layer_colors <- opts$layer_color %||% def_opts$layer_color
+    if (length(layer_colors) == 1L) {
+      layer_colors <- rep(layer_colors, length(layers))[seq_along(layers)]
+    }
+  }
+
   shp$fmt_pop <- scales::label_comma()(shp$pop)
   tot_pop <- sum(shp$pop)
 
@@ -477,7 +485,7 @@ draw <- function(shp, init_plan, ndists, palette,
               data = layers[[i]],
               fill = FALSE,
               weight = opts$layer_weight %||% def_opts$layer_weight,
-              color = opts$layer_color %||% def_opts$layer_color,
+              color = layer_colors[i],
               group = names(layers)[i],
               options = leaflet::pathOptions(interactive = FALSE)
             )
@@ -959,7 +967,7 @@ draw <- function(shp, init_plan, ndists, palette,
                 data = layers[[i]],
                 fill = FALSE,
                 weight = opts$layer_weight %||% def_opts$layer_weight,
-                color = opts$layer_color %||% def_opts$layer_color,
+                color = layer_colors[i],
                 group = names(layers)[i]
               )
           }

@@ -9,7 +9,7 @@
 #' @param leaflet_height height to pass to `leaflet::leafletOutput()`
 #' @param crs a coordinate reference system to use in `leaflet::leaflet()`
 #' @param layer_weight a stroke width to use for layers in `leaflet::leaflet()`
-#' @param layer_color a color to use for layers in `leaflet::leaflet()`
+#' @param layer_color colors to use for layers in `leaflet::leaflet()`
 #' @param locked_districts districts to lock on app start to stop edits
 #' @param use_algorithms whether to use redistricting simulation algorithms
 #' @param alg_max_districts maximum number of districts to use in algorithms
