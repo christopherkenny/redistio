@@ -637,6 +637,8 @@ draw <- function(shp, init_plan, ndists, palette,
                 ),
                 locations = gt::cells_stub(rows = TRUE)
               ) |>
+              gt::tab_header(title = paste0('Current District: ', redistio_curr_plan$pl[as.integer(hov_reac_d()$id)]),
+                             subtitle = paste0('Precinct ID: ', hov_reac_d()$id)) |>
               gt::tab_options(
                 data_row.padding = gt::px(0.5)
               ) |>
