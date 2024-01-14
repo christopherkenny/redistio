@@ -59,7 +59,7 @@ window.LeafletWidget.methods.setStyle = function(category, layerId, style){
   )
 )
 
-update_shape_style <- function(leafl, fc, pal, rcp, shp) {
+update_shape_style <- function(leafl, fc, pal, rcp, shp, opac=0.8) {
   if (fc == 'District') {
     leafl |>
       setShapeStyle(
@@ -67,10 +67,10 @@ update_shape_style <- function(leafl, fc, pal, rcp, shp) {
         layerId = ~redistio_id,
         # line colors
         stroke = TRUE,
-        weight = 1,
-        color = '#000000',
+        weight = 0.5,
+        color = '#000',
         # fill control
-        fillOpacity = 0.95,
+        fillOpacity = opac,
         fillColor = ~pal(rcp)
       ) |>
       leaflet::removeControl('legend')
@@ -81,10 +81,10 @@ update_shape_style <- function(leafl, fc, pal, rcp, shp) {
         layerId = ~redistio_id,
         # line colors
         stroke = TRUE,
-        weight = 1,
-        color = '#000000',
+        weight = 0.5,
+        color = '#000',
         # fill control
-        fillOpacity = 0.95,
+        fillOpacity = opac,
         fillColor = ~pal(shp[[fc]])
       ) |>
       leaflet::removeControl('legend') |>
@@ -92,7 +92,7 @@ update_shape_style <- function(leafl, fc, pal, rcp, shp) {
         pal = pal,
         values = shp[[fc]],
         title = fc,
-        opacity = 0.95,
+        opacity = opac,
         position = 'bottomright',
         layerId = 'legend'
       )

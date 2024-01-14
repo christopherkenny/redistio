@@ -202,8 +202,6 @@ draw <- function(shp, init_plan, ndists, palette,
     title = 'redistio',
     theme = bslib::bs_theme(
       preset = (opts$theme %||% def_opts$theme),
-      "accordion-body-padding-y" = "0",
-      "accordion-body-padding-x" = "0",
       ),
     id = 'navbar',
     header = shiny::tags$head(
@@ -234,8 +232,8 @@ draw <- function(shp, init_plan, ndists, palette,
               bslib::accordion_panel(
                 'Edit districts',
                 DT::DTOutput(outputId = 'district', fill = TRUE),
-                icon = shiny::icon('paintbrush')#,
-                #style = 'min-height: 60vh'
+                icon = shiny::icon('paintbrush'),
+                style = 'padding: 0 !important'
               ),
               bslib::accordion_panel(
                 'Fill',
@@ -252,6 +250,11 @@ draw <- function(shp, init_plan, ndists, palette,
                   choices = 'District',
                   selected = NULL,
                   multiple = FALSE
+                ),
+                shiny::sliderInput(
+                  inputId = 'fill_opacity',
+                  label = 'Fill opacity',
+                  min = 0, max = 1, step=0.05, value = 0.9
                 ),
                 icon = shiny::icon('palette'),
                 style = 'min-height: 30vh'
@@ -498,8 +501,8 @@ draw <- function(shp, init_plan, ndists, palette,
       base_map <- leaflet::leaflet(
         data = shp,
       ) |>
-        leaflet::addTiles() |>
-       # leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron) |>
+        # leaflet::addTiles() |>
+        leaflet::addProviderTiles(opts$map_tiles %||% def_opts$map_tiles) |>
         leaflet::addPolygons(
           layerId = ~redistio_id,
           weight = 1,
@@ -555,9 +558,14 @@ draw <- function(shp, init_plan, ndists, palette,
         val(new_tb_pop)
 
         leaflet::leafletProxy('map', data = shp) |>
-          update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp)
+          update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp, input$fill_opacity)
       }
     )
+
+    shiny::observeEvent(input$fill_opacity, {
+      leaflet::leafletProxy('map', data = shp) |>
+        update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp, input$fill_opacity)
+    })
 
     # district stats ----
     output$district <- DT::renderDT({
@@ -604,6 +612,13 @@ draw <- function(shp, init_plan, ndists, palette,
         gt::cols_label(
           District = ''
         ) |>
+        gt::tab_options(
+          data_row.padding = gt::px(2),
+          table.width = "100%",
+          container.padding.y = "0",
+          heading.padding = "0",
+          table.background.color = "#fff0"
+        ) |>
         gt::fmt_number(columns = c('Population', 'Deviation'), decimals = 0) |>
         gt::tab_footnote(
           footnote = pretty_bounds
@@ -624,16 +639,7 @@ draw <- function(shp, init_plan, ndists, palette,
       redistio_curr_plan$pl <- last_pl
 
       leaflet::leafletProxy('map', data = shp) |>
-        setShapeStyle(
-          # data = shp,
-          layerId = ~redistio_id,
-          # line colors
-          stroke = TRUE, weight = 1,
-          color = '#000000',
-          # fill control
-          fillOpacity = 0.95,
-          fillColor = ~ pal()(redistio_curr_plan$pl)
-        )
+        update_shape_style(NULL, pal(), redistio_curr_plan$pl, NULL, input$fill_opacity)
 
       new_tb_pop <- val()
       new_tb_pop$Population <- distr_pop(shp$pop, total = tot_pop, plan = redistio_curr_plan$pl, ndists = ndists)
@@ -667,7 +673,11 @@ draw <- function(shp, init_plan, ndists, palette,
               gt::tab_header(title = paste0('Current District: ', redistio_curr_plan$pl[as.integer(hov_reac_d()$id)]),
                              subtitle = paste0('Precinct ID: ', hov_reac_d()$id)) |>
               gt::tab_options(
-                data_row.padding = gt::px(0.5)
+                data_row.padding = gt::px(1),
+                table.width = "100%",
+                container.padding.y = "0",
+                column_labels.padding = "0",
+                table.background.color = "#fff0"
               ) |>
               gt::fmt_number(columns = gt::starts_with('V'), decimals = 0)
           })
@@ -768,7 +778,7 @@ draw <- function(shp, init_plan, ndists, palette,
         }
       }
       leaflet::leafletProxy('map', data = shp) |>
-        update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp)
+        update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp, input$fill_opacity)
       }, ignoreInit = FALSE)
 
     # district color mini panel ----
@@ -799,11 +809,11 @@ draw <- function(shp, init_plan, ndists, palette,
           pal(leaflet::colorFactor(
             palette = as.character(palette_reactive()),
             domain = seq_len(ndists),
-            na.color = "#0000",
+            na.color = opts$na_color %||% def_opts$na_color,
             alpha = TRUE
           ))
           leaflet::leafletProxy('map', data = shp) |>
-            update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp)
+            update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp, input$fill_opacity)
         }
       })
 
@@ -986,8 +996,7 @@ draw <- function(shp, init_plan, ndists, palette,
             weight = 1,
             label = ~fmt_pop,
             fillColor = alg_pal(redistio_alg_plan$pl),
-            fillOpacity = 0.95,
-            color = '#000000',
+            color = '#',
             stroke = TRUE
           )
 
@@ -1044,10 +1053,9 @@ draw <- function(shp, init_plan, ndists, palette,
           # data = shp,
           layerId = ~redistio_id,
           # line colors
-          stroke = TRUE, weight = 1,
-          color = '#000000',
+          stroke = TRUE, weight = 1.0,
+          color = '#000',
           # fill control
-          fillOpacity = 0.95,
           fillColor = ~alg_pal(redistio_alg_plan$plans[, input$alg_summary_rows_selected])
         )
     })
@@ -1061,7 +1069,7 @@ draw <- function(shp, init_plan, ndists, palette,
       undo_l(undo_log(undo_l(), redistio_curr_plan$pl))
 
       leaflet::leafletProxy('map', data = shp) |>
-        update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp)
+        update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp, input$fill_opacity)
 
       leaflet::leafletProxy('alg_map') |>
         leaflet::clearTiles() |>

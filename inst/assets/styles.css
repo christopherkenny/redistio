@@ -49,3 +49,8 @@ p.distr-sel {
   top: var(--bslib-full-screen-enter-bottom, 0.2rem);
 }
 
+
+/* rhs sidebar */
+#map-right-sidebar .tab-pane {
+  padding-top: 0;
+}
