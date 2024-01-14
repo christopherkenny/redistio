@@ -1,0 +1,51 @@
+/* Card padding */
+#map-card {
+  border-radius: 0;
+  border: none;
+}
+#map-card > .card-body {
+  padding: 0;
+}
+
+/* District selector */
+#map-left-sidebar table.dataTable {
+  margin: 0 !important;
+  border-collapse: collapse !important;
+}
+#map-left-sidebar table.dataTable td:first-child {
+  padding: 0;
+}
+p.distr-sel {
+  margin: 0;
+  padding: 0.5rem;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+}
+
+/* Map buttons */
+.collapse-toggle[aria-expanded="false"] {
+    background-color: white;
+    border: 2px solid #0006 !important;
+}
+.collapse-toggle {
+  top: unset !important;
+  bottom: calc(var(--_icon-size, 1rem) / 2);
+}
+.bslib-sidebar-layout > aside.sidebar > div.sidebar-content {
+  padding-top: 0;
+  padding-bottom: var(--_padding-icon);
+  overflow-y: scroll;
+  height: calc(100% - var(--_padding-icon));
+}
+#map-right-sidebar > .sidebar-content {
+  padding: 0 !important;
+}
+#map-right-sidebar > .sidebar-content > .navbar {
+  padding: 0 !important;
+}
+.bslib-full-screen-enter {
+  bottom: unset !important;
+  top: var(--bslib-full-screen-enter-bottom, 0.2rem);
+}
+

@@ -197,23 +197,39 @@ draw <- function(shp, init_plan, ndists, palette,
   }
 
 
+  shiny::addResourcePath("assets", system.file("assets", package="redistio"))
   ui <- bslib::page_navbar(
     title = 'redistio',
-    theme = bslib::bs_theme(preset = (opts$theme %||% def_opts$theme)),
+    theme = bslib::bs_theme(
+      preset = (opts$theme %||% def_opts$theme),
+      "accordion-body-padding-y" = "0",
+      "accordion-body-padding-x" = "0",
+      ),
     id = 'navbar',
-    header = shiny::tags$head(shiny::tags$link(rel = 'shortcut icon', href = 'https://raw.githubusercontent.com/christopherkenny/redistio/main/man/figures/logo.png')),
+    header = shiny::tags$head(
+      shiny::tags$link(
+        rel = 'shortcut icon',
+        href = 'https://raw.githubusercontent.com/christopherkenny/redistio/main/man/figures/logo.png'
+      ),
+      tags$link(rel = "stylesheet", type = "text/css", href = "assets/styles.css")
+    ),
+
     # draw panel ----
     bslib::nav_panel(
       title = 'draw',
+      class = "p-0",
       the_javascripts,
       selection_html,
       bslib::page_fillable(
+        class = "p-0",
         bslib::layout_sidebar(
+          border = FALSE,
           border_radius = FALSE,
           fillable = TRUE,
           class = "p-0",
           sidebar = bslib::sidebar( # color selector
             width = 300,
+            id = "map-left-sidebar",
             bslib::accordion(
               bslib::accordion_panel(
                 'Edit districts',
@@ -245,83 +261,92 @@ draw <- function(shp, init_plan, ndists, palette,
 
         bslib::layout_sidebar(
           border = FALSE,
+          class = "p-0",
+
           bslib::card( # interactive mapper
-            #8,
+            id='map-card',
             full_screen = TRUE,
             leaflet::leafletOutput(
               outputId = 'map',
               height = opts$leaflet_height %||% def_opts$leaflet_height,
             )
           ),
+
           sidebar = bslib::sidebar( # details area
             position = 'right',
+            id = "map-right-sidebar",
             width = 300,
             bslib::navset_bar(
               id = 'tabRight',
               bslib::nav_panel(title = 'Population', gt::gt_output('tab_pop')),
               bslib::nav_panel(title = 'Precinct', gt::gt_output('hover')),
               bslib::nav_menu(
-                title = 'More options',
-              bslib::nav_panel(
-                'Download',
-                shiny::h5('Download assignment file'),
-                shiny::textInput('save_path', label = 'Path to save assignment file',
-                                 value = opts$save_assignment_path %||% def_opts$save_assignment_path),
-                shiny::selectizeInput("download_id", "Select identifier column:",
-                                      choices = NULL, selected = 'redistio_id',
-                                      multiple = FALSE),
-                shiny::downloadButton('save_plan', label = 'Export plan'),
-                shiny::h5('Download shapefile'),
-                shiny::textInput('save_shp_path', label = 'Path to save shapefile',
-                                 value = opts$save_shape_path %||% def_opts$save_shape_path),
-                shiny::downloadButton('save_shp', label = 'Export shapefile')
+                title = 'More',
+                bslib::nav_panel(
+                  'Download',
+                  shiny::h5('Download assignment file'),
+                  shiny::textInput('save_path', label = 'Path to save assignment file',
+                                   value = opts$save_assignment_path %||% def_opts$save_assignment_path),
+                  shiny::selectizeInput("download_id", "Select identifier column:",
+                                        choices = NULL, selected = 'redistio_id',
+                                        multiple = FALSE),
+                  shiny::downloadButton('save_plan', label = 'Export plan'),
+                  shiny::h5('Download shapefile'),
+                  shiny::textInput('save_shp_path', label = 'Path to save shapefile',
+                                   value = opts$save_shape_path %||% def_opts$save_shape_path),
+                  shiny::downloadButton('save_shp', label = 'Export shapefile')
+                ),
+                bslib::nav_panel(
+                  'Lock',
+                  shiny::tags$style(lock_css),
+                  if (!rlang::is_installed('shinyWidgets')) {
+                    shiny::checkboxGroupInput(
+                      inputId = 'locks',
+                      choices = seq_len(ndists),
+                      label = 'Lock districts',
+                      selected = opts$locked_districts %||% def_opts$locked_districts
+                    )
+                  } else {
+                    shinyWidgets::checkboxGroupButtons(
+                      inputId = "locks",
+                      label = "Lock districts",
+                      choices = seq_len(ndists),
+                      status = "lockClass",
+                      checkIcon = list(
+                        yes = shiny::icon("lock"),
+                        no = shiny::icon("lock-open")
+                      ),
+                      direction = 'vertical'
+                    )
+                  }
+                ),
+                bslib::nav_panel(
+                  'District colors',
+                  lapply(seq_len(ndists), function(i) {
+                    colourpicker::colourInput(
+                      inputId = paste0('color_', i),
+                      label = paste0('District ', i, ' color'),
+                      value = palette[[i]] %||% palette[[i]]
+                    )
+                  }),
+                  style = "overflow-y: scroll; max-height: 70vh"
+                ),
+                bslib::nav_panel(
+                  'Tools',
+                  discontiguousUI('discontiguous'),
+                  unassignedUI('unassigned')
+                ),
+                align = 'right'
               ),
-              bslib::nav_panel(
-                'Lock',
-                shiny::tags$style(lock_css),
-                if (!rlang::is_installed('shinyWidgets')) {
-                  shiny::checkboxGroupInput(
-                    inputId = 'locks',
-                    choices = seq_len(ndists),
-                    label = 'Lock districts',
-                    selected = opts$locked_districts %||% def_opts$locked_districts
-                  )
-                } else {
-                  shinyWidgets::checkboxGroupButtons(
-                    inputId = "locks",
-                    label = "Lock districts",
-                    choices = seq_len(ndists),
-                    status = "lockClass",
-                    checkIcon = list(
-                      yes = shiny::icon("lock"),
-                      no = shiny::icon("lock-open")
-                    ),
-                    direction = 'vertical'
-                  )
-                }
-              ),
-              bslib::nav_panel(
-                'District colors',
-                lapply(seq_len(ndists), function(i) {
-                  colourpicker::colourInput(
-                    inputId = paste0('color_', i),
-                    label = paste0('District ', i, ' color'),
-                    value = palette[[i]] %||% palette[[i]]
-                  )
-                }),
-                style = "overflow-y: scroll; max-height: 70vh"
-              ),
-              bslib::nav_panel(
-                'Tools',
-                discontiguousUI('discontiguous'),
-                unassignedUI('unassigned')
-              )),
               selected = 'Precinct'
             )
           )
-        )
-        )
-      ),
+        ) # end layout_sidebar
+        ), # end layout_sidebar
+
+        gap = 0,
+        padding = 0
+      ), # end page_fillable
     ),
     # demographics panel ----
     bslib::nav_panel(
@@ -422,8 +447,8 @@ draw <- function(shp, init_plan, ndists, palette,
       poss_panels <- setdiff(poss_panels, 'algorithms')
       req_panels <- setdiff(req_panels, 'algorithms')
     }
-    if (!all(req_panels %in% poss_panels)) {
-      stop('Invalid panel selection')
+  if (!all(req_panels %in% poss_panels)) {
+    stop('Invalid panel selection')
     }
     hide_panels <- setdiff(poss_panels, c(req_panels, 'draw'))
     for (panel in hide_panels) {
@@ -438,9 +463,9 @@ draw <- function(shp, init_plan, ndists, palette,
 
     tab_pop_static <- dplyr::tibble(
       District = paste0(
-        "<p style='background-color:",
+        "<p class='distr-sel' style='background-color:",
         palette[c(NA_integer_, seq_len(ndists))],
-        "; text-align:center;'> ",
+        ";'> ",
         c(as.character(shiny::icon('eraser')), seq_len(ndists)),
         ' </p>'
       ),
@@ -470,7 +495,9 @@ draw <- function(shp, init_plan, ndists, palette,
     # draw panel ----
 
     output$map <- leaflet::renderLeaflet({
-      base_map <- leaflet::leaflet(data = shp) |>
+      base_map <- leaflet::leaflet(
+        data = shp,
+      ) |>
         leaflet::addTiles() |>
        # leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron) |>
         leaflet::addPolygons(
@@ -760,9 +787,9 @@ draw <- function(shp, init_plan, ndists, palette,
         # update selection table
         new_color_tbl <- val()
         new_color_tbl$District <- paste0(
-          "<p style='background-color:",
+          "<p class='distr-sel' style='background-color:",
           palette_reactive()[c(NA_integer_, seq_len(ndists))],
-          "; text-align:center;'> ",
+          ";'> ",
           c(as.character(shiny::icon('eraser')), seq_len(ndists)),
           ' </p>'
         )
@@ -771,7 +798,9 @@ draw <- function(shp, init_plan, ndists, palette,
         if (input$fill_input == 'District') {
           pal(leaflet::colorFactor(
             palette = as.character(palette_reactive()),
-            domain = seq_len(ndists)
+            domain = seq_len(ndists),
+            na.color = "#0000",
+            alpha = TRUE
           ))
           leaflet::leafletProxy('map', data = shp) |>
             update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp)
