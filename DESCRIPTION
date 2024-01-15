@@ -7,6 +7,7 @@ Authors@R: c(
            role = c("aut", "cre"),
            email = "christopherkenny@fas.harvard.edu",
            comment = c(ORCID = "0000-0002-9386-6860")),
+    person(given = "Cory", family = "McCartan", email = "corymccartan@nyu.edu", role = "aut"),
     person("leaflet contributors", role = "cph", comment = "setShapeStyle code adapted from leaflet package."))
 Description: A point and click editor for districts built on 'shiny' and 'Leaflet'. 
     Users can draw districts and calculate standard redistricting metrics, like 
