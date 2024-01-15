@@ -58,8 +58,10 @@
 <span>  palette_pop <span class="op">=</span> <span class="st">"Purples"</span>,</span>
 <span>  palette_pct <span class="op">=</span> <span class="st">"PuOr"</span>,</span>
 <span>  palette_party <span class="op">=</span> <span class="fu">ggredist</span><span class="fu">::</span><span class="va"><a href="https://alarm-redist.github.io/ggredist/reference/ggredist.html" class="external-link">ggredist</a></span><span class="op">$</span><span class="va">partisan</span>,</span>
+<span>  map_tiles <span class="op">=</span> <span class="st">"CartoDB.Positron"</span>,</span>
 <span>  leaflet_height <span class="op">=</span> <span class="st">"91vh"</span>,</span>
 <span>  crs <span class="op">=</span> <span class="fl">4326</span>,</span>
+<span>  na_color <span class="op">=</span> <span class="st">"#0000"</span>,</span>
 <span>  layer_weight <span class="op">=</span> <span class="fl">1.5</span>,</span>
 <span>  layer_color <span class="op">=</span> <span class="st">"#000000"</span>,</span>
 <span>  locked_districts <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -98,12 +100,20 @@
 <dd><p>a color palette to use for parties</p></dd>
 
 
+<dt>map_tiles</dt>
+<dd><p>a tileset to use for the map background, from <code><a href="https://rdrr.io/pkg/leaflet/man/providers.html" class="external-link">leaflet::providers</a></code></p></dd>
+
+
 <dt>leaflet_height</dt>
 <dd><p>height to pass to <code><a href="https://rdrr.io/pkg/leaflet/man/map-shiny.html" class="external-link">leaflet::leafletOutput()</a></code></p></dd>
 
 
 <dt>crs</dt>
 <dd><p>a coordinate reference system to use in <code><a href="https://rdrr.io/pkg/leaflet/man/leaflet.html" class="external-link">leaflet::leaflet()</a></code></p></dd>
+
+
+<dt>na_color</dt>
+<dd><p>a color to use for unassigned precincts</p></dd>
 
 
 <dt>layer_weight</dt>
@@ -176,11 +186,17 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "palette"   "character"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $map_tiles</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "CartoDB.Positron"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $leaflet_height</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "91vh"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $crs</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 4326</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $na_color</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "#0000"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $layer_weight</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1.5</span>
