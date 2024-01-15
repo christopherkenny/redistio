@@ -6,8 +6,10 @@
 #' @param palette_pop a color palette to use for whole people
 #' @param palette_pct a color palette to use for percentages of people
 #' @param palette_party a color palette to use for parties
+#' @param map_tiles a tileset to use for the map background, from `leaflet::providers`
 #' @param leaflet_height height to pass to `leaflet::leafletOutput()`
 #' @param crs a coordinate reference system to use in `leaflet::leaflet()`
+#' @param na_color a color to use for unassigned precincts
 #' @param layer_weight a stroke width to use for layers in `leaflet::leaflet()`
 #' @param layer_color colors to use for layers in `leaflet::leaflet()`
 #' @param locked_districts districts to lock on app start to stop edits
