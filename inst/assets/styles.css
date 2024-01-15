@@ -1,3 +1,7 @@
+nav.navbar {
+  border-bottom: 1px solid #444;
+}
+
 /* Card padding */
 #map-card {
   border-radius: 0;
