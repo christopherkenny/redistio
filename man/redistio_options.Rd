@@ -22,7 +22,7 @@ redistio_options(
   alg_max_districts = 3,
   alg_max_sims = 100,
   save_assignment_path = "redistio.csv",
-  save_shape_path = "reidstio.geojson",
+  save_shape_path = "redistio.geojson",
   ...
 )
 }
