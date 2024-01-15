@@ -196,6 +196,7 @@ draw <- function(shp, init_plan, ndists, palette,
     selection_html <- NULL
   }
 
+  leaf_tiles <- opts$map_tiles %||% def_opts$map_tiles
 
   shiny::addResourcePath("assets", system.file("assets", package="redistio"))
   ui <- bslib::page_navbar(
@@ -209,7 +210,7 @@ draw <- function(shp, init_plan, ndists, palette,
         rel = 'shortcut icon',
         href = 'https://raw.githubusercontent.com/christopherkenny/redistio/main/man/figures/logo.png'
       ),
-      tags$link(rel = "stylesheet", type = "text/css", href = "assets/styles.css")
+      shiny::tags$link(rel = "stylesheet", type = "text/css", href = "assets/styles.css")
     ),
 
     # draw panel ----
@@ -501,8 +502,7 @@ draw <- function(shp, init_plan, ndists, palette,
       base_map <- leaflet::leaflet(
         data = shp,
       ) |>
-        # leaflet::addTiles() |>
-        leaflet::addProviderTiles(opts$map_tiles %||% def_opts$map_tiles) |>
+        leaf_tiles() |>
         leaflet::addPolygons(
           layerId = ~redistio_id,
           weight = 1,
@@ -990,7 +990,7 @@ draw <- function(shp, init_plan, ndists, palette,
 
         map_alg <- map_sub() |>
           leaflet::leaflet() |>
-          leaflet::addTiles() |>
+          leaf_tiles() |>
           leaflet::addPolygons(
             layerId = ~redistio_id,
             weight = 1,

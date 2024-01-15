@@ -41,6 +41,11 @@ redistio_options <- function(theme = 'flatly',
                              save_assignment_path = 'redistio.csv',
                              save_shape_path = 'redistio.geojson',
                              ...) {
+
+  if (!rlang::is_closure(map_tiles)) {
+    mt <- map_tiles
+    map_tiles <- function(map) leaflet::addProviderTiles(map, provider = mt)
+  }
   list(
     theme = theme,
     panels = panels,
