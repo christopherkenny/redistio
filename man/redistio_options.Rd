@@ -11,8 +11,10 @@ redistio_options(
   palette_pop = "Purples",
   palette_pct = "PuOr",
   palette_party = ggredist::ggredist$partisan,
+  map_tiles = "CartoDB.Positron",
   leaflet_height = "91vh",
   crs = 4326,
+  na_color = "#0000",
   layer_weight = 1.5,
   layer_color = "#000000",
   locked_districts = NULL,
@@ -37,9 +39,13 @@ redistio_options(
 
 \item{palette_party}{a color palette to use for parties}
 
+\item{map_tiles}{a tileset to use for the map background, from \code{leaflet::providers}}
+
 \item{leaflet_height}{height to pass to \code{leaflet::leafletOutput()}}
 
 \item{crs}{a coordinate reference system to use in \code{leaflet::leaflet()}}
+
+\item{na_color}{a color to use for unassigned precincts}
 
 \item{layer_weight}{a stroke width to use for layers in \code{leaflet::leaflet()}}
 

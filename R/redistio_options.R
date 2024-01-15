@@ -6,8 +6,10 @@
 #' @param palette_pop a color palette to use for whole people
 #' @param palette_pct a color palette to use for percentages of people
 #' @param palette_party a color palette to use for parties
+#' @param map_tiles a tileset to use for the map background, from `leaflet::providers`
 #' @param leaflet_height height to pass to `leaflet::leafletOutput()`
 #' @param crs a coordinate reference system to use in `leaflet::leaflet()`
+#' @param na_color a color to use for unassigned precincts
 #' @param layer_weight a stroke width to use for layers in `leaflet::leaflet()`
 #' @param layer_color colors to use for layers in `leaflet::leaflet()`
 #' @param locked_districts districts to lock on app start to stop edits
@@ -29,7 +31,9 @@ redistio_options <- function(theme = 'flatly',
                              palette_pop = 'Purples',
                              palette_pct = 'PuOr',
                              palette_party = ggredist::ggredist$partisan,
+                             map_tiles = "CartoDB.Positron",
                              leaflet_height = '91vh', crs = 4326,
+                             na_color = "#0000",
                              layer_weight = 1.5, layer_color = '#000000',
                              locked_districts = NULL,
                              use_algorithms = TRUE, alg_max_districts = 3,
@@ -44,8 +48,10 @@ redistio_options <- function(theme = 'flatly',
     palette_pop = palette_pop,
     palette_pct = palette_pct,
     palette_party = palette_party,
+    map_tiles = map_tiles,
     leaflet_height = leaflet_height,
     crs = crs,
+    na_color = na_color,
     layer_weight = layer_weight,
     layer_color = layer_color,
     locked_districts = locked_districts,
