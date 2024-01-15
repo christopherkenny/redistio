@@ -59,7 +59,7 @@ window.LeafletWidget.methods.setStyle = function(category, layerId, style){
   )
 )
 
-update_shape_style <- function(leafl, fc, pal, rcp, shp, opac=0.8) {
+update_shape_style <- function(leafl, fc, pal, rcp, shp, opac = 0.8) {
   if (fc == 'District') {
     leafl |>
       setShapeStyle(
@@ -71,7 +71,7 @@ update_shape_style <- function(leafl, fc, pal, rcp, shp, opac=0.8) {
         color = '#000',
         # fill control
         fillOpacity = opac,
-        fillColor = ~pal(rcp)
+        fillColor = ~ pal(rcp)
       ) |>
       leaflet::removeControl('legend')
   } else {
@@ -85,7 +85,7 @@ update_shape_style <- function(leafl, fc, pal, rcp, shp, opac=0.8) {
         color = '#000',
         # fill control
         fillOpacity = opac,
-        fillColor = ~pal(shp[[fc]])
+        fillColor = ~ pal(shp[[fc]])
       ) |>
       leaflet::removeControl('legend') |>
       leaflet::addLegend(
@@ -98,4 +98,3 @@ update_shape_style <- function(leafl, fc, pal, rcp, shp, opac=0.8) {
       )
   }
 }
-

@@ -16,15 +16,16 @@ hover_precinct <- function(shp, ...) {
   # shp <- shp |>
   #   dplyr::slice(id)
 
-  lapply(rlang::enquos(...),
-         function(ooo) {
-           shp |>
-             dplyr::select(!!ooo) |>
-             t() |>
-             as.data.frame() |>
-             tibble::rownames_to_column() |>
-             tibble::as_tibble()
-         }) #|>
-   # dplyr::bind_rows(.id = 'group')
+  lapply(
+    rlang::enquos(...),
+    function(ooo) {
+      shp |>
+        dplyr::select(!!ooo) |>
+        t() |>
+        as.data.frame() |>
+        tibble::rownames_to_column() |>
+        tibble::as_tibble()
+    }
+  ) #|>
+  # dplyr::bind_rows(.id = 'group')
 }
-

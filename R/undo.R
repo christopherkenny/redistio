@@ -1,7 +1,7 @@
 undo_init <- function(max_undo = 10L) {
   list(
     undo = vector(mode = 'list', length = max_undo),
-    #redo = integer(length = max_undo),
+    # redo = integer(length = max_undo),
     max_undo = max_undo,
     undo_index = 0L
   )

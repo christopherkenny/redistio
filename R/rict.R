@@ -1,6 +1,5 @@
 # borrowed from rict until public
 rict_population <- function(map, plan, as_gt = TRUE) {
-
   map$District <- plan
   tgt_pop <- round(sum(map$pop) / length(unique(plan)))
 
@@ -29,7 +28,6 @@ rict_population <- function(map, plan, as_gt = TRUE) {
 }
 
 rict_contiguity <- function(map, plan, as_gt = TRUE) {
-
   plan[is.na(plan)] <- max(plan, na.rm = TRUE) + 1L
   df <- geomander::check_contiguity(adj = map$adj, group = plan) |>
     dplyr::group_by(District = .data$group) |>
@@ -47,13 +45,14 @@ rict_contiguity <- function(map, plan, as_gt = TRUE) {
   }
 }
 
-rict_compactness <- function(map, plan, measures = list(
-  'comp_polsby' = redistmetrics::comp_polsby,
-  'comp_schwartz' = redistmetrics::comp_schwartz,
-  'comp_reock' = redistmetrics::comp_reock,
-  'comp_ch' = redistmetrics::comp_ch),
-  as_gt = TRUE) {
-
+rict_compactness <- function(
+    map, plan, measures = list(
+      'comp_polsby' = redistmetrics::comp_polsby,
+      'comp_schwartz' = redistmetrics::comp_schwartz,
+      'comp_reock' = redistmetrics::comp_reock,
+      'comp_ch' = redistmetrics::comp_ch
+    ),
+    as_gt = TRUE) {
   meas <- lapply(measures, function(x) {
     x(plan, map)
   }) |>
@@ -82,7 +81,6 @@ rict_compactness <- function(map, plan, measures = list(
 
 rict_splits <- function(map, plan, admin = NULL, subadmin = NULL, total = NULL,
                         multi = NULL, as_gt = TRUE) {
-
   admin_out <- lapply(seq_along(admin), function(i) {
     redistmetrics::splits_admin(plan, map, !!rlang::sym(admin[i]))
   })
@@ -141,7 +139,6 @@ rict_splits <- function(map, plan, admin = NULL, subadmin = NULL, total = NULL,
 }
 
 rict_elections <- function(map, plan, as_gt = TRUE) {
-
   elecs <- map |>
     tibble::as_tibble() |>
     dplyr::select(dplyr::contains('_dem_'), dplyr::ends_with('_dem')) |>
@@ -150,28 +147,28 @@ rict_elections <- function(map, plan, as_gt = TRUE) {
     unique()
 
   elect_tb <- lapply(elecs, function(el) {
-      vote_d <- map |>
-        dplyr::as_tibble() |>
-        dplyr::select(
-          dplyr::starts_with(paste0(el, "_dem")),
-          dplyr::starts_with(paste0(el, "_rep"))
-        )
-      if (ncol(vote_d) != 2) {
-        return(NULL)
-      }
-      dvote <- vote_d |> dplyr::pull(1)
-      rvote <- vote_d |> dplyr::pull(2)
+    vote_d <- map |>
+      dplyr::as_tibble() |>
+      dplyr::select(
+        dplyr::starts_with(paste0(el, '_dem')),
+        dplyr::starts_with(paste0(el, '_rep'))
+      )
+    if (ncol(vote_d) != 2) {
+      return(NULL)
+    }
+    dvote <- vote_d |> dplyr::pull(1)
+    rvote <- vote_d |> dplyr::pull(2)
 
-      tibble::tibble(
-        District = plan,
-        dvote = dvote,
-        rvote = rvote
-      ) |>
-        dplyr::group_by(.data$District) |>
-        dplyr::summarise(
-          {{el}} := sum(dvote, na.rm = TRUE) / (sum(dvote, na.rm = TRUE) + sum(rvote, na.rm = TRUE))
-        )
-    }) |>
+    tibble::tibble(
+      District = plan,
+      dvote = dvote,
+      rvote = rvote
+    ) |>
+      dplyr::group_by(.data$District) |>
+      dplyr::summarise(
+        {{ el }} := sum(dvote, na.rm = TRUE) / (sum(dvote, na.rm = TRUE) + sum(rvote, na.rm = TRUE))
+      )
+  }) |>
     purrr::discard(.p = function(d) is.null(d))
 
   if (length(elect_tb) > 1) {
@@ -221,7 +218,7 @@ rict_elections <- function(map, plan, as_gt = TRUE) {
     ) |>
       dplyr::group_by(.data$District) |>
       dplyr::summarise(
-        {{el}} := sum(dvote, na.rm = TRUE) / (sum(dvote, na.rm = TRUE) + sum(rvote, na.rm = TRUE))
+        {{ el }} := sum(dvote, na.rm = TRUE) / (sum(dvote, na.rm = TRUE) + sum(rvote, na.rm = TRUE))
       )
   }) |>
     purrr::discard(.p = function(d) is.null(d))
@@ -251,7 +248,7 @@ rict_elections <- function(map, plan, as_gt = TRUE) {
       dplyr::group_by(.data$District) |>
       dplyr::summarise(
         ndshare = sum(.data$ndv, na.rm = TRUE) / (sum(.data$ndv, na.rm = TRUE) + sum(.data$nrv, na.rm = TRUE))
-    )
+      )
   } else {
     ndshare_tb <- tibble::tibble(District = sort(unique(plan)))
   }
@@ -310,7 +307,6 @@ rict_elections <- function(map, plan, as_gt = TRUE) {
 # tallyiers ----
 tally_pop <- function(map, plan, pop_cols = dplyr::starts_with('pop_'), pop = 'pop',
                       normalize = FALSE) {
-
   pop_cols <- map |>
     tibble::as_tibble() |>
     dplyr::select(pop_cols) |>
@@ -325,7 +321,7 @@ tally_pop <- function(map, plan, pop_cols = dplyr::starts_with('pop_'), pop = 'p
     )
 
   if (normalize) {
-    .pop <-rlang::eval_tidy(rlang::ensym(pop), map)
+    .pop <- rlang::eval_tidy(rlang::ensym(pop), map)
     map <- map |>
       dplyr::mutate(
         dplyr::across(dplyr::all_of(pop_cols), .fns = function(x) x / !!rlang::ensym(pop))
@@ -350,7 +346,11 @@ data_color_party <- function(tab, columns = gt::everything(), ...) {
     )
 }
 
-partisan <- structure(c("#A0442C", "#B25D4C", "#C27568", "#D18E84", "#DFA8A0",
-                        "#EBC2BC", "#F6DCD9", "#F9F9F9", "#DAE2F4", "#BDCCEA", "#9FB6DE",
-                        "#82A0D2", "#638BC6", "#3D77BB", "#0063B1"), class = c("palette",
-                                                                               "character"))
+partisan <- structure(c(
+  '#A0442C', '#B25D4C', '#C27568', '#D18E84', '#DFA8A0',
+  '#EBC2BC', '#F6DCD9', '#F9F9F9', '#DAE2F4', '#BDCCEA', '#9FB6DE',
+  '#82A0D2', '#638BC6', '#3D77BB', '#0063B1'
+), class = c(
+  'palette',
+  'character'
+))

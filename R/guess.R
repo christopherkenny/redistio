@@ -8,7 +8,6 @@
 #' @examples
 #' guess_admins(dc)
 guess_admins <- function(shp) {
-
   to_guess <- c(
     'admin', 'subadmin',
     'county', 'region', 'province', 'division', 'parish', 'prefecture',
@@ -38,8 +37,6 @@ guess_admins <- function(shp) {
       total = NULL
     )
   }
-
-
 }
 
 #' Guess which columns contain election data
@@ -64,8 +61,8 @@ guess_elections <- function(shp) {
     vote_d <- shp |>
       dplyr::as_tibble() |>
       dplyr::select(
-        dplyr::starts_with(paste0(el, "_dem")),
-        dplyr::starts_with(paste0(el, "_rep"))
+        dplyr::starts_with(paste0(el, '_dem')),
+        dplyr::starts_with(paste0(el, '_rep'))
       )
     if (ncol(vote_d) != 2) {
       return(NULL)
@@ -90,7 +87,6 @@ guess_elections <- function(shp) {
 #' @examples
 #' guesstimate_demographics(dc)
 guesstimate_demographics <- function(shp) {
-
   shp <- shp |>
     sf::st_drop_geometry() |>
     dplyr::as_tibble()
@@ -120,4 +116,3 @@ guesstimate_demographics <- function(shp) {
     NULL
   }
 }
-

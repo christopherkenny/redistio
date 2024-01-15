@@ -10,7 +10,6 @@ discontiguousUI <- function(id) {
 
     # print `x` pieces of `total` pieces
     shiny::textOutput(shiny::NS(id, 'status')),
-
     bslib::layout_column_wrap(
       width = 1 / 2,
       # previous button
@@ -36,7 +35,6 @@ discontiguousServer <- function(id, plan, adj, shp, map_reac) {
   stopifnot(!shiny::is.reactive(shp))
 
   shiny::moduleServer(id, function(input, output, session) {
-
     cont <- shiny::reactiveVal(tibble::tibble())
     current <- shiny::reactiveVal(FALSE)
 
@@ -72,14 +70,18 @@ discontiguousServer <- function(id, plan, adj, shp, map_reac) {
 
     # show status
     output$status <- shiny::renderText({
-      paste0('Showing piece ',
-             ifelse(is.logical(current()), 0L, ifelse(current() == 0L, nrow(cont()), current())),
-             ' of ', nrow(cont()), ' discontiguities')
+      paste0(
+        'Showing piece ',
+        ifelse(is.logical(current()), 0L, ifelse(current() == 0L, nrow(cont()), current())),
+        ' of ', nrow(cont()), ' discontiguities'
+      )
     })
 
     # handle zooming to things:
     shiny::observeEvent(input$nextbutton, {
-      if (nrow(cont()) == 0L) return(NULL)
+      if (nrow(cont()) == 0L) {
+        return(NULL)
+      }
       current(current() %% nrow(cont()) + 1L)
 
       bb <- sf::st_bbox(shp[cont()$rows[[current()]], ])
@@ -93,7 +95,9 @@ discontiguousServer <- function(id, plan, adj, shp, map_reac) {
     })
 
     shiny::observeEvent(input$previousbutton, {
-      if (nrow(cont()) == 0L) return(NULL)
+      if (nrow(cont()) == 0L) {
+        return(NULL)
+      }
       if (is.logical(current())) {
         current(nrow(cont()))
       } else {

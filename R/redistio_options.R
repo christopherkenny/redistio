@@ -31,9 +31,9 @@ redistio_options <- function(theme = 'flatly',
                              palette_pop = 'Purples',
                              palette_pct = 'PuOr',
                              palette_party = ggredist::ggredist$partisan,
-                             map_tiles = "CartoDB.Positron",
+                             map_tiles = 'CartoDB.Positron',
                              leaflet_height = '91vh', crs = 4326,
-                             na_color = "#0000",
+                             na_color = '#0000',
                              layer_weight = 1.5, layer_color = '#000000',
                              locked_districts = NULL,
                              use_algorithms = TRUE, alg_max_districts = 3,
@@ -41,7 +41,6 @@ redistio_options <- function(theme = 'flatly',
                              save_assignment_path = 'redistio.csv',
                              save_shape_path = 'redistio.geojson',
                              ...) {
-
   if (!rlang::is_closure(map_tiles)) {
     mt <- map_tiles
     map_tiles <- function(map) leaflet::addProviderTiles(map, provider = mt)

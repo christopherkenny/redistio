@@ -65,7 +65,6 @@ format_alarm_names <- function(x) {
       group == 'vap' ~ 'Voting Age Population',
       group == 'cvap' ~ 'Citizen Voting Age Population',
       TRUE ~ group
-    )
-    ) |>
+    )) |>
     dplyr::group_by(.data$group)
 }

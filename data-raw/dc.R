@@ -20,7 +20,7 @@ wards <- wards |> arrange(NAME)
 dc <- dc |>
   mutate(
     adv_nbr = adv_nbr$NAME[geo_match(from = ., to = adv_nbr, method = 'area')],
-    #district = district$NAME[geo_match(from = ., to = district, method = 'area')],
+    # district = district$NAME[geo_match(from = ., to = district, method = 'area')],
     ward = geo_match(from = ., to = wards, method = 'area')
   )
 

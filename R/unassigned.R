@@ -10,7 +10,6 @@ unassignedUI <- function(id) {
 
     # print `x` pieces of `total` pieces
     shiny::textOutput(shiny::NS(id, 'status2')),
-
     bslib::layout_column_wrap(
       width = 1 / 2,
       # previous button
@@ -35,7 +34,6 @@ unassignedServer <- function(id, plan, shp, map_reac) {
   stopifnot(!shiny::is.reactive(shp))
 
   shiny::moduleServer(id, function(input, output, session) {
-
     nas <- shiny::reactiveVal(NULL)
     current <- shiny::reactiveVal(FALSE)
 
@@ -57,14 +55,18 @@ unassignedServer <- function(id, plan, shp, map_reac) {
 
     # show status
     output$status2 <- shiny::renderText({
-      paste0('Showing ',
-             ifelse(is.logical(current()), 0L, ifelse(current() == 0L, length(nas()), current())),
-             ' of ', length(nas()), ' unassigned precincts')
+      paste0(
+        'Showing ',
+        ifelse(is.logical(current()), 0L, ifelse(current() == 0L, length(nas()), current())),
+        ' of ', length(nas()), ' unassigned precincts'
+      )
     })
 
     # handle zooming to things:
     shiny::observeEvent(input$nextbutton, {
-      if (length(nas()) == 0L) return(NULL)
+      if (length(nas()) == 0L) {
+        return(NULL)
+      }
       current(current() %% length(nas()) + 1L)
 
       bb <- sf::st_bbox(shp[nas()[current()], ])
@@ -78,7 +80,9 @@ unassignedServer <- function(id, plan, shp, map_reac) {
     })
 
     shiny::observeEvent(input$previousbutton, {
-      if (length(nas()) == 0L) return(NULL)
+      if (length(nas()) == 0L) {
+        return(NULL)
+      }
       if (is.logical(current())) {
         current(length(nas()))
       } else {
