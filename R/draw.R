@@ -258,6 +258,11 @@ draw <- function(shp, init_plan, ndists, palette,
                   label = 'Fill opacity',
                   min = 0, max = 1, step = 0.05, value = 0.9
                 ),
+                shiny::numericInput(
+                  inputId = 'precinct_border',
+                  label = 'Precinct border weight',
+                  min = 0, max = 100, value = 0.5
+                ),
                 icon = shiny::icon('palette'),
                 style = 'min-height: 30vh'
               )
@@ -561,13 +566,15 @@ draw <- function(shp, init_plan, ndists, palette,
         val(new_tb_pop)
 
         leaflet::leafletProxy('map', data = shp) |>
-          update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp, input$fill_opacity)
+          update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp,
+                             input$fill_opacity, input$precinct_border)
       }
     )
 
-    shiny::observeEvent(input$fill_opacity, {
+    shiny::observeEvent(list(input$fill_opacity, input$precinct_border), {
       leaflet::leafletProxy('map', data = shp) |>
-        update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp, input$fill_opacity)
+        update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp,
+                           input$fill_opacity, input$precinct_border)
     })
 
     # district stats ----
@@ -642,7 +649,8 @@ draw <- function(shp, init_plan, ndists, palette,
       redistio_curr_plan$pl <- last_pl
 
       leaflet::leafletProxy('map', data = shp) |>
-        update_shape_style(NULL, pal(), redistio_curr_plan$pl, NULL, input$fill_opacity)
+        update_shape_style(NULL, pal(), redistio_curr_plan$pl, NULL,
+                           input$fill_opacity, input$precinct_border)
 
       new_tb_pop <- val()
       new_tb_pop$Population <- distr_pop(shp$pop, total = tot_pop, plan = redistio_curr_plan$pl, ndists = ndists)
@@ -783,7 +791,8 @@ draw <- function(shp, init_plan, ndists, palette,
           }
         }
         leaflet::leafletProxy('map', data = shp) |>
-          update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp, input$fill_opacity)
+          update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp,
+                             input$fill_opacity, input$precinct_border)
       },
       ignoreInit = FALSE
     )
@@ -820,7 +829,8 @@ draw <- function(shp, init_plan, ndists, palette,
             alpha = TRUE
           ))
           leaflet::leafletProxy('map', data = shp) |>
-            update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp, input$fill_opacity)
+            update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp,
+                               input$fill_opacity, input$precinct_border)
         }
       }
     )
@@ -1082,7 +1092,8 @@ draw <- function(shp, init_plan, ndists, palette,
       undo_l(undo_log(undo_l(), redistio_curr_plan$pl))
 
       leaflet::leafletProxy('map', data = shp) |>
-        update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp, input$fill_opacity)
+        update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp,
+                           input$fill_opacity, input$precinct_border)
 
       leaflet::leafletProxy('alg_map') |>
         leaflet::clearTiles() |>

@@ -59,7 +59,7 @@ window.LeafletWidget.methods.setStyle = function(category, layerId, style){
   )
 )
 
-update_shape_style <- function(leafl, fc, pal, rcp, shp, opac = 0.8) {
+update_shape_style <- function(leafl, fc, pal, rcp, shp, opac = 0.8, wt = 0.5) {
   if (fc == 'District') {
     leafl |>
       setShapeStyle(
@@ -67,7 +67,7 @@ update_shape_style <- function(leafl, fc, pal, rcp, shp, opac = 0.8) {
         layerId = ~redistio_id,
         # line colors
         stroke = TRUE,
-        weight = 0.5,
+        weight = wt,
         color = '#000',
         # fill control
         fillOpacity = opac,
@@ -81,7 +81,7 @@ update_shape_style <- function(leafl, fc, pal, rcp, shp, opac = 0.8) {
         layerId = ~redistio_id,
         # line colors
         stroke = TRUE,
-        weight = 0.5,
+        weight = wt,
         color = '#000',
         # fill control
         fillOpacity = opac,
