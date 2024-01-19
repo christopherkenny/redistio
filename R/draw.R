@@ -649,7 +649,7 @@ draw <- function(shp, init_plan, ndists, palette,
       redistio_curr_plan$pl <- last_pl
 
       leaflet::leafletProxy('map', data = shp) |>
-        update_shape_style(NULL, pal(), redistio_curr_plan$pl, NULL,
+        update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp,
                            input$fill_opacity, input$precinct_border)
 
       new_tb_pop <- val()
