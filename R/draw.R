@@ -1019,7 +1019,8 @@ draw <- function(shp, init_plan, ndists, palette,
             label = ~fmt_pop,
             fillColor = alg_pal(redistio_alg_plan$pl),
             color = '#',
-            stroke = TRUE
+            stroke = TRUE,
+            fillOpacity = input$fill_opacity
           )
 
         if (!is.null(layers)) {
