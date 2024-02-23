@@ -4,7 +4,8 @@
 #' @param init_plan Plan to initialize with.
 #' @param ndists Number of districts to draw if `init_plan` is not supplied.
 #' @param layers Named list of `sf` objects to overlay. Also takes column names in `shp` to group by.
-#' @param palette Color palette to fill shapes with. Default is Polychrome 36.
+#' @param palette Color palette to fill shapes with. Default is `Polychrome 36` or,
+#' if installed, `crayons::crayons$no_48`.
 #' @param pop_tol the population tolerance.
 #' @param adj_col Name of column in `shp` that contains adjacency information.
 #' @param split_cols Names of column in `shp` that contain administrative units

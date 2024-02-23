@@ -25,7 +25,8 @@ draw(
 
 \item{ndists}{Number of districts to draw if \code{init_plan} is not supplied.}
 
-\item{palette}{Color palette to fill shapes with. Default is Polychrome 36.}
+\item{palette}{Color palette to fill shapes with. Default is \verb{Polychrome 36} or,
+if installed, \code{crayons::crayons$no_48}.}
 
 \item{layers}{Named list of \code{sf} objects to overlay. Also takes column names in \code{shp} to group by.}
 
