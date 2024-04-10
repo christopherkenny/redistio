@@ -62,6 +62,7 @@
 <span>  split_cols <span class="op">=</span> <span class="va">guess_admins</span>,</span>
 <span>  elect_cols <span class="op">=</span> <span class="va">guess_elections</span>,</span>
 <span>  demog_cols <span class="op">=</span> <span class="va">guesstimate_demographics</span>,</span>
+<span>  hover_fn <span class="op">=</span> <span class="va">hover_precinct</span>,</span>
 <span>  opts <span class="op">=</span> <span class="fu"><a href="redistio_options.html">redistio_options</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -107,6 +108,10 @@ if installed, <code>crayons::crayons$no_48</code>.</p></dd>
 
 <dt>demog_cols</dt>
 <dd><p>Names of column in <code>shp</code> that contain demographic data</p></dd>
+
+
+<dt>hover_fn</dt>
+<dd><p>Function to generate tables for mouse hovering. Default is <code><a href="hover_precinct.html">hover_precinct()</a></code>.</p></dd>
 
 
 <dt>opts</dt>
