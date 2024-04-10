@@ -19,8 +19,8 @@ rict_population <- function(map, plan, as_gt = TRUE) {
       gt::fmt_percent(columns = 'pct_deviation', decimals = 1) |>
       gt::tab_spanner(label = 'Deviation', columns = c('deviation', 'pct_deviation')) |>
       gt::cols_label(
-        deviation = 'People',
-        pct_deviation = '%'
+        dplyr::any_of('deviation') = 'People',
+        dplyr::any_of('pct_deviation') = '%'
       )
   } else {
     df
@@ -277,9 +277,9 @@ rict_elections <- function(map, plan, as_gt = TRUE) {
         columns = dplyr::any_of(c('e_dvs', 'avg_cycle', 'ndshare'))
       ) |>
       gt::cols_label(
-        e_dvs = 'Contest',
-        avg_cycle = 'Cycle',
-        ndshare = 'Pre-Average'
+        dplyr::any_of('e_dvs') ~ 'Contest',
+        dplyr::any_of('avg_cycle') ~ 'Cycle',
+        dplyr::any_of('ndshare') ~ 'Pre-Average'
       ) |>
       gt::cols_label_with(
         columns = dplyr::starts_with('avg_'),
