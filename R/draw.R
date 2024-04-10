@@ -11,6 +11,7 @@
 #' @param split_cols Names of column in `shp` that contain administrative units
 #' @param elect_cols Names of column in `shp` that contain election data
 #' @param demog_cols Names of column in `shp` that contain demographic data
+#' @param hover_fn Function to generate tables for mouse hovering. Default is `hover_precinct()`.
 #' @param opts list of options. Default is `redistio_options()`
 #'
 #' @return Shiny app
@@ -28,6 +29,7 @@ draw <- function(shp, init_plan, ndists, palette,
                  split_cols = guess_admins,
                  elect_cols = guess_elections,
                  demog_cols = guesstimate_demographics,
+                 hover_fn = hover_precinct,
                  opts = redistio_options()) {
   # defaults ----
   def_opts <- redistio_options()
@@ -36,6 +38,10 @@ draw <- function(shp, init_plan, ndists, palette,
   # run basic inputs ----
   if (missing(shp)) {
     stop('`shp` missing, but required.')
+  }
+
+  if (!'pop' %in% names(shp)) {
+    stop('`shp` must have a `pop` column.')
   }
 
   if (missing(init_plan)) {
@@ -96,6 +102,7 @@ draw <- function(shp, init_plan, ndists, palette,
   shp <- shp |>
     sf::st_make_valid()
 
+
   # handle palettes ----
   if (missing(palette)) {
     if (rlang::is_installed('crayons')) {
@@ -136,7 +143,7 @@ draw <- function(shp, init_plan, ndists, palette,
   # Expecting '}'
   # when used on a redist_map twice in a row
 
-  hov <- hover_precinct(
+  hov <- hover_fn(
     shp_tb,
     pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap')
   ) |>

@@ -15,6 +15,7 @@ draw(
   split_cols = guess_admins,
   elect_cols = guess_elections,
   demog_cols = guesstimate_demographics,
+  hover_fn = hover_precinct,
   opts = redistio_options()
 )
 }
@@ -39,6 +40,8 @@ if installed, \code{crayons::crayons$no_48}.}
 \item{elect_cols}{Names of column in \code{shp} that contain election data}
 
 \item{demog_cols}{Names of column in \code{shp} that contain demographic data}
+
+\item{hover_fn}{Function to generate tables for mouse hovering. Default is \code{hover_precinct()}.}
 
 \item{opts}{list of options. Default is \code{redistio_options()}}
 }
