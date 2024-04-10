@@ -931,8 +931,8 @@ draw <- function(shp, init_plan, ndists, palette,
         gt::tab_spanner(label = 'Multi Splits', columns = dplyr::starts_with('multi_')) |>
         gt::tab_spanner(label = 'Total Splits', columns = dplyr::starts_with('total_')) |>
         gt::cols_label(
-          deviation = 'People',
-          pct_deviation = '%'
+          dplyr::any_of('deviation') ~ 'People',
+          dplyr::any_of('pct_deviation') ~ '%'
         ) |>
         gt::cols_label_with(
           columns = dplyr::starts_with('comp_'),
