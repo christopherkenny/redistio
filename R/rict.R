@@ -19,8 +19,8 @@ rict_population <- function(map, plan, as_gt = TRUE) {
       gt::fmt_percent(columns = 'pct_deviation', decimals = 1) |>
       gt::tab_spanner(label = 'Deviation', columns = c('deviation', 'pct_deviation')) |>
       gt::cols_label(
-        dplyr::any_of('deviation') = 'People',
-        dplyr::any_of('pct_deviation') = '%'
+        dplyr::any_of('deviation') ~ 'People',
+        dplyr::any_of('pct_deviation') ~ '%'
       )
   } else {
     df
