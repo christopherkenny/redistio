@@ -557,6 +557,9 @@ draw <- function(shp, init_plan, ndists, palette,
         if (is.null(click)) {
           return(NULL)
         }
+        if (is.null(input$district_rows_selected)) {
+          return(NULL)
+        }
 
         idx <- which(shp$redistio_id == click$id)
         new_dist <- ifelse(input$district_rows_selected == 1, NA_integer_, input$district_rows_selected - 1L)
