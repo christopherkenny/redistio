@@ -11,6 +11,7 @@ draw(
   palette,
   layers = NULL,
   pop_tol = 0.05,
+  pop_col = "pop",
   adj_col = "adj",
   split_cols = guess_admins,
   elect_cols = guess_elections,
@@ -32,6 +33,8 @@ if installed, \code{crayons::crayons$no_48}.}
 \item{layers}{Named list of \code{sf} objects to overlay. Also takes column names in \code{shp} to group by.}
 
 \item{pop_tol}{the population tolerance.}
+
+\item{pop_col}{Name of column in \code{shp} that contains population data.}
 
 \item{adj_col}{Name of column in \code{shp} that contains adjacency information.}
 

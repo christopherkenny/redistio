@@ -7,6 +7,7 @@
 #' @param palette Color palette to fill shapes with. Default is `Polychrome 36` or,
 #' if installed, `crayons::crayons$no_48`.
 #' @param pop_tol the population tolerance.
+#' @param pop_col Name of column in `shp` that contains population data.
 #' @param adj_col Name of column in `shp` that contains adjacency information.
 #' @param split_cols Names of column in `shp` that contain administrative units
 #' @param elect_cols Names of column in `shp` that contain election data
@@ -24,7 +25,8 @@
 #' }
 #'
 draw <- function(shp, init_plan, ndists, palette,
-                 layers = NULL, pop_tol = 0.05,
+                 layers = NULL,
+                 pop_tol = 0.05, pop_col = 'pop',
                  adj_col = 'adj',
                  split_cols = guess_admins,
                  elect_cols = guess_elections,
@@ -40,7 +42,7 @@ draw <- function(shp, init_plan, ndists, palette,
     stop('`shp` missing, but required.')
   }
 
-  if (!'pop' %in% names(shp)) {
+  if (!pop_col %in% names(shp)) {
     stop('`shp` must have a `pop` column.')
   }
 
@@ -131,8 +133,8 @@ draw <- function(shp, init_plan, ndists, palette,
     }
   }
 
-  shp$fmt_pop <- scales::label_comma()(shp$pop)
-  tot_pop <- sum(shp$pop)
+  shp$fmt_pop <- scales::label_comma()(shp[[pop_col]])
+  tot_pop <- sum(shp[[pop_col]])
 
   # prep hover ----
   shp_tb <- shp |>
@@ -176,7 +178,7 @@ draw <- function(shp, init_plan, ndists, palette,
 
   # other prep ----
 
-  tgt_pop <- sum(shp$pop) / ndists
+  tgt_pop <- sum(shp[[pop_col]]) / ndists
   min_pop <- ceiling(tgt_pop * (1 - pop_tol))
   max_pop <- floor(tgt_pop * (1 + pop_tol))
   tgt_pop <- as.integer(round(tgt_pop))
@@ -489,8 +491,8 @@ draw <- function(shp, init_plan, ndists, palette,
         c(as.character(shiny::icon('eraser')), seq_len(ndists)),
         ' </p>'
       ),
-      Population = distr_pop(shp$pop, total = tot_pop, plan = init_plan, ndists = ndists),
-      Deviation = as.integer(distr_pop(shp$pop, total = tot_pop, plan = init_plan, ndists = ndists) - c(0L, rep(tgt_pop, ndists)))
+      Population = distr_pop(shp[[pop_col]], total = tot_pop, plan = init_plan, ndists = ndists),
+      Deviation = as.integer(distr_pop(shp[[pop_col]], total = tot_pop, plan = init_plan, ndists = ndists) - c(0L, rep(tgt_pop, ndists)))
     )
     val <- shiny::reactiveVal(tab_pop_static)
     map_sub <- shiny::reactiveVal(shp)
@@ -572,7 +574,7 @@ draw <- function(shp, init_plan, ndists, palette,
         undo_l(undo_log(undo_l(), redistio_curr_plan$pl))
 
         new_tb_pop <- val()
-        new_tb_pop$Population <- distr_pop(shp$pop, total = tot_pop, plan = redistio_curr_plan$pl, ndists = ndists)
+        new_tb_pop$Population <- distr_pop(shp[[pop_col]], total = tot_pop, plan = redistio_curr_plan$pl, ndists = ndists)
         new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - c(0L, rep(tgt_pop, ndists)))
         val(new_tb_pop)
 
@@ -664,7 +666,7 @@ draw <- function(shp, init_plan, ndists, palette,
                            input$fill_opacity, input$precinct_border)
 
       new_tb_pop <- val()
-      new_tb_pop$Population <- distr_pop(shp$pop, total = tot_pop, plan = redistio_curr_plan$pl, ndists = ndists)
+      new_tb_pop$Population <- distr_pop(shp[[pop_col]], total = tot_pop, plan = redistio_curr_plan$pl, ndists = ndists)
       new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - c(0L, rep(tgt_pop, ndists)))
       val(new_tb_pop)
     })
@@ -1115,7 +1117,7 @@ draw <- function(shp, init_plan, ndists, palette,
       shiny::updateTabsetPanel(session, 'navbar', 'draw')
 
       new_tb_pop <- val()
-      new_tb_pop$Population <- distr_pop(shp$pop, total = tot_pop, plan = redistio_curr_plan$pl, ndists = ndists)
+      new_tb_pop$Population <- distr_pop(shp[[pop_col]], total = tot_pop, plan = redistio_curr_plan$pl, ndists = ndists)
       new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - c(0L, rep(tgt_pop, ndists)))
       val(new_tb_pop)
 
