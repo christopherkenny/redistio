@@ -191,6 +191,11 @@ draw <- function(shp, init_plan, ndists, palette,
     opts$use_algorithms %||% def_opts$use_algorithms &&
     rlang::is_installed('redist')
 
+  use_planscore <- inherits(shp, 'redist_map') &&
+    opts$use_planscore %||% def_opts$use_planscore &&
+    rlang::is_installed('planscorer') &&
+    planscorer::ps_has_key()
+
   # User Interface ----
   if (!is.null(opts$select_color)) {
     selection_html <- shiny::tags$style(
