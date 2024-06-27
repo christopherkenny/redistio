@@ -462,7 +462,10 @@ draw <- function(shp, init_plan, ndists, palette,
     # planscore panel ----
     if (use_planscore) {
       bslib::nav_panel(
-        planscoreUI('planscore')
+        title = 'PlanScore',
+        bslib::page_fillable(
+          planscoreUI('planscore')
+        )
       )
     } else {
       NULL
