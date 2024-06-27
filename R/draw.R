@@ -851,7 +851,10 @@ draw <- function(shp, init_plan, ndists, palette,
     )
 
     color_from_fileServer(
-      'colorFromFile'
+      'colorFromFile', redistio_curr_plan, shp,
+      shiny::reactive(leaflet::leafletProxy('map', data = shp)),
+      input$fill_column, input$fill_opacity, input$precinct_border,
+      pal, undo_l, undo_log, val, tot_pop, ndists, tgt_pop
     )
 
     # demographics panel ----
