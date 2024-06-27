@@ -363,6 +363,10 @@ draw <- function(shp, init_plan, ndists, palette,
                     discontiguousUI('discontiguous'),
                     unassignedUI('unassigned')
                   ),
+                  bslib::nav_panel(
+                    'Color from file',
+                    color_from_fileUI('colorFromFile')
+                  ),
                   align = 'right'
                 ),
                 selected = 'Precinct'
@@ -862,6 +866,13 @@ draw <- function(shp, init_plan, ndists, palette,
     unassignedServer(
       'unassigned', redistio_curr_plan, shp,
       shiny::reactive(leaflet::leafletProxy('map'))
+    )
+
+    color_from_fileServer(
+      'colorFromFile', redistio_curr_plan, shp,
+      shiny::reactive(leaflet::leafletProxy('map', data = shp)),
+      input$fill_column, input$fill_opacity, input$precinct_border,
+      pal, undo_l, undo_log, val, tot_pop, ndists, tgt_pop
     )
 
     # demographics panel ----
