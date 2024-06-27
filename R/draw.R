@@ -459,6 +459,14 @@ draw <- function(shp, init_plan, ndists, palette,
     } else {
       NULL
     },
+    # planscore panel ----
+    if (use_planscore) {
+      bslib::nav_panel(
+        planscoreUI('planscore')
+      )
+    } else {
+      NULL
+    },
     bslib::nav_spacer(),
     bslib::nav_item(
       shiny::actionButton(
@@ -873,6 +881,11 @@ draw <- function(shp, init_plan, ndists, palette,
       shiny::reactive(leaflet::leafletProxy('map', data = shp)),
       input$fill_column, input$fill_opacity, input$precinct_border,
       pal, undo_l, undo_log, val, tot_pop, ndists, tgt_pop
+    )
+
+    # planscore nav panel ----
+    planscoreServer(
+      'planscore', redistio_curr_plan, shp
     )
 
     # demographics panel ----
