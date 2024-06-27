@@ -2,7 +2,7 @@ color_from_fileUI <- function(id) {
   shiny::tagList(
     shiny::fileInput(
       inputId = shiny::NS(id, 'file'),
-      label = 'Select a file',
+      label = 'Select a csv file',
       multiple = 'FALSE',
       accept = '.csv'
     ),
