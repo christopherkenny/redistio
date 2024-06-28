@@ -191,6 +191,11 @@ draw <- function(shp, init_plan, ndists, palette,
     opts$use_algorithms %||% def_opts$use_algorithms &&
     rlang::is_installed('redist')
 
+  use_planscore <- inherits(shp, 'redist_map') &&
+    opts$use_planscore %||% def_opts$use_planscore &&
+    rlang::is_installed('planscorer') &&
+    planscorer::ps_has_key()
+
   # User Interface ----
   if (!is.null(opts$select_color)) {
     selection_html <- shiny::tags$style(
@@ -449,6 +454,17 @@ draw <- function(shp, init_plan, ndists, palette,
               icon = shiny::icon('file-export')
             ),
           )
+        )
+      )
+    } else {
+      NULL
+    },
+    # planscore panel ----
+    if (use_planscore) {
+      bslib::nav_panel(
+        title = 'PlanScore',
+        bslib::page_fillable(
+          planscoreUI('planscore')
         )
       )
     } else {
@@ -868,6 +884,11 @@ draw <- function(shp, init_plan, ndists, palette,
       shiny::reactive(leaflet::leafletProxy('map', data = shp)),
       input$fill_column, input$fill_opacity, input$precinct_border,
       pal, undo_l, undo_log, val, tot_pop, ndists, tgt_pop
+    )
+
+    # planscore nav panel ----
+    planscoreServer(
+      'planscore', redistio_curr_plan, shp
     )
 
     # demographics panel ----
