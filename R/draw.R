@@ -616,7 +616,9 @@ draw <- function(shp, init_plan, ndists, palette,
         shiny::isolate(val()) |>
           DT::datatable(
             options = list(
-              dom = 't', ordering = FALSE, scrollY = paste0(min(ndists * 8, 90), 'vh'), # scrollX = TRUE, #, # TODO make changeable
+              dom = 't', ordering = FALSE,
+              scrollY = paste0(min(ndists * 6, 90), 'vh'),
+              # scrollX = TRUE, # TODO make changeable
               pageLength = ndists + 1L
             ),
             style = 'bootstrap',
@@ -792,7 +794,7 @@ draw <- function(shp, init_plan, ndists, palette,
           server = FALSE
         )
         pal(leaflet::colorNumeric(
-          palette = opts$palette_party %||% def_opts$palette_party,
+          palette = as.character(opts$palette_party %||% def_opts$palette_party),
           domain = c(0, 1),
           na.color = '#D3D3D3'
         ))
@@ -811,13 +813,13 @@ draw <- function(shp, init_plan, ndists, palette,
         if (input$fill_input == 'Demographics') {
           if (input$fill_column %in% c('pop', 'vap', 'cvap')) {
             pal(leaflet::colorNumeric(
-              palette = opts$palette_pop %||% def_opts$palette_pop,
+              palette = as.character(opts$palette_pop %||% def_opts$palette_pop),
               domain = c(0, max(shp[[input$fill_column]], na.rm = TRUE)),
               na.color = '#D3D3D3'
             ))
           } else {
             pal(leaflet::colorNumeric(
-              palette = opts$palette_pct %||% def_opts$palette_pct,
+              palette = as.character(opts$palette_pct %||% def_opts$palette_pct),
               domain = c(0, 1),
               na.color = '#D3D3D3'
             ))
