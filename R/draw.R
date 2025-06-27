@@ -572,15 +572,15 @@ draw <- function(shp, init_plan, ndists, palette,
       base_map
     })
 
-    shiny::observeEvent(input$map_shape_click, {
-      clicked$map_shape_click <- input$map_shape_click
+    shiny::observeEvent(input$map_feature_click, {
+      clicked$map_feature_click <- input$map_feature_click
     })
 
     shiny::observeEvent(
-      eventExpr = clicked$map_shape_click,
+      eventExpr = clicked$map_feature_click,
       handlerExpr = {
-        click <- clicked$map_shape_click
-        clicked$map_shape_click <- NULL
+        click <- clicked$map_feature_click
+        clicked$map_feature_click <- NULL
         if (is.null(click)) {
           return(NULL)
         }
