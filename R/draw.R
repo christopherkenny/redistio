@@ -545,7 +545,7 @@ draw <- function(shp, init_plan, ndists, palette,
         mapgl::add_fill_layer(
           source = shp,
           id = 'precinct_fill',
-          fill_color = '#CCCCCC',
+          fill_color = discrete_palette(palette, init_plan),
           fill_opacity = 0.9,
           fill_outline_color = '#000000'
         ) #|>
