@@ -586,7 +586,7 @@ draw <- function(shp, init_plan, ndists, palette,
           return(NULL)
         }
 
-        idx <- which(shp$redistio_id == click$id)
+        idx <- which(shp$redistio_id == click$id + 1L)
         new_dist <- ifelse(input$district_rows_selected == 1, NA_integer_, input$district_rows_selected - 1L)
         if (redistio_curr_plan$pl[idx] %in% input$locks || new_dist %in% input$locks) {
           return(NULL)
