@@ -1020,6 +1020,7 @@ draw <- function(shp, init_plan, ndists, palette,
 
     # algorithms panel ----
     if (use_algorithms) {
+      # TODO: this needs some rough mix of using shp & shp_in
       alg_pal <- as.character(palette)
       output$alg_map <- mapgl::renderMaplibre({
         map_sub(shp |>
