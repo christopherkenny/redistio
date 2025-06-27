@@ -106,6 +106,12 @@ draw <- function(shp, init_plan, ndists, palette,
   shp <- shp |>
     sf::st_make_valid()
 
+  shp_in <- shp
+  shp <- shp |>
+    tibble::as_tibble() |>
+    sf::st_as_sf() |>
+    dplyr::select(-where(is.list))
+
 
   # handle palettes ----
   if (missing(palette)) {
@@ -115,7 +121,7 @@ draw <- function(shp, init_plan, ndists, palette,
       palette <- suppressWarnings(grDevices::palette.colors(n = ndists, 'Polychrome 36'))
     }
   }
-  palette <- as.character(palette)
+  palette <- unnname(as.character(palette))
   if (length(palette) != ndists) {
     if (length(palette) > ndists) {
       palette <- palette[seq_len(ndists)]
@@ -189,11 +195,11 @@ draw <- function(shp, init_plan, ndists, palette,
     scales::label_comma()(min_pop), ', ', scales::label_comma()(max_pop), '].'
   )
 
-  use_algorithms <- inherits(shp, 'redist_map') &&
+  use_algorithms <- inherits(shp_in, 'redist_map') &&
     opts$use_algorithms %||% def_opts$use_algorithms &&
     rlang::is_installed('redist')
 
-  use_planscore <- inherits(shp, 'redist_map') &&
+  use_planscore <- inherits(shp_in, 'redist_map') &&
     opts$use_planscore %||% def_opts$use_planscore &&
     rlang::is_installed('planscorer') &&
     planscorer::ps_has_key()
@@ -847,7 +853,6 @@ draw <- function(shp, init_plan, ndists, palette,
             )
           }
         }
-        print(input$fill_column)
         mapgl::maplibre_proxy('map') |>
           update_shape_style(
             input$fill_column, pal(), redistio_curr_plan$pl, shp,

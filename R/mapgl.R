@@ -60,3 +60,27 @@ percent_palette <- function(palette, na_color = '#CCCCCC', column = '') {
   class(out) <- 'mapgl_continuous_scale'
   out
 }
+
+get_simple_legend_colors <- function(p, n_max = 3) {
+  full <- p |>
+    mapgl::get_legend_colors()
+
+  if (length(full) > n_max) {
+    idx <- c(1, round(length(full) / 2), length(full))
+    full[idx]
+  } else {
+    full
+  }
+}
+
+get_simple_legend_labels <- function(p, n_max = 3) {
+  full <- p |>
+    mapgl::get_legend_labels()
+
+  if (length(full) > n_max) {
+    idx <- c(1, round(length(full) / 2), length(full))
+    full[idx]
+  } else {
+    full
+  }
+}
