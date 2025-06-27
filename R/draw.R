@@ -806,11 +806,13 @@ draw <- function(shp, init_plan, ndists, palette,
           selected = names(elect_cols)[1],
           server = FALSE
         )
-        pal(leaflet::colorNumeric(
-          palette = as.character(opts$palette_party %||% def_opts$palette_party),
-          domain = c(0, 1),
-          na.color = '#D3D3D3'
-        ))
+        pal(
+          percent_palette(
+            column = input$fill_column,
+            palette = as.character(opts$palette_pct %||% def_opts$palette_pct),
+            na_color = opts$na_color %||% def_opts$na_color
+          )
+        )
       } else {
         shiny::updateSelectizeInput(session, 'fill_column',
           choices = demog_cols,
@@ -825,19 +827,27 @@ draw <- function(shp, init_plan, ndists, palette,
       {
         if (input$fill_input == 'Demographics') {
           if (input$fill_column %in% c('pop', 'vap', 'cvap')) {
-            pal(leaflet::colorNumeric(
-              palette = as.character(opts$palette_pop %||% def_opts$palette_pop),
-              domain = c(0, max(shp[[input$fill_column]], na.rm = TRUE)),
-              na.color = '#D3D3D3'
-            ))
+            pal(
+              mapgl::interpolate_palette(
+                data = shp,
+                column = input$fill_column,
+                method = 'equal',
+                n = length(as.character(opts$palette_pop %||% def_opts$palette_pop)),
+                colors = as.character(opts$palette_pop %||% def_opts$palette_pop),
+                na_color = opts$na_color %||% def_opts$na_color
+              )
+            )
           } else {
-            pal(leaflet::colorNumeric(
-              palette = as.character(opts$palette_pct %||% def_opts$palette_pct),
-              domain = c(0, 1),
-              na.color = '#D3D3D3'
-            ))
+            pal(
+              percent_palette(
+                column = input$fill_column,
+                palette = as.character(opts$palette_pct %||% def_opts$palette_pct),
+                na_color = opts$na_color %||% def_opts$na_color
+              )
+            )
           }
         }
+        print(input$fill_column)
         mapgl::maplibre_proxy('map') |>
           update_shape_style(
             input$fill_column, pal(), redistio_curr_plan$pl, shp,

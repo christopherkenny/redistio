@@ -3,8 +3,10 @@
 #' @param theme a name of a bootswatch preset theme or other `bslib::bs_theme()` object
 #' @param panels which panels to display in the app, `'draw'` is always shown.
 #' @param select_color a color to use for highlighting selected districts
-#' @param palette_pop a color palette to use for whole people
-#' @param palette_pct a color palette to use for percentages of people
+#' @param palette_pop a color palette to use for whole people. Defaults to
+#' `RColorBrewer::brewer.pal(n = 9, name = 'Purples')`.
+#' @param palette_pct a color palette to use for percentages of people. Defaults
+#' to `RColorBrewer::brewer.pal(n = 9, name = 'PuOr')`.
 #' @param palette_party a color palette to use for parties
 #' @param map_tiles a tileset to use for the map background, from `leaflet::providers`
 #' @param leaflet_height height to pass to `leaflet::leafletOutput()`
@@ -43,6 +45,14 @@ redistio_options <- function(theme = 'flatly',
                              save_assignment_path = 'redistio.csv',
                              save_shape_path = 'redistio.geojson',
                              ...) {
+
+  if (length(palette_pop) == 1) {
+    palette_pop <- RColorBrewer::brewer.pal(n = 9, name = palette_pop)
+  }
+  if (length(palette_pct) == 1) {
+    palette_pct <- RColorBrewer::brewer.pal(n = 9, name = palette_pct)
+  }
+
   list(
     theme = theme,
     panels = panels,

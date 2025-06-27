@@ -27,7 +27,7 @@ update_shape_style <- function(leafl, fc, pal, rcp, shp, opac = 0.8, wt = 0.5) {
       mapgl::set_paint_property(
         layer_id = 'precinct_fill',
         name = 'fill-color',
-        value = discrete_palette(pal, rcp)
+        value = pal
       ) |>
       mapgl::set_paint_property(
         layer_id = 'precinct_fill',
@@ -43,15 +43,16 @@ update_shape_style <- function(leafl, fc, pal, rcp, shp, opac = 0.8, wt = 0.5) {
         layer_id = 'precinct_fill',
         name = 'line-color',
         value = '#000'
-      ) |>
-      mapgl::clear_legend() |>
-      mapgl::add_legend(
-        pal = pal,
-        values = shp[[fc]],
-        title = fc,
-        opacity = opac,
-        position = 'bottomright',
-        layer_id = 'legend'
-      )
+      ) #|>
+    # TODO fix legend
+      # mapgl::clear_legend() |>
+      # mapgl::add_legend(
+      #   pal = pal,
+      #   values = shp[[fc]],
+      #   title = fc,
+      #   opacity = opac,
+      #   position = 'bottomright',
+      #   layer_id = 'legend'
+      # )
   }
 }
