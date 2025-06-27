@@ -121,7 +121,7 @@ draw <- function(shp, init_plan, ndists, palette,
       palette <- suppressWarnings(grDevices::palette.colors(n = ndists, 'Polychrome 36'))
     }
   }
-  palette <- unnname(as.character(palette))
+  palette <- unname(as.character(palette))
   if (length(palette) != ndists) {
     if (length(palette) > ndists) {
       palette <- palette[seq_len(ndists)]
