@@ -235,7 +235,6 @@ draw <- function(shp, init_plan, ndists, palette,
     bslib::nav_panel(
       title = 'draw',
       class = 'p-0',
-
       selection_html,
       bslib::page_fillable(
         class = 'p-0',
@@ -548,8 +547,12 @@ draw <- function(shp, init_plan, ndists, palette,
           fill_color = discrete_palette(palette, init_plan),
           fill_opacity = 0.9,
           fill_outline_color = '#000000'
-        ) #|>
-       # mapgl::enable_shiny_hover()
+        )
+
+      if (!is.null(hover_fn)) {
+        base_map <- base_map |>
+          mapgl::enable_shiny_hover(coordinates = FALSE, features = 'precinct_fill')
+      }
 
       if (!is.null(layers)) {
         for (i in seq_along(layers)) {
@@ -586,6 +589,10 @@ draw <- function(shp, init_plan, ndists, palette,
           return(NULL)
         }
 
+        if (click$id > nrow(shp)) {
+          return(NULL)
+        }
+
         idx <- which(shp$redistio_id == click$id + 1L)
         new_dist <- ifelse(input$district_rows_selected == 1, NA_integer_, input$district_rows_selected - 1L)
         if (redistio_curr_plan$pl[idx] %in% input$locks || new_dist %in% input$locks) {
@@ -602,15 +609,19 @@ draw <- function(shp, init_plan, ndists, palette,
         val(new_tb_pop)
 
         mapgl::maplibre_proxy('map') |>
-          update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp,
-                           input$fill_opacity, input$precinct_border)
+          update_shape_style(
+            input$fill_column, pal(), redistio_curr_plan$pl, shp,
+            input$fill_opacity, input$precinct_border
+          )
       }
     )
 
     shiny::observeEvent(list(input$fill_opacity, input$precinct_border), {
       mapgl::maplibre_proxy('map') |>
-        update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp,
-                           input$fill_opacity, input$precinct_border)
+        update_shape_style(
+          input$fill_column, pal(), redistio_curr_plan$pl, shp,
+          input$fill_opacity, input$precinct_border
+        )
     })
 
     # district stats ----
@@ -687,8 +698,10 @@ draw <- function(shp, init_plan, ndists, palette,
       redistio_curr_plan$pl <- last_pl
 
       mapgl::maplibre_proxy('map') |>
-        update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp,
-                           input$fill_opacity, input$precinct_border)
+        update_shape_style(
+          input$fill_column, pal(), redistio_curr_plan$pl, shp,
+          input$fill_opacity, input$precinct_border
+        )
 
       new_tb_pop <- val()
       new_tb_pop$Population <- distr_pop(shp[[pop_col]], total = tot_pop, plan = redistio_curr_plan$pl, ndists = ndists)
@@ -701,16 +714,16 @@ draw <- function(shp, init_plan, ndists, palette,
     hov_reac <- shiny::reactive({
       input$map_feature_hover
     })
-    hov_reac_d <- shiny::debounce(hov_reac, 200)
+    hov_reac_d <- shiny::debounce(hov_reac, 100)
 
     # precinct stats ----
     shiny::observeEvent(hov_reac_d(), {
-      if (!is.null(hov_reac_d())) {
+      if (!is.null(hov_reac_d()) && hov_reac_d()$id < nrow(shp)) {
         if (input$tabRight == 'Precinct') {
           output$hover <- gt::render_gt({
             # produce hover tables ----
             hov |>
-              dplyr::select('group', 'rowname', paste0('V', hov_reac_d()$id)) |>
+              dplyr::select(dplyr::any_of(c('group', 'rowname', paste0('V', as.integer(hov_reac_d()$id) + 1L)))) |>
               gt::gt() |>
               gt::cols_label_with(columns = gt::starts_with('V'), fn = function(x) '') |>
               gt::tab_style(
@@ -787,7 +800,6 @@ draw <- function(shp, init_plan, ndists, palette,
           server = FALSE
         )
         pal(as.character(palette_reactive()))
-
       } else if (input$fill_input == 'Elections') {
         shiny::updateSelectizeInput(session, 'fill_column',
           choices = names(elect_cols),
@@ -799,7 +811,6 @@ draw <- function(shp, init_plan, ndists, palette,
           domain = c(0, 1),
           na.color = '#D3D3D3'
         ))
-
       } else {
         shiny::updateSelectizeInput(session, 'fill_column',
           choices = demog_cols,
@@ -828,8 +839,10 @@ draw <- function(shp, init_plan, ndists, palette,
           }
         }
         mapgl::maplibre_proxy('map') |>
-          update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp,
-                           input$fill_opacity, input$precinct_border)
+          update_shape_style(
+            input$fill_column, pal(), redistio_curr_plan$pl, shp,
+            input$fill_opacity, input$precinct_border
+          )
       },
       ignoreInit = FALSE
     )
@@ -861,8 +874,10 @@ draw <- function(shp, init_plan, ndists, palette,
         if (input$fill_input == 'District') {
           pal(as.character(palette_reactive()))
           mapgl::maplibre_proxy('map') |>
-            update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp,
-                               input$fill_opacity, input$precinct_border)
+            update_shape_style(
+              input$fill_column, pal(), redistio_curr_plan$pl, shp,
+              input$fill_opacity, input$precinct_border
+            )
         }
       }
     )
@@ -924,7 +939,7 @@ draw <- function(shp, init_plan, ndists, palette,
         if (adj_col %in% names(shp)) {
           int_l <- list(
             rict_population(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
-            rict_contiguity(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
+            rict_contiguity(shp, plan = redistio_curr_plan$pl, adj = adj, as_gt = FALSE),
             rict_compactness(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
             rict_splits(shp,
               plan = redistio_curr_plan$pl,
@@ -948,7 +963,7 @@ draw <- function(shp, init_plan, ndists, palette,
       } else {
         int_l <- list(
           rict_population(shp, redistio_curr_plan$pl, as_gt = FALSE),
-          rict_contiguity(shp, plan = redistio_curr_plan$pl, as_gt = FALSE)
+          rict_contiguity(shp, plan = redistio_curr_plan$pl, adj = adj, as_gt = FALSE)
         )
       }
       int_l |>
@@ -1051,13 +1066,13 @@ draw <- function(shp, init_plan, ndists, palette,
         alg_plans(sims_sum)
 
         map_alg <- mapgl::maplibre(
-            style = leaf_tiles
-          ) |>
+          style = leaf_tiles
+        ) |>
           mapgl::add_fill_layer(
             source = map_sub(),
             fill_color = alg_pal(redistio_alg_plan$pl),
             fill_opacity = input$fill_opacity,
-            #? source = 'redistio_id',
+            # ? source = 'redistio_id',
             layer_id = 'alg_precincts'
           )
 
@@ -1126,8 +1141,10 @@ draw <- function(shp, init_plan, ndists, palette,
       undo_l(undo_log(undo_l(), redistio_curr_plan$pl))
 
       mapgl::maplibre_proxy('map') |>
-        update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp,
-                           input$fill_opacity, input$precinct_border)
+        update_shape_style(
+          input$fill_column, pal(), redistio_curr_plan$pl, shp,
+          input$fill_opacity, input$precinct_border
+        )
 
       mapgl::maplibre_proxy('alg_map') |>
         mapgl::clear_layer(layer_id = 'alg_precincts')

@@ -11,7 +11,7 @@ redistio_options(
   palette_pop = "Purples",
   palette_pct = "PuOr",
   palette_party = ggredist::ggredist$partisan,
-  map_tiles = "mapbox://styles/mapbox/dark-v11",
+  map_tiles = mapgl::carto_style("voyager"),
   leaflet_height = "91vh",
   crs = 4326,
   na_color = "#0000",
