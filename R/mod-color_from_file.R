@@ -19,7 +19,6 @@ color_from_fileServer <- function(id, plan, shp, map_reac,
 
   shiny::moduleServer(id, function(input, output, session) {
     shiny::observeEvent(input$file, {
-
       dat <- read.csv(file = input$file$datapath)
       intrscts <- intersect(names(shp), names(dat))
 
@@ -65,8 +64,10 @@ color_from_fileServer <- function(id, plan, shp, map_reac,
       val(new_tb_pop)
 
       map_reac() |>
-        update_shape_style(i_fill_column, pal(), dat[['.redistio_from_file']], shp,
-                           i_fill_opacity, i_precinct_border)
+        update_shape_style(
+          i_fill_column, pal(), dat[['.redistio_from_file']], shp,
+          i_fill_opacity, i_precinct_border
+        )
     })
   })
 }

@@ -57,11 +57,8 @@ discontiguousServer <- function(id, plan, adj, shp, map_reac) {
       if (!is.logical(current())) {
         bb <- sf::st_bbox(shp)
         map_reac() |>
-          leaflet::flyToBounds(
-            lng1 = unname(bb['xmin']),
-            lat1 = unname(bb['ymin']),
-            lng2 = unname(bb['xmax']),
-            lat2 = unname(bb['ymax'])
+          mapgl::fit_bounds(
+            bounds = unname(bb)
           )
       }
       current(FALSE)
@@ -86,11 +83,8 @@ discontiguousServer <- function(id, plan, adj, shp, map_reac) {
 
       bb <- sf::st_bbox(shp[cont()$rows[[current()]], ])
       map_reac() |>
-        leaflet::fitBounds(
-          lng1 = unname(bb['xmin']),
-          lat1 = unname(bb['ymin']),
-          lng2 = unname(bb['xmax']),
-          lat2 = unname(bb['ymax'])
+        mapgl::fit_bounds(
+          bounds = unname(bb)
         )
     })
 
@@ -105,11 +99,8 @@ discontiguousServer <- function(id, plan, adj, shp, map_reac) {
       }
       bb <- sf::st_bbox(shp[cont()$rows[[current()]], ])
       map_reac() |>
-        leaflet::fitBounds(
-          lng1 = unname(bb['xmin']),
-          lat1 = unname(bb['ymin']),
-          lng2 = unname(bb['xmax']),
-          lat2 = unname(bb['ymax'])
+        mapgl::fit_bounds(
+          bounds = unname(bb)
         )
     })
   })

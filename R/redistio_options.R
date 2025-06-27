@@ -11,7 +11,7 @@
 #' @param crs a coordinate reference system to use in `leaflet::leaflet()`
 #' @param na_color a color to use for unassigned precincts
 #' @param layer_weight a stroke width to use for layers in `leaflet::leaflet()`
-#' @param layer_color colors to use for layers in `leaflet::leaflet()`
+#' @param layer_color colors to use for layers in `mapgl::maplibre()`
 #' @param locked_districts districts to lock on app start to stop edits
 #' @param use_algorithms whether to use redistricting simulation algorithms
 #' @param alg_max_districts maximum number of districts to use in algorithms
@@ -32,7 +32,7 @@ redistio_options <- function(theme = 'flatly',
                              palette_pop = 'Purples',
                              palette_pct = 'PuOr',
                              palette_party = ggredist::ggredist$partisan,
-                             map_tiles = 'CartoDB.Positron',
+                             map_tiles = 'mapbox://styles/mapbox/dark-v11',
                              leaflet_height = '91vh', crs = 4326,
                              na_color = '#0000',
                              layer_weight = 1.5, layer_color = '#000000',
@@ -45,7 +45,7 @@ redistio_options <- function(theme = 'flatly',
                              ...) {
   if (!rlang::is_closure(map_tiles)) {
     mt <- map_tiles
-    map_tiles <- function(map) leaflet::addProviderTiles(map, provider = mt)
+    map_tiles <- function(map) {} # mapgl::add_raster_source(map, url = mt) |> mapgl::add_raster_layer()
   }
   list(
     theme = theme,

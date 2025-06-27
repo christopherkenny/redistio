@@ -1,6 +1,6 @@
 Package: redistio
 Title: Interactive Redistricting
-Version: 0.0.0.9000
+Version: 0.0.0.9001
 Authors@R: c(
     person(given = "Christopher T.",
            family = "Kenny",
@@ -8,16 +8,16 @@ Authors@R: c(
            email = "christopherkenny@fas.harvard.edu",
            comment = c(ORCID = "0000-0002-9386-6860")),
     person(given = "Cory", family = "McCartan", email = "corymccartan@nyu.edu", 
-           role = "aut", comment = c(ORCID = "0000-0002-6251-669X")),
-    person("leaflet contributors", role = "cph", comment = "setShapeStyle code adapted from leaflet package."))
-Description: A point and click editor for districts built on 'shiny' and 'Leaflet'. 
+           role = "aut", comment = c(ORCID = "0000-0002-6251-669X"))
+           )
+Description: A point and click editor for districts built on 'shiny' and 'mapgl'. 
     Users can draw districts and calculate standard redistricting metrics, like 
     compactness or the number of administrative splits. Maps can be exported as
     assignment files or shapefiles, readable by most other redistricting software.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Imports: 
     bslib,
     colourpicker,
@@ -27,6 +27,7 @@ Imports:
     ggredist,
     gt,
     leaflet,
+    mapgl,
     purrr,
     redistmetrics,
     rlang,

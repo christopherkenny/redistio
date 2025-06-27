@@ -61,7 +61,9 @@ draw <- function(shp, init_plan, ndists, palette,
   shp$redistio_id <- as.character(seq_len(length.out = nrow(shp)))
 
   if (!adj_col %in% names(shp)) {
-    shp$adj <- geomander::adjacency(shp)
+    adj <- geomander::adjacency(shp)
+  } else {
+    adj <- shp[[adj_col]]
   }
 
   if (rlang::is_closure(split_cols)) {
@@ -233,7 +235,7 @@ draw <- function(shp, init_plan, ndists, palette,
     bslib::nav_panel(
       title = 'draw',
       class = 'p-0',
-      the_javascripts,
+
       selection_html,
       bslib::page_fillable(
         class = 'p-0',
@@ -289,7 +291,7 @@ draw <- function(shp, init_plan, ndists, palette,
             bslib::card( # interactive mapper
               id = 'map-card',
               full_screen = TRUE,
-              leaflet::leafletOutput(
+              mapgl::maplibreOutput(
                 outputId = 'map',
                 height = opts$leaflet_height %||% def_opts$leaflet_height,
               )
@@ -440,7 +442,7 @@ draw <- function(shp, init_plan, ndists, palette,
             )
           ),
           bslib::card( # interactive mapper
-            leaflet::leafletOutput(
+            mapgl::maplibreOutput(
               outputId = 'alg_map',
               height = opts$leaflet_height %||% def_opts$leaflet_height,
             )
@@ -498,6 +500,7 @@ draw <- function(shp, init_plan, ndists, palette,
     }
 
     # reactives ----
+    alg_pal <- scales::col_factor(palette = 'viridis', domain = NULL)
     redistio_curr_plan <- shiny::reactiveValues(pl = init_plan)
     redistio_alg_plan <- shiny::reactiveValues(pl = NULL, plans = NULL)
     clicked <- shiny::reactiveValues(clickedMarker = NULL)
@@ -525,6 +528,7 @@ draw <- function(shp, init_plan, ndists, palette,
     alg_plans <- shiny::reactiveVal(alg_plans_static)
 
     pal <- shiny::reactiveVal(
+      # TODO: fix colors
       leaflet::colorFactor(
         palette = as.character(palette),
         domain = seq_len(ndists)
@@ -536,32 +540,33 @@ draw <- function(shp, init_plan, ndists, palette,
 
     # draw panel ----
 
-    output$map <- leaflet::renderLeaflet({
-      base_map <- leaflet::leaflet(
-        data = shp,
+    output$map <- mapgl::renderMaplibre({
+      base_map <- mapgl::maplibre(
+        bounds = shp,
+        style = leaf_tiles()
       ) |>
-        leaf_tiles() |>
-        leaflet::addPolygons(
-          layerId = ~redistio_id,
-          weight = 1,
-          label = ~fmt_pop
+        mapgl::add_fill_layer(
+          source = shp,
+          id = 'precinct_fill',
+          fill_color = '#CCCCCC',
+          fill_opacity = 0.9,
+          fill_outline_color = '#000000'
         )
+
       if (!is.null(layers)) {
         for (i in seq_along(layers)) {
           base_map <- base_map |>
-            leaflet::addPolygons(
+            mapgl::add_line_layer(
               data = layers[[i]],
-              fill = FALSE,
-              weight = opts$layer_weight %||% def_opts$layer_weight,
-              color = layer_colors[i],
-              group = names(layers)[i],
-              options = leaflet::pathOptions(interactive = FALSE)
+              line_width = opts$layer_weight %||% def_opts$layer_weight,
+              line_color = layer_colors[i],
+              layer_id = names(layers)[i]
             )
         }
         base_map <- base_map |>
-          leaflet::addLayersControl(
-            overlayGroups = names(layers),
-            options = leaflet::layersControlOptions(collapsed = FALSE)
+          mapgl::add_layers_control(
+            layers = names(layers),
+            collapsed = FALSE
           )
       }
       base_map
@@ -598,14 +603,14 @@ draw <- function(shp, init_plan, ndists, palette,
         new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - c(0L, rep(tgt_pop, ndists)))
         val(new_tb_pop)
 
-        leaflet::leafletProxy('map', data = shp) |>
+        mapgl::maplibre_proxy('map') |>
           update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp,
-                             input$fill_opacity, input$precinct_border)
+                           input$fill_opacity, input$precinct_border)
       }
     )
 
     shiny::observeEvent(list(input$fill_opacity, input$precinct_border), {
-      leaflet::leafletProxy('map', data = shp) |>
+      mapgl::maplibre_proxy('map') |>
         update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp,
                            input$fill_opacity, input$precinct_border)
     })
@@ -683,7 +688,7 @@ draw <- function(shp, init_plan, ndists, palette,
       last_pl <- undo_l()$undo[[undo_l()$undo_index]]
       redistio_curr_plan$pl <- last_pl
 
-      leaflet::leafletProxy('map', data = shp) |>
+      mapgl::maplibre_proxy('map') |>
         update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp,
                            input$fill_opacity, input$precinct_border)
 
@@ -787,6 +792,7 @@ draw <- function(shp, init_plan, ndists, palette,
           palette = as.character(palette_reactive()),
           domain = seq_len(ndists)
         ))
+
       } else if (input$fill_input == 'Elections') {
         shiny::updateSelectizeInput(session, 'fill_column',
           choices = names(elect_cols),
@@ -798,6 +804,7 @@ draw <- function(shp, init_plan, ndists, palette,
           domain = c(0, 1),
           na.color = '#D3D3D3'
         ))
+
       } else {
         shiny::updateSelectizeInput(session, 'fill_column',
           choices = demog_cols,
@@ -825,9 +832,9 @@ draw <- function(shp, init_plan, ndists, palette,
             ))
           }
         }
-        leaflet::leafletProxy('map', data = shp) |>
+        mapgl::maplibre_proxy('map') |>
           update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp,
-                             input$fill_opacity, input$precinct_border)
+                           input$fill_opacity, input$precinct_border)
       },
       ignoreInit = FALSE
     )
@@ -857,13 +864,13 @@ draw <- function(shp, init_plan, ndists, palette,
         val(new_color_tbl)
 
         if (input$fill_input == 'District') {
-          pal(leaflet::colorFactor(
+          pal(scales::col_factor(
             palette = as.character(palette_reactive()),
             domain = seq_len(ndists),
             na.color = opts$na_color %||% def_opts$na_color,
             alpha = TRUE
           ))
-          leaflet::leafletProxy('map', data = shp) |>
+          mapgl::maplibre_proxy('map') |>
             update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp,
                                input$fill_opacity, input$precinct_border)
         }
@@ -872,18 +879,18 @@ draw <- function(shp, init_plan, ndists, palette,
 
     # tools mini panel ----
     discontiguousServer(
-      'discontiguous', redistio_curr_plan, shp$adj, shp,
-      shiny::reactive(leaflet::leafletProxy('map'))
+      'discontiguous', redistio_curr_plan, adj, shp,
+      shiny::reactive(mapgl::maplibre_proxy('map'))
     )
 
     unassignedServer(
       'unassigned', redistio_curr_plan, shp,
-      shiny::reactive(leaflet::leafletProxy('map'))
+      shiny::reactive(mapgl::maplibre_proxy('map'))
     )
 
     color_from_fileServer(
       'colorFromFile', redistio_curr_plan, shp,
-      shiny::reactive(leaflet::leafletProxy('map', data = shp)),
+      shiny::reactive(mapgl::maplibre_proxy('map')),
       input$fill_column, input$fill_opacity, input$precinct_border,
       pal, undo_l, undo_log, val, tot_pop, ndists, tgt_pop
     )
@@ -997,8 +1004,7 @@ draw <- function(shp, init_plan, ndists, palette,
         palette = as.character(palette[seq_len(ndists)]),
         domain = seq_len(ndists)
       )
-
-      output$alg_map <- leaflet::renderLeaflet({
+      output$alg_map <- mapgl::renderMaplibre({
         map_sub(shp |>
           dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
           `attr<-`('existing_col', 'redistio_plan') |>
@@ -1057,28 +1063,25 @@ draw <- function(shp, init_plan, ndists, palette,
           dplyr::select(dplyr::all_of(c('draw', 'dev')))
         alg_plans(sims_sum)
 
-        map_alg <- map_sub() |>
-          leaflet::leaflet() |>
-          leaf_tiles() |>
-          leaflet::addPolygons(
-            layerId = ~redistio_id,
-            weight = 1,
-            label = ~fmt_pop,
-            fillColor = alg_pal(redistio_alg_plan$pl),
-            color = '#',
-            stroke = TRUE,
-            fillOpacity = input$fill_opacity
+        map_alg <- mapgl::maplibre(
+            style = leaf_tiles()
+          ) |>
+          mapgl::add_fill_layer(
+            source = map_sub(),
+            fill_color = alg_pal(redistio_alg_plan$pl),
+            fill_opacity = input$fill_opacity,
+            #? source = 'redistio_id',
+            layer_id = 'alg_precincts'
           )
 
         if (!is.null(layers)) {
           for (i in seq_along(layers)) {
             map_alg <- map_alg |>
-              leaflet::addPolygons(
+              mapgl::add_line_layer(
                 data = layers[[i]],
-                fill = FALSE,
-                weight = opts$layer_weight %||% def_opts$layer_weight,
-                color = layer_colors[i],
-                group = names(layers)[i]
+                line_width = opts$layer_weight %||% def_opts$layer_weight,
+                line_color = layer_colors[i],
+                layer_id = names(layers)[i]
               )
           }
         }
@@ -1119,15 +1122,11 @@ draw <- function(shp, init_plan, ndists, palette,
 
     shiny::observeEvent(input$alg_summary_rows_selected, {
       shiny::req(redistio_alg_plan$plans)
-      leaflet::leafletProxy('alg_map', data = map_sub()) |>
-        setShapeStyle(
-          # data = shp,
-          layerId = ~redistio_id,
-          # line colors
-          stroke = TRUE, weight = 1.0,
-          color = '#000',
-          # fill control
-          fillColor = ~ alg_pal(redistio_alg_plan$plans[, input$alg_summary_rows_selected])
+      mapgl::maplibre_proxy('alg_map') |>
+        mapgl::set_paint_property(
+          layer_id = 'alg_precincts',
+          property = 'fill-color',
+          value = alg_pal(redistio_alg_plan$plans[, input$alg_summary_rows_selected])
         )
     })
 
@@ -1139,13 +1138,12 @@ draw <- function(shp, init_plan, ndists, palette,
 
       undo_l(undo_log(undo_l(), redistio_curr_plan$pl))
 
-      leaflet::leafletProxy('map', data = shp) |>
+      mapgl::maplibre_proxy('map') |>
         update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp,
                            input$fill_opacity, input$precinct_border)
 
-      leaflet::leafletProxy('alg_map') |>
-        leaflet::clearTiles() |>
-        leaflet::clearShapes()
+      mapgl::maplibre_proxy('alg_map') |>
+        mapgl::clear_layer(layer_id = 'alg_precincts')
 
       alg_plans(alg_plans_static)
       shiny::updateTabsetPanel(session, 'navbar', 'draw')

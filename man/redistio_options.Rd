@@ -11,7 +11,7 @@ redistio_options(
   palette_pop = "Purples",
   palette_pct = "PuOr",
   palette_party = ggredist::ggredist$partisan,
-  map_tiles = "CartoDB.Positron",
+  map_tiles = "mapbox://styles/mapbox/dark-v11",
   leaflet_height = "91vh",
   crs = 4326,
   na_color = "#0000",
@@ -50,7 +50,7 @@ redistio_options(
 
 \item{layer_weight}{a stroke width to use for layers in \code{leaflet::leaflet()}}
 
-\item{layer_color}{colors to use for layers in \code{leaflet::leaflet()}}
+\item{layer_color}{colors to use for layers in \code{mapgl::maplibre()}}
 
 \item{locked_districts}{districts to lock on app start to stop edits}
 
