@@ -5,9 +5,9 @@ Authors@R: c(
     person(given = "Christopher T.",
            family = "Kenny",
            role = c("aut", "cre"),
-           email = "christopherkenny@fas.harvard.edu",
+           email = "ctkenny@proton.me",
            comment = c(ORCID = "0000-0002-9386-6860")),
-    person(given = "Cory", family = "McCartan", email = "corymccartan@nyu.edu", 
+    person(given = "Cory", family = "McCartan", email = "mccartan@psu.edu", 
            role = "aut", comment = c(ORCID = "0000-0002-6251-669X"))
            )
 Description: A point and click editor for districts built on 'shiny' and 'mapgl'. 
@@ -26,7 +26,6 @@ Imports:
     geomander,
     ggredist,
     gt,
-    leaflet,
     mapgl,
     purrr,
     redistmetrics,
