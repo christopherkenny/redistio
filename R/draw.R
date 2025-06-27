@@ -809,7 +809,7 @@ draw <- function(shp, init_plan, ndists, palette,
         pal(
           percent_palette(
             column = input$fill_column,
-            palette = as.character(opts$palette_pct %||% def_opts$palette_pct),
+            palette = as.character(opts$palette_party %||% def_opts$palette_party),
             na_color = opts$na_color %||% def_opts$na_color
           )
         )

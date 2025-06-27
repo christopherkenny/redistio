@@ -23,6 +23,10 @@ discrete_palette <- function(palette, rcp) {
 
 percent_palette <- function(palette, na_color = '#CCCCCC', column = '') {
 
+  palette <- palette |>
+    unname() |>
+    as.character()
+
   na_case <- list(
     'case',
     list(
