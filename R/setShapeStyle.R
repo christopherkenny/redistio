@@ -4,7 +4,7 @@ update_shape_style <- function(leafl, fc, pal, rcp, shp, opac = 0.8, wt = 0.5) {
       mapgl::set_paint_property(
         layer_id = 'precinct_fill',
         name = 'fill-color',
-        value = pal(shp[[fc]])
+        value = discrete_palette(pal, rcp)
       ) |>
       mapgl::set_paint_property(
         layer_id = 'precinct_fill',
@@ -27,7 +27,7 @@ update_shape_style <- function(leafl, fc, pal, rcp, shp, opac = 0.8, wt = 0.5) {
       mapgl::set_paint_property(
         layer_id = 'precinct_fill',
         name = 'fill-color',
-        value = pal(shp[[fc]])
+        value = discrete_palette(pal, rcp)
       ) |>
       mapgl::set_paint_property(
         layer_id = 'precinct_fill',

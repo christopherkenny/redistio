@@ -32,7 +32,7 @@ redistio_options <- function(theme = 'flatly',
                              palette_pop = 'Purples',
                              palette_pct = 'PuOr',
                              palette_party = ggredist::ggredist$partisan,
-                             map_tiles = 'mapbox://styles/mapbox/dark-v11',
+                             map_tiles = mapgl::carto_style("voyager"),
                              leaflet_height = '91vh', crs = 4326,
                              na_color = '#0000',
                              layer_weight = 1.5, layer_color = '#000000',
@@ -43,10 +43,6 @@ redistio_options <- function(theme = 'flatly',
                              save_assignment_path = 'redistio.csv',
                              save_shape_path = 'redistio.geojson',
                              ...) {
-  if (!rlang::is_closure(map_tiles)) {
-    mt <- map_tiles
-    map_tiles <- function(map) {} # mapgl::add_raster_source(map, url = mt) |> mapgl::add_raster_layer()
-  }
   list(
     theme = theme,
     panels = panels,

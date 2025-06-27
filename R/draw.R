@@ -529,10 +529,7 @@ draw <- function(shp, init_plan, ndists, palette,
 
     pal <- shiny::reactiveVal(
       # TODO: fix colors
-      leaflet::colorFactor(
-        palette = as.character(palette),
-        domain = seq_len(ndists)
-      )
+      as.character(palette)
     )
 
     # undo ----
@@ -543,7 +540,7 @@ draw <- function(shp, init_plan, ndists, palette,
     output$map <- mapgl::renderMaplibre({
       base_map <- mapgl::maplibre(
         bounds = shp,
-        style = leaf_tiles()
+        style = leaf_tiles
       ) |>
         mapgl::add_fill_layer(
           source = shp,
@@ -551,7 +548,8 @@ draw <- function(shp, init_plan, ndists, palette,
           fill_color = '#CCCCCC',
           fill_opacity = 0.9,
           fill_outline_color = '#000000'
-        )
+        ) #|>
+       # mapgl::enable_shiny_hover()
 
       if (!is.null(layers)) {
         for (i in seq_along(layers)) {
@@ -701,9 +699,9 @@ draw <- function(shp, init_plan, ndists, palette,
 
     # reactive mouseover
     hov_reac <- shiny::reactive({
-      input$map_shape_mouseover
+      input$map_feature_hover
     })
-    hov_reac_d <- shiny::debounce(hov_reac, 100)
+    hov_reac_d <- shiny::debounce(hov_reac, 200)
 
     # precinct stats ----
     shiny::observeEvent(hov_reac_d(), {
@@ -788,10 +786,7 @@ draw <- function(shp, init_plan, ndists, palette,
           selected = NULL,
           server = FALSE
         )
-        pal(leaflet::colorFactor(
-          palette = as.character(palette_reactive()),
-          domain = seq_len(ndists)
-        ))
+        pal(as.character(palette_reactive()))
 
       } else if (input$fill_input == 'Elections') {
         shiny::updateSelectizeInput(session, 'fill_column',
@@ -864,12 +859,7 @@ draw <- function(shp, init_plan, ndists, palette,
         val(new_color_tbl)
 
         if (input$fill_input == 'District') {
-          pal(scales::col_factor(
-            palette = as.character(palette_reactive()),
-            domain = seq_len(ndists),
-            na.color = opts$na_color %||% def_opts$na_color,
-            alpha = TRUE
-          ))
+          pal(as.character(palette_reactive()))
           mapgl::maplibre_proxy('map') |>
             update_shape_style(input$fill_column, pal(), redistio_curr_plan$pl, shp,
                                input$fill_opacity, input$precinct_border)
@@ -1000,10 +990,7 @@ draw <- function(shp, init_plan, ndists, palette,
 
     # algorithms panel ----
     if (use_algorithms) {
-      alg_pal <- leaflet::colorFactor(
-        palette = as.character(palette[seq_len(ndists)]),
-        domain = seq_len(ndists)
-      )
+      alg_pal <- as.character(palette)
       output$alg_map <- mapgl::renderMaplibre({
         map_sub(shp |>
           dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
@@ -1064,7 +1051,7 @@ draw <- function(shp, init_plan, ndists, palette,
         alg_plans(sims_sum)
 
         map_alg <- mapgl::maplibre(
-            style = leaf_tiles()
+            style = leaf_tiles
           ) |>
           mapgl::add_fill_layer(
             source = map_sub(),
