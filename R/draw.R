@@ -812,13 +812,6 @@ draw <- function(shp, init_plan, ndists, palette,
           selected = names(elect_cols)[1],
           server = FALSE
         )
-        pal(
-          percent_palette(
-            column = input$fill_column,
-            palette = as.character(opts$palette_party %||% def_opts$palette_party),
-            na_color = opts$na_color %||% def_opts$na_color
-          )
-        )
       } else {
         shiny::updateSelectizeInput(session, 'fill_column',
           choices = demog_cols,
@@ -852,6 +845,14 @@ draw <- function(shp, init_plan, ndists, palette,
               )
             )
           }
+        } else if (input$fill_input == 'Elections') {
+          pal(
+            percent_palette(
+              column = input$fill_column,
+              palette = as.character(opts$palette_party %||% def_opts$palette_party),
+              na_color = opts$na_color %||% def_opts$na_color
+            )
+          )
         }
         mapgl::maplibre_proxy('map') |>
           update_shape_style(
