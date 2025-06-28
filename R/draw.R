@@ -548,8 +548,13 @@ draw <- function(shp, init_plan, ndists, palette,
         bounds = shp,
         style = leaf_tiles
       ) |>
+        mapgl::add_source(
+          id = 'redistio',
+          data = shp,
+          promoteId = 'redistio_id'
+        ) |>
         mapgl::add_fill_layer(
-          source = shp,
+          source = 'redistio',
           id = 'precinct_fill',
           fill_color = discrete_palette(palette, init_plan),
           fill_opacity = 0.9,
@@ -600,7 +605,7 @@ draw <- function(shp, init_plan, ndists, palette,
           return(NULL)
         }
 
-        idx <- which(shp$redistio_id == click$id + 1L)
+        idx <- which(shp$redistio_id == click$id)
         new_dist <- ifelse(input$district_rows_selected == 1, NA_integer_, input$district_rows_selected - 1L)
         if (redistio_curr_plan$pl[idx] %in% input$locks || new_dist %in% input$locks) {
           return(NULL)
@@ -730,7 +735,7 @@ draw <- function(shp, init_plan, ndists, palette,
           output$hover <- gt::render_gt({
             # produce hover tables ----
             hov |>
-              dplyr::select(dplyr::any_of(c('group', 'rowname', paste0('V', as.integer(hov_reac_d()$id) + 1L)))) |>
+              dplyr::select(dplyr::any_of(c('group', 'rowname', paste0('V', as.integer(hov_reac_d()$id))))) |>
               gt::gt() |>
               gt::cols_label_with(columns = gt::starts_with('V'), fn = function(x) '') |>
               gt::tab_style(
@@ -1086,6 +1091,11 @@ draw <- function(shp, init_plan, ndists, palette,
         map_alg <- mapgl::maplibre(
           style = leaf_tiles
         ) |>
+          mapgl::add_source(
+            id = 'redistio',
+            data = shp,
+            promoteId = 'redistio_id'
+          ) |>
           mapgl::add_fill_layer(
             source = map_sub(),
             fill_color = alg_pal(redistio_alg_plan$pl),
