@@ -34,9 +34,11 @@ redistio_options(
 
 \item{select_color}{a color to use for highlighting selected districts}
 
-\item{palette_pop}{a color palette to use for whole people}
+\item{palette_pop}{a color palette to use for whole people. Defaults to
+\code{RColorBrewer::brewer.pal(n = 3, name = 'Purples')}.}
 
-\item{palette_pct}{a color palette to use for percentages of people}
+\item{palette_pct}{a color palette to use for percentages of people. Defaults
+to \code{RColorBrewer::brewer.pal(n = 3, name = 'PuOr')}.}
 
 \item{palette_party}{a color palette to use for parties}
 

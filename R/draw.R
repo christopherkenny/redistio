@@ -1136,6 +1136,11 @@ draw <- function(shp, init_plan, ndists, palette,
                 line_color = layer_colors[i],
                 id = names(layers)[i]
               )
+            map_alg <- map_alg |>
+              mapgl::add_layers_control(
+                layers = names(layers),
+                collapsible = TRUE
+              )
           }
         }
 
