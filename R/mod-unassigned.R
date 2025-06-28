@@ -43,7 +43,7 @@ unassignedServer <- function(id, plan, shp, map_reac) {
       if (!is.logical(current())) {
         bb <- sf::st_bbox(shp)
         map_reac() |>
-          mapgl::fit_bounds(bb)
+          mapgl::fit_bounds(bbox = unname(bb))
       }
       current(FALSE)
     })
@@ -67,7 +67,7 @@ unassignedServer <- function(id, plan, shp, map_reac) {
       bb <- sf::st_bbox(shp[nas()[current()], ])
       map_reac() |>
         mapgl::fit_bounds(
-          bounds = c(unname(bb['xmin']), unname(bb['ymin']), unname(bb['xmax']), unname(bb['ymax']))
+          bbox = c(unname(bb['xmin']), unname(bb['ymin']), unname(bb['xmax']), unname(bb['ymax']))
         )
     })
 

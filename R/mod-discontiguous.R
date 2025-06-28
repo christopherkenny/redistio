@@ -58,7 +58,7 @@ discontiguousServer <- function(id, plan, adj, shp, map_reac) {
         bb <- sf::st_bbox(shp)
         map_reac() |>
           mapgl::fit_bounds(
-            bounds = unname(bb)
+            bbox = unname(bb)
           )
       }
       current(FALSE)
@@ -84,7 +84,7 @@ discontiguousServer <- function(id, plan, adj, shp, map_reac) {
       bb <- sf::st_bbox(shp[cont()$rows[[current()]], ])
       map_reac() |>
         mapgl::fit_bounds(
-          bounds = unname(bb)
+          bbox = unname(bb)
         )
     })
 
@@ -100,7 +100,7 @@ discontiguousServer <- function(id, plan, adj, shp, map_reac) {
       bb <- sf::st_bbox(shp[cont()$rows[[current()]], ])
       map_reac() |>
         mapgl::fit_bounds(
-          bounds = unname(bb)
+          bbox = unname(bb)
         )
     })
   })

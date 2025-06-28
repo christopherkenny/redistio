@@ -883,6 +883,7 @@ draw <- function(shp, init_plan, ndists, palette,
             input[[paste0('color_', i)]]
           }, FUN.VALUE = character(1))
         )
+        pal(palette_reactive())
 
         # update selection table
         new_color_tbl <- val()
@@ -1029,16 +1030,23 @@ draw <- function(shp, init_plan, ndists, palette,
     # algorithms panel ----
     if (use_algorithms) {
       # TODO: this needs some rough mix of using shp & shp_in
+      base_id <- 1e6
       alg_pal <- as.character(palette)
       output$alg_map <- mapgl::renderMaplibre({
         map_sub(shp |>
           dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
           `attr<-`('existing_col', 'redistio_plan') |>
-            redist::filter(.data$redistio_plan %in% input$alg_district))
+            redist::filter(.data$redistio_plan %in% input$alg_district) |>
+            dplyr::mutate(
+              redistio_sub_id = as.character(dplyr::row_number() + base_id)
+            ))
         map_sub_in(shp_in |>
                      dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
                      `attr<-`('existing_col', 'redistio_plan') |>
-                     redist::filter(.data$redistio_plan %in% input$alg_district))
+                     redist::filter(.data$redistio_plan %in% input$alg_district) |>
+                     dplyr::mutate(
+                       redistio_sub_id = as.character(dplyr::row_number() + base_id)
+                     ))
 
         district_order <- map_sub()$redistio_plan |> unique()
 
@@ -1101,10 +1109,21 @@ draw <- function(shp, init_plan, ndists, palette,
             promoteId = 'redistio_id'
           ) |>
           mapgl::add_fill_layer(
-            source = map_sub(),
-            fill_color = discrete_palette(alg_pal, redistio_alg_plan$pl),
+            source = 'redistio',
+            id = 'precinct_fill',
+            fill_color = '#FFFFFFFF',
+            fill_outline_color = '#cccccc'
+          ) |>
+          mapgl::add_source(
+            data = map_sub(),
+            id = 'redistio_sub',
+            promoteId = 'redistio_sub_id'
+          ) |>
+          mapgl::add_fill_layer(
+            source = 'redistio_sub',
+            fill_color = discrete_palette(alg_pal, redistio_alg_plan$pl,
+                                          column = 'redistio_sub_id', base = base_id),
             fill_opacity = input$fill_opacity,
-            # ? source = 'redistio_id',
             id = 'alg_precincts'
           )
 
@@ -1160,7 +1179,8 @@ draw <- function(shp, init_plan, ndists, palette,
         mapgl::set_paint_property(
           layer_id = 'alg_precincts',
           name = 'fill-color',
-          value = discrete_palette(alg_pal, redistio_alg_plan$plans[, input$alg_summary_rows_selected])
+          value = discrete_palette(alg_pal, redistio_alg_plan$plans[, input$alg_summary_rows_selected],
+                                   column = 'redistio_sub_id', base = base_id)
         )
     })
 

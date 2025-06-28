@@ -1,10 +1,10 @@
-discrete_palette <- function(palette, rcp) {
+discrete_palette <- function(palette, rcp, column = 'redistio_id', base = 0) {
   by_idx <- list(
     'match',
-    list('get', 'redistio_id')
+    list('get', column)
   )
 
-  idx <- seq_len(length(rcp))
+  idx <- seq_len(length(rcp)) + base
   p <- palette[rcp]
   idx <- idx[!is.na(p)]
   p <- p[!is.na(p)]
@@ -18,7 +18,7 @@ discrete_palette <- function(palette, rcp) {
 
   by_idx |>
     append(cols) |>
-    append('#FFFFFFAA')
+    append('#000000')
 }
 
 percent_palette <- function(palette, na_color = '#CCCCCC', column = '') {

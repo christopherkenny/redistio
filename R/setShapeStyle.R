@@ -46,7 +46,6 @@ update_shape_style <- function(leafl, fc, pal, rcp, shp, opac = 0.8, wt = 0.5) {
         name = 'line-color',
         value = '#000'
       ) |>
-    # TODO fix legend
       mapgl::clear_legend() |>
       mapgl::add_legend(
         legend_title = '',
