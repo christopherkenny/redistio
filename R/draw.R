@@ -281,11 +281,11 @@ draw <- function(shp, init_plan, ndists, palette,
                   label = 'Fill opacity',
                   min = 0, max = 1, step = 0.05, value = 0.9
                 ),
-                shiny::numericInput(
-                  inputId = 'precinct_border',
-                  label = 'Precinct border weight',
-                  min = 0, max = 100, value = 0.5
-                ),
+                # shiny::numericInput(
+                #   inputId = 'precinct_border',
+                #   label = 'Precinct border weight',
+                #   min = 0, max = 100, value = 0.5
+                # ),
                 icon = shiny::icon('palette'),
                 style = 'min-height: 30vh'
               )
@@ -491,6 +491,8 @@ draw <- function(shp, init_plan, ndists, palette,
 
   # Server ----
   server <- function(input, output, session) {
+    # Temporarily disabled for mapgl
+    input_precinct_border <- 1
     # panel controls ----
     req_panels <- opts$panels %||% def_opts$panels
     if (!use_algorithms) {
@@ -525,6 +527,7 @@ draw <- function(shp, init_plan, ndists, palette,
     )
     val <- shiny::reactiveVal(tab_pop_static)
     map_sub <- shiny::reactiveVal(shp)
+    map_sub_in <- shiny::reactiveVal(shp_in)
 
     alg_plans_static <- tibble::tibble(
       draw = factor(),
@@ -534,7 +537,6 @@ draw <- function(shp, init_plan, ndists, palette,
     alg_plans <- shiny::reactiveVal(alg_plans_static)
 
     pal <- shiny::reactiveVal(
-      # TODO: fix colors
       as.character(palette)
     )
 
@@ -623,16 +625,16 @@ draw <- function(shp, init_plan, ndists, palette,
         mapgl::maplibre_proxy('map') |>
           update_shape_style(
             input$fill_column, pal(), redistio_curr_plan$pl, shp,
-            input$fill_opacity, input$precinct_border
+            input$fill_opacity, input_precinct_border
           )
       }
     )
 
-    shiny::observeEvent(list(input$fill_opacity, input$precinct_border), {
+    shiny::observeEvent(list(input$fill_opacity, input_precinct_border), {
       mapgl::maplibre_proxy('map') |>
         update_shape_style(
           input$fill_column, pal(), redistio_curr_plan$pl, shp,
-          input$fill_opacity, input$precinct_border
+          input$fill_opacity, input_precinct_border
         )
     })
 
@@ -712,7 +714,7 @@ draw <- function(shp, init_plan, ndists, palette,
       mapgl::maplibre_proxy('map') |>
         update_shape_style(
           input$fill_column, pal(), redistio_curr_plan$pl, shp,
-          input$fill_opacity, input$precinct_border
+          input$fill_opacity, input_precinct_border
         )
 
       new_tb_pop <- val()
@@ -863,7 +865,7 @@ draw <- function(shp, init_plan, ndists, palette,
         mapgl::maplibre_proxy('map') |>
           update_shape_style(
             input$fill_column, pal(), redistio_curr_plan$pl, shp,
-            input$fill_opacity, input$precinct_border
+            input$fill_opacity, input_precinct_border
           )
       },
       ignoreInit = FALSE
@@ -894,11 +896,10 @@ draw <- function(shp, init_plan, ndists, palette,
         val(new_color_tbl)
 
         if (input$fill_input == 'District') {
-          pal(as.character(palette_reactive()))
           mapgl::maplibre_proxy('map') |>
             update_shape_style(
               input$fill_column, pal(), redistio_curr_plan$pl, shp,
-              input$fill_opacity, input$precinct_border
+              input$fill_opacity, input_precinct_border
             )
         }
       }
@@ -918,7 +919,7 @@ draw <- function(shp, init_plan, ndists, palette,
     color_from_fileServer(
       'colorFromFile', redistio_curr_plan, shp,
       shiny::reactive(mapgl::maplibre_proxy('map')),
-      input$fill_column, input$fill_opacity, input$precinct_border,
+      input$fill_column, input$fill_opacity, input_precinct_border,
       pal, undo_l, undo_log, val, tot_pop, ndists, tgt_pop
     )
 
@@ -1033,7 +1034,11 @@ draw <- function(shp, init_plan, ndists, palette,
         map_sub(shp |>
           dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
           `attr<-`('existing_col', 'redistio_plan') |>
-          redist::filter(.data$redistio_plan %in% input$alg_district))
+            redist::filter(.data$redistio_plan %in% input$alg_district))
+        map_sub_in(shp_in |>
+                     dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
+                     `attr<-`('existing_col', 'redistio_plan') |>
+                     redist::filter(.data$redistio_plan %in% input$alg_district))
 
         district_order <- map_sub()$redistio_plan |> unique()
 
@@ -1043,20 +1048,18 @@ draw <- function(shp, init_plan, ndists, palette,
           'Flip' = redist::redist_flip,
         )
 
-        if (input$alg_algorithm %in% c('SMC', 'Merge Split')
-          # isTRUE(opts$alg_counties %||% def_opts$alg_counties %in% names(shp))
-        ) {
+        if (input$alg_algorithm %in% c('SMC', 'Merge Split')) {
           if (input$alg_counties_id != 'NONE') {
-            sims <- run_sims(map_sub(),
+            sims <- run_sims(map_sub_in(),
               nsims = input$alg_nsims,
               counties = !!rlang::sym(input$alg_counties_id)
             )
           } else {
-            sims <- run_sims(map_sub(), nsims = input$alg_nsims)
+            sims <- run_sims(map_sub_in(), nsims = input$alg_nsims)
           }
         } else {
           if (input$alg_counties_id != 'NONE') {
-            cons <- redist::redist_constr(map_sub()) |>
+            cons <- redist::redist_constr(map_sub_in()) |>
               redist::add_constr_edges_rem(0.4) |>
               redist::add_constr_splits(strength = 0.25, admin = !!rlang::sym(input$alg_counties_id))
             sims <- run_sims(map_sub(),
@@ -1064,9 +1067,9 @@ draw <- function(shp, init_plan, ndists, palette,
               constraints = cons
             )
           } else {
-            sims <- run_sims(map_sub(), nsims = input$alg_nsims)
+            sims <- run_sims(map_sub_in(), nsims = input$alg_nsims)
           }
-          sims <- run_sims(map_sub(), nsims = input$alg_nsims)
+          sims <- run_sims(map_sub_in(), nsims = input$alg_nsims)
         }
         if (length(input$alg_district) > 1) {
           sims <- sims |>
@@ -1079,7 +1082,7 @@ draw <- function(shp, init_plan, ndists, palette,
 
         sims_sum <- sims |>
           dplyr::mutate(
-            dev = redist::plan_parity(map = map_sub())
+            dev = redist::plan_parity(map = map_sub_in())
           ) |>
           tibble::as_tibble() |>
           dplyr::group_by(draw) |>
@@ -1089,7 +1092,8 @@ draw <- function(shp, init_plan, ndists, palette,
         alg_plans(sims_sum)
 
         map_alg <- mapgl::maplibre(
-          style = leaf_tiles
+          style = leaf_tiles,
+          bounds = shp
         ) |>
           mapgl::add_source(
             id = 'redistio',
@@ -1098,20 +1102,20 @@ draw <- function(shp, init_plan, ndists, palette,
           ) |>
           mapgl::add_fill_layer(
             source = map_sub(),
-            fill_color = alg_pal(redistio_alg_plan$pl),
+            fill_color = discrete_palette(alg_pal, redistio_alg_plan$pl),
             fill_opacity = input$fill_opacity,
             # ? source = 'redistio_id',
-            layer_id = 'alg_precincts'
+            id = 'alg_precincts'
           )
 
         if (!is.null(layers)) {
           for (i in seq_along(layers)) {
             map_alg <- map_alg |>
               mapgl::add_line_layer(
-                data = layers[[i]],
+                source = layers[[i]],
                 line_width = opts$layer_weight %||% def_opts$layer_weight,
                 line_color = layer_colors[i],
-                layer_id = names(layers)[i]
+                id = names(layers)[i]
               )
           }
         }
@@ -1155,8 +1159,8 @@ draw <- function(shp, init_plan, ndists, palette,
       mapgl::maplibre_proxy('alg_map') |>
         mapgl::set_paint_property(
           layer_id = 'alg_precincts',
-          property = 'fill-color',
-          value = alg_pal(redistio_alg_plan$plans[, input$alg_summary_rows_selected])
+          name = 'fill-color',
+          value = discrete_palette(alg_pal, redistio_alg_plan$plans[, input$alg_summary_rows_selected])
         )
     })
 
@@ -1171,7 +1175,7 @@ draw <- function(shp, init_plan, ndists, palette,
       mapgl::maplibre_proxy('map') |>
         update_shape_style(
           input$fill_column, pal(), redistio_curr_plan$pl, shp,
-          input$fill_opacity, input$precinct_border
+          input$fill_opacity, input_precinct_border
         )
 
       mapgl::maplibre_proxy('alg_map') |>
