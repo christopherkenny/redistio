@@ -553,7 +553,7 @@ draw <- function(shp, init_plan, ndists, palette,
           id = 'precinct_fill',
           fill_color = discrete_palette(palette, init_plan),
           fill_opacity = 0.9,
-          fill_outline_color = '#000000'
+          fill_outline_color = '#cccccc'
         )
 
       if (!is.null(hover_fn)) {
