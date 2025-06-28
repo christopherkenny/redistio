@@ -170,6 +170,7 @@ draw <- function(shp, init_plan, ndists, palette,
     for (i in seq_along(char_entries)) {
       nom <- layers[[char_entries[i]]]
       layers[[char_entries[i]]] <- shp |>
+        dplyr::select(-where(is.list)) |>
         dplyr::group_by(!!rlang::sym(layers[[char_entries[i]]])) |>
         dplyr::summarize()
       if (is.null(names(layers)) || names(layers)[char_entries[i]] == '') {
@@ -564,16 +565,16 @@ draw <- function(shp, init_plan, ndists, palette,
         for (i in seq_along(layers)) {
           base_map <- base_map |>
             mapgl::add_line_layer(
-              data = layers[[i]],
+              source = layers[[i]],
+              id = names(layers)[i],
               line_width = opts$layer_weight %||% def_opts$layer_weight,
-              line_color = layer_colors[i],
-              layer_id = names(layers)[i]
+              line_color = layer_colors[i]
             )
         }
         base_map <- base_map |>
           mapgl::add_layers_control(
             layers = names(layers),
-            collapsed = FALSE
+            collapsible = TRUE
           )
       }
       base_map
