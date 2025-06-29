@@ -398,10 +398,6 @@ draw <- function(shp, init_plan, ndists, palette,
                     'Color from file',
                     color_from_fileUI('colorFromFile')
                   ),
-                  bslib::nav_panel(
-                    title = 'Clicked',
-                    shiny::verbatimTextOutput("clicked_feature")
-                  ),
                   align = 'right'
                 ),
                 selected = 'Precinct'
@@ -554,17 +550,18 @@ draw <- function(shp, init_plan, ndists, palette,
         if (is.null(click)) {
           return(NULL)
         }
+
         if (is.null(input$district_rows_selected)) {
           return(NULL)
         }
 
-        if (click$id > nrow(shp)) {
+        if (as.integer(click$id) > nrow(shp)) {
           return(NULL)
         }
 
         idx <- which(shp$redistio_id == click$id)
         new_dist <- ifelse(input$district_rows_selected == 1, NA_integer_, input$district_rows_selected - 1L)
-        if (redistio_curr_plan$pl[idx] %in% input$locks || new_dist %in% input$locks) {
+        if (isTRUE(redistio_curr_plan$pl[idx] %in% input$locks) || isTRUE(new_dist %in% input$locks)) {
           return(NULL)
         }
 
@@ -884,8 +881,8 @@ draw <- function(shp, init_plan, ndists, palette,
       'planscore', redistio_curr_plan, shp
     )
 
-        demographicsServer('demographics', shp, redistio_curr_plan)
-    integrityServer('integrity', shp, redistio_curr_plan, adj, adj_col, split_cols)
+    demographicsServer('demographics', shp, redistio_curr_plan)
+    integrityServer('integrity', shp, redistio_curr_plan, adj, split_cols)
     electionsServer('elections', shp_tb, redistio_curr_plan)
 
     if (use_algorithms) {
@@ -894,11 +891,6 @@ draw <- function(shp, init_plan, ndists, palette,
         leaf_tiles, layers, layer_colors, opts, def_opts,
         val, tot_pop, tgt_pop, undo_l)
     }
-
-    output$clicked_feature <- renderPrint({
-      req(input$map_feature_click)
-      input$map_feature_click
-    })
   }
 
   # run app ----
