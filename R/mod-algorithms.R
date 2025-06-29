@@ -131,8 +131,6 @@ algorithmsServer <- function(id, parent_session,
       )
 
       if (input$alg_algorithm %in% c('SMC', 'Merge Split')) {
-        print(input$alg_counties_id)
-        Sys.sleep(1)
         if (input$alg_counties_id != 'NONE') {
           sims <- run_sims(map_sub_in(),
                            nsims = input$alg_nsims,
