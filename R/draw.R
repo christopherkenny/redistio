@@ -887,7 +887,7 @@ draw <- function(shp, init_plan, ndists, palette,
 
     if (use_algorithms) {
       algorithmsServer(
-        'algorithms',
+        'algorithms', session,
         shp, shp_in, redistio_curr_plan, ndists, pal,
         input$fill_opacity, input_precinct_border, input$fill_column,
         leaf_tiles, layers, layer_colors, opts, def_opts,

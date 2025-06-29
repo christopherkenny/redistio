@@ -67,6 +67,7 @@ algorithmsUI <- function(id, opts, def_opts, ndists, shp) {
 #' Algorithms Module Server
 #'
 #' @param id module id
+#' @param parent_session parent session
 #' @param shp sf object
 #' @param shp_in sf object
 #' @param redistio_curr_plan reactive plan
@@ -88,7 +89,8 @@ algorithmsUI <- function(id, opts, def_opts, ndists, shp) {
 #'
 #' @return shiny server
 #' @noRd
-algorithmsServer <- function(id, shp, shp_in, redistio_curr_plan, ndists, pal,
+algorithmsServer <- function(id, parent_session,
+                             shp, shp_in, redistio_curr_plan, ndists, pal,
                              fill_opacity, precinct_border, fill_column,
                              leaf_tiles, layers, layer_colors, opts, def_opts,
                              val, tot_pop, tgt_pop, pop_col, undo_l) {
@@ -269,17 +271,17 @@ algorithmsServer <- function(id, shp, shp_in, redistio_curr_plan, ndists, pal,
 
       undo_l(undo_log(undo_l(), redistio_curr_plan$pl))
 
-      mapgl::maplibre_proxy('map') |>
+      mapgl::maplibre_proxy('map', session = parent_session) |>
         update_shape_style(
           'District', pal(), redistio_curr_plan$pl, shp,
           input$fill_opacity, input_precinct_border
         )
 
-      mapgl::maplibre_proxy(session$ns('alg_map')) |>
+      mapgl::maplibre_proxy('alg_map') |>
         mapgl::clear_layer(layer_id = 'alg_precincts')
 
       alg_plans(alg_plans_static)
-      shiny::updateTabsetPanel(session, 'navbar', 'draw')
+      shiny::updateTabsetPanel(parent_session, 'navbar', 'draw')
 
       new_tb_pop <- val()
       new_tb_pop$Population <- distr_pop(shp[[pop_col]], total = tot_pop, plan = redistio_curr_plan$pl, ndists = ndists)
