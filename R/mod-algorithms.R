@@ -35,8 +35,8 @@ algorithmsUI <- function(id, opts, def_opts, ndists, shp) {
         ),
         shiny::hr(),
         shiny::selectizeInput(ns('alg_counties_id'), 'Select county column:',
-                              choices = c('NONE', names(shp)), selected = NULL,
-                              multiple = FALSE
+          choices = c('NONE', names(shp)), selected = NULL,
+          multiple = FALSE
         ),
         shiny::hr(),
         shiny::actionButton(
@@ -109,33 +109,33 @@ algorithmsServer <- function(id, parent_session,
 
     output$alg_map <- mapgl::renderMaplibre({
       map_sub(shp |>
-                dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
-                `attr<-`('existing_col', 'redistio_plan') |>
-                redist::filter(.data$redistio_plan %in% input$alg_district) |>
-                dplyr::mutate(
-                  redistio_sub_id = as.character(dplyr::row_number() + base_id)
-                ))
+        dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
+        `attr<-`('existing_col', 'redistio_plan') |>
+        redist::filter(.data$redistio_plan %in% input$alg_district) |>
+        dplyr::mutate(
+          redistio_sub_id = as.character(dplyr::row_number() + base_id)
+        ))
       map_sub_in(shp_in |>
-                   dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
-                   `attr<-`('existing_col', 'redistio_plan') |>
-                   redist::filter(.data$redistio_plan %in% input$alg_district) |>
-                   dplyr::mutate(
-                     redistio_sub_id = as.character(dplyr::row_number() + base_id)
-                   ))
+        dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
+        `attr<-`('existing_col', 'redistio_plan') |>
+        redist::filter(.data$redistio_plan %in% input$alg_district) |>
+        dplyr::mutate(
+          redistio_sub_id = as.character(dplyr::row_number() + base_id)
+        ))
 
       district_order <- map_sub()$redistio_plan |> unique()
 
       run_sims <- switch(input$alg_algorithm,
-                         'SMC' = redist::redist_smc,
-                         'Merge Split' = \(...) redist::redist_mergesplit(warmup = 0, ...),
-                         'Flip' = redist::redist_flip,
+        'SMC' = redist::redist_smc,
+        'Merge Split' = \(...) redist::redist_mergesplit(warmup = 0, ...),
+        'Flip' = redist::redist_flip,
       )
 
       if (input$alg_algorithm %in% c('SMC', 'Merge Split')) {
         if (input$alg_counties_id != 'NONE') {
           sims <- run_sims(map_sub_in(),
-                           nsims = input$alg_nsims,
-                           counties = !!rlang::sym(input$alg_counties_id)
+            nsims = input$alg_nsims,
+            counties = !!rlang::sym(input$alg_counties_id)
           )
         } else {
           sims <- run_sims(map_sub_in(), nsims = input$alg_nsims)
@@ -146,8 +146,8 @@ algorithmsServer <- function(id, parent_session,
             redist::add_constr_edges_rem(0.4) |>
             redist::add_constr_splits(strength = 0.25, admin = !!rlang::sym(input$alg_counties_id))
           sims <- run_sims(map_sub_in(),
-                           nsims = input$alg_nsims,
-                           constraints = cons
+            nsims = input$alg_nsims,
+            constraints = cons
           )
         } else {
           sims <- run_sims(map_sub_in(), nsims = input$alg_nsims)
@@ -196,7 +196,8 @@ algorithmsServer <- function(id, parent_session,
         mapgl::add_fill_layer(
           source = 'redistio_sub',
           fill_color = discrete_palette(pal(), redistio_alg_plan$pl,
-                                        column = 'redistio_sub_id', base = base_id),
+            column = 'redistio_sub_id', base = base_id
+          ),
           fill_opacity = fill_opacity,
           id = 'alg_precincts'
         )
@@ -219,7 +220,7 @@ algorithmsServer <- function(id, parent_session,
       }
 
       map_alg
-    })  |>
+    }) |>
       shiny::bindEvent(input$alg_run)
 
     output$alg_summary <- DT::renderDT(
@@ -258,7 +259,8 @@ algorithmsServer <- function(id, parent_session,
           layer_id = 'alg_precincts',
           name = 'fill-color',
           value = discrete_palette(pal(), redistio_alg_plan$plans[, input$alg_summary_rows_selected],
-                                   column = 'redistio_sub_id', base = base_id)
+            column = 'redistio_sub_id', base = base_id
+          )
         )
     })
 

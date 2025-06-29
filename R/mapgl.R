@@ -22,7 +22,6 @@ discrete_palette <- function(palette, rcp, column = 'redistio_id', base = 0) {
 }
 
 percent_palette <- function(palette, na_color = '#CCCCCC', column = '') {
-
   palette <- palette |>
     unname() |>
     as.character()

@@ -33,10 +33,10 @@ integrityServer <- function(id, shp, redistio_curr_plan, adj, split_cols) {
           rict_contiguity(shp, plan = redistio_curr_plan$pl, adj = adj, as_gt = FALSE),
           rict_compactness(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
           rict_splits(shp,
-                      plan = redistio_curr_plan$pl,
-                      admin = split_cols$admin, subadmin = split_cols$subadmin,
-                      multi = split_cols$multi, total = split_cols$total,
-                      as_gt = FALSE
+            plan = redistio_curr_plan$pl,
+            admin = split_cols$admin, subadmin = split_cols$subadmin,
+            multi = split_cols$multi, total = split_cols$total,
+            as_gt = FALSE
           )
         )
       } else {

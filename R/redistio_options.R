@@ -47,7 +47,6 @@ redistio_options <- function(theme = 'flatly',
                              save_assignment_path = 'redistio.csv',
                              save_shape_path = 'redistio.geojson',
                              ...) {
-
   if (length(palette_pop) == 1) {
     palette_pop <- RColorBrewer::brewer.pal(n = 3, name = palette_pop)
   }
