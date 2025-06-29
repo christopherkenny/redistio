@@ -519,7 +519,7 @@ draw <- function(shp, init_plan, ndists, palette,
         mapgl::add_line_layer(
           id = 'precinct_border',
           source = 'redistio',
-          line_color = '#000000',
+          line_color = opts$border_color %||% def_opts$border_color,
           line_width = 0.5
         )
 
