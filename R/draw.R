@@ -235,7 +235,11 @@ draw <- function(shp, init_plan, ndists, palette,
         rel = 'shortcut icon',
         href = 'https://raw.githubusercontent.com/christopherkenny/redistio/main/man/figures/logo.png'
       ),
-      shiny::tags$link(rel = 'stylesheet', type = 'text/css', href = 'assets/styles.css')
+      shiny::tags$link(
+        rel = 'stylesheet',
+        type = 'text/css',
+        href = 'assets/styles.css'
+      )
     ),
 
     # draw panel ----
@@ -250,7 +254,8 @@ draw <- function(shp, init_plan, ndists, palette,
           border_radius = FALSE,
           fillable = TRUE,
           class = 'p-0',
-          sidebar = bslib::sidebar( # color selector
+          sidebar = bslib::sidebar(
+            # color selector
             width = 300,
             id = 'map-left-sidebar',
             bslib::accordion(
@@ -279,7 +284,10 @@ draw <- function(shp, init_plan, ndists, palette,
                 shiny::sliderInput(
                   inputId = 'fill_opacity',
                   label = 'Fill opacity',
-                  min = 0, max = 1, step = 0.05, value = 0.9
+                  min = 0,
+                  max = 1,
+                  step = 0.05,
+                  value = 0.9
                 ),
                 # shiny::numericInput(
                 #   inputId = 'precinct_border',
@@ -294,7 +302,8 @@ draw <- function(shp, init_plan, ndists, palette,
           bslib::layout_sidebar(
             border = FALSE,
             class = 'p-0',
-            bslib::card( # interactive mapper
+            bslib::card(
+              # interactive mapper
               id = 'map-card',
               full_screen = TRUE,
               mapgl::maplibreOutput(
@@ -302,34 +311,47 @@ draw <- function(shp, init_plan, ndists, palette,
                 height = opts$leaflet_height %||% def_opts$leaflet_height,
               )
             ),
-            sidebar = bslib::sidebar( # details area
+            sidebar = bslib::sidebar(
+              # details area
               position = 'right',
               id = 'map-right-sidebar',
               width = 300,
               bslib::navset_bar(
                 id = 'tabRight',
-                bslib::nav_panel(title = 'Population', gt::gt_output('tab_pop')),
+                bslib::nav_panel(
+                  title = 'Population',
+                  gt::gt_output('tab_pop')
+                ),
                 bslib::nav_panel(title = 'Precinct', gt::gt_output('hover')),
                 bslib::nav_menu(
                   title = 'More',
                   bslib::nav_panel(
                     'Download',
                     shiny::h5('Download assignment file'),
-                    shiny::textInput('save_path',
+                    shiny::textInput(
+                      'save_path',
                       label = 'Path to save assignment file',
-                      value = opts$save_assignment_path %||% def_opts$save_assignment_path
+                      value = opts$save_assignment_path %||%
+                        def_opts$save_assignment_path
                     ),
-                    shiny::selectizeInput('download_id', 'Select identifier column:',
-                      choices = NULL, selected = 'redistio_id',
+                    shiny::selectizeInput(
+                      'download_id',
+                      'Select identifier column:',
+                      choices = NULL,
+                      selected = 'redistio_id',
                       multiple = FALSE
                     ),
                     shiny::downloadButton('save_plan', label = 'Export plan'),
                     shiny::h5('Download shapefile'),
-                    shiny::textInput('save_shp_path',
+                    shiny::textInput(
+                      'save_shp_path',
                       label = 'Path to save shapefile',
                       value = opts$save_shape_path %||% def_opts$save_shape_path
                     ),
-                    shiny::downloadButton('save_shp', label = 'Export shapefile')
+                    shiny::downloadButton(
+                      'save_shp',
+                      label = 'Export shapefile'
+                    )
                   ),
                   bslib::nav_panel(
                     'Lock',
@@ -339,7 +361,8 @@ draw <- function(shp, init_plan, ndists, palette,
                         inputId = 'locks',
                         choices = seq_len(ndists),
                         label = 'Lock districts',
-                        selected = opts$locked_districts %||% def_opts$locked_districts
+                        selected = opts$locked_districts %||%
+                          def_opts$locked_districts
                       )
                     } else {
                       shinyWidgets::checkboxGroupButtons(
@@ -375,6 +398,10 @@ draw <- function(shp, init_plan, ndists, palette,
                     'Color from file',
                     color_from_fileUI('colorFromFile')
                   ),
+                  bslib::nav_panel(
+                    title = 'Clicked',
+                    shiny::verbatimTextOutput("clicked_feature")
+                  ),
                   align = 'right'
                 ),
                 selected = 'Precinct'
@@ -387,83 +414,11 @@ draw <- function(shp, init_plan, ndists, palette,
         padding = 0
       ), # end page_fillable
     ),
-    # demographics panel ----
-    bslib::nav_panel(
-      title = 'demographics',
-      bslib::page_fillable(
-        gt::gt_output('demographics')
-      )
-    ),
-    # traditional redistricting panel ----
-    bslib::nav_panel(
-      title = 'integrity',
-      bslib::page_fillable(
-        gt::gt_output('integrity')
-      )
-    ),
-    # elections panel ----
-    bslib::nav_panel(
-      title = 'elections',
-      bslib::page_fillable(
-        gt::gt_output('elections')
-      )
-    ),
-    # algorithms panel ----
+    demographicsUI('demographics'),
+    integrityUI('integrity'),
+    electionsUI('elections'),
     if (use_algorithms) {
-      bslib::nav_panel(
-        title = 'algorithms',
-        bslib::layout_columns(
-          col_widths = c(2, 8, 2),
-          bslib::card( # selector
-            shiny::selectizeInput(
-              inputId = 'alg_district',
-              label = paste0('Districts to redraw (up to ', min(opts$alg_max_districts %||% def_opts$alg_max_districts, ndists), ')'),
-              choices = seq_len(ndists),
-              options = list(maxItems = min(opts$alg_max_districts %||% def_opts$alg_max_districts, ndists))
-            ),
-            shiny::hr(),
-            shiny::selectInput(
-              inputId = 'alg_algorithm',
-              label = 'Algorithm to use',
-              choices = c('SMC', 'Merge Split', 'Flip')
-            ),
-            shiny::hr(),
-            shiny::sliderInput(
-              inputId = 'alg_nsims',
-              label = 'Number of simulations',
-              min = 1,
-              max = (opts$alg_max_sims %||% def_opts$alg_max_sims),
-              value = 10
-            ),
-            shiny::hr(),
-            shiny::selectizeInput('alg_counties_id', 'Select county column:',
-              choices = c('NONE', names(shp)), selected = NULL,
-              multiple = FALSE
-            ),
-            shiny::hr(),
-            shiny::actionButton(
-              inputId = 'alg_run',
-              label = 'Run algorithm',
-              icon = shiny::icon('circle-play')
-            )
-          ),
-          bslib::card( # interactive mapper
-            mapgl::maplibreOutput(
-              outputId = 'alg_map',
-              height = opts$leaflet_height %||% def_opts$leaflet_height,
-            )
-          ),
-          bslib::card( # details area
-            DT::DTOutput(outputId = 'alg_summary', width = '30vh', height = '80vh'),
-            shiny::tags$hr(),
-            shiny::actionButton(
-              inputId = 'alg_accept',
-              label = 'Accept plan',
-              icon = shiny::icon('file-export')
-            ),
-          )
-        )
-      )
+      algorithmsUI('algorithms')
     } else {
       NULL
     },
@@ -929,295 +884,20 @@ draw <- function(shp, init_plan, ndists, palette,
       'planscore', redistio_curr_plan, shp
     )
 
-    # demographics panel ----
+        demographicsServer('demographics', shp, redistio_curr_plan)
+    integrityServer('integrity', shp, redistio_curr_plan, adj, adj_col, split_cols)
+    electionsServer('elections', shp_tb, redistio_curr_plan)
 
-    output$demographics <- gt::render_gt({
-      list(
-        rict_population(shp, redistio_curr_plan$pl, as_gt = FALSE),
-        tally_pop(shp, redistio_curr_plan$pl, normalize = TRUE),
-        tally_vap(shp, redistio_curr_plan$pl, normalize = TRUE)
-      ) |>
-        purrr::reduce(.f = dplyr::left_join, by = 'District') |>
-        gt::gt() |>
-        gt::fmt_number(columns = c('Population', 'deviation', 'vap'), decimals = 0) |>
-        gt::fmt_percent(columns = 'pct_deviation', decimals = 1) |>
-        gt::fmt_percent(columns = dplyr::starts_with(c('pop_', 'vap_')), decimals = 1) |>
-        gt::cols_hide(columns = 'pop') |>
-        gt::cols_label(
-          deviation = 'People',
-          pct_deviation = '%',
-          vap = 'Total'
-        ) |>
-        gt::cols_label_with(
-          columns = dplyr::starts_with(c('pop_', 'vap_')),
-          fn = function(x) format_demog_string(stringr::word(x, 2, sep = '_'))
-        ) |>
-        gt::tab_spanner(label = 'Deviation', columns = c('deviation', 'pct_deviation')) |>
-        gt::tab_spanner(label = 'Total Population', columns = dplyr::starts_with(c('pop_'))) |>
-        gt::tab_spanner(label = 'Voting Age Population', columns = dplyr::starts_with(c('vap')))
-    })
-
-    # integrity panel ----
-    output$integrity <- gt::render_gt({
-      if (!any(is.na(redistio_curr_plan$pl))) {
-        if (adj_col %in% names(shp)) {
-          int_l <- list(
-            rict_population(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
-            rict_contiguity(shp, plan = redistio_curr_plan$pl, adj = adj, as_gt = FALSE),
-            rict_compactness(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
-            rict_splits(shp,
-              plan = redistio_curr_plan$pl,
-              admin = split_cols$admin, subadmin = split_cols$subadmin,
-              multi = split_cols$multi, total = split_cols$total,
-              as_gt = FALSE
-            )
-          )
-        } else {
-          int_l <- list(
-            rict_population(shp, redistio_curr_plan$pl, as_gt = FALSE),
-            rict_compactness(shp, redistio_curr_plan$pl, as_gt = FALSE),
-            rict_splits(shp,
-              plan = redistio_curr_plan$pl,
-              admin = split_cols$admin, subadmin = split_cols$subadmin,
-              multi = split_cols$multi, total = split_cols$total,
-              as_gt = FALSE
-            )
-          )
-        }
-      } else {
-        int_l <- list(
-          rict_population(shp, redistio_curr_plan$pl, as_gt = FALSE),
-          rict_contiguity(shp, plan = redistio_curr_plan$pl, adj = adj, as_gt = FALSE)
-        )
-      }
-      int_l |>
-        purrr::reduce(.f = dplyr::left_join, by = 'District') |>
-        gt::gt() |>
-        gt::fmt_number(columns = c('Population', 'deviation'), decimals = 0) |>
-        gt::fmt_percent(columns = 'pct_deviation', decimals = 1) |>
-        gt::fmt_percent(columns = dplyr::starts_with('comp_'), decimals = 1) |>
-        gt::tab_spanner(label = 'Deviation', columns = c('deviation', 'pct_deviation')) |>
-        gt::tab_spanner(label = 'Contiguity', columns = dplyr::any_of('Pieces')) |>
-        gt::tab_spanner(label = 'Compactness', columns = dplyr::starts_with('comp_')) |>
-        gt::tab_spanner(
-          label = 'Splits',
-          columns = dplyr::starts_with(c('admin_', 'subadmin_'))
-        ) |>
-        gt::tab_spanner(label = 'Multi Splits', columns = dplyr::starts_with('multi_')) |>
-        gt::tab_spanner(label = 'Total Splits', columns = dplyr::starts_with('total_')) |>
-        gt::cols_label(
-          dplyr::any_of('deviation') ~ 'People',
-          dplyr::any_of('pct_deviation') ~ '%'
-        ) |>
-        gt::cols_label_with(
-          columns = dplyr::starts_with('comp_'),
-          fn = function(x) format_compactness(x)
-        ) |>
-        gt::cols_label_with(
-          columns = dplyr::starts_with(c('admin_', 'subadmin_', 'multi_', 'total_')),
-          fn = function(x) {
-            x |>
-              stringr::str_remove('^admin_|^subadmin_|^multi_|^total_')
-          }
-        )
-    })
-
-    # elections panel ----
-    output$elections <- gt::render_gt({
-      rict_elections(shp_tb, plan = redistio_curr_plan$pl)
-    })
-
-    # algorithms panel ----
     if (use_algorithms) {
-      # TODO: this needs some rough mix of using shp & shp_in
-      base_id <- 1e6
-      alg_pal <- as.character(palette)
-      output$alg_map <- mapgl::renderMaplibre({
-        map_sub(shp |>
-          dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
-          `attr<-`('existing_col', 'redistio_plan') |>
-            redist::filter(.data$redistio_plan %in% input$alg_district) |>
-            dplyr::mutate(
-              redistio_sub_id = as.character(dplyr::row_number() + base_id)
-            ))
-        map_sub_in(shp_in |>
-                     dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
-                     `attr<-`('existing_col', 'redistio_plan') |>
-                     redist::filter(.data$redistio_plan %in% input$alg_district) |>
-                     dplyr::mutate(
-                       redistio_sub_id = as.character(dplyr::row_number() + base_id)
-                     ))
-
-        district_order <- map_sub()$redistio_plan |> unique()
-
-        run_sims <- switch(input$alg_algorithm,
-          'SMC' = redist::redist_smc,
-          'Merge Split' = \(...) redist::redist_mergesplit(warmup = 0, ...),
-          'Flip' = redist::redist_flip,
-        )
-
-        if (input$alg_algorithm %in% c('SMC', 'Merge Split')) {
-          if (input$alg_counties_id != 'NONE') {
-            sims <- run_sims(map_sub_in(),
-              nsims = input$alg_nsims,
-              counties = !!rlang::sym(input$alg_counties_id)
-            )
-          } else {
-            sims <- run_sims(map_sub_in(), nsims = input$alg_nsims)
-          }
-        } else {
-          if (input$alg_counties_id != 'NONE') {
-            cons <- redist::redist_constr(map_sub_in()) |>
-              redist::add_constr_edges_rem(0.4) |>
-              redist::add_constr_splits(strength = 0.25, admin = !!rlang::sym(input$alg_counties_id))
-            sims <- run_sims(map_sub(),
-              nsims = input$alg_nsims,
-              constraints = cons
-            )
-          } else {
-            sims <- run_sims(map_sub_in(), nsims = input$alg_nsims)
-          }
-          sims <- run_sims(map_sub_in(), nsims = input$alg_nsims)
-        }
-        if (length(input$alg_district) > 1) {
-          sims <- sims |>
-            redist::match_numbers('redistio_plan')
-        }
-
-        redistio_alg_plan$plans <- redist::get_plans_matrix(sims) |>
-          apply(MARGIN = 2, FUN = function(col) district_order[col])
-        redistio_alg_plan$pl <- redistio_alg_plan$plans[, 2]
-
-        sims_sum <- sims |>
-          dplyr::mutate(
-            dev = redist::plan_parity(map = map_sub_in())
-          ) |>
-          tibble::as_tibble() |>
-          dplyr::group_by(draw) |>
-          dplyr::slice(1) |>
-          dplyr::ungroup() |>
-          dplyr::select(dplyr::all_of(c('draw', 'dev')))
-        alg_plans(sims_sum)
-
-        map_alg <- mapgl::maplibre(
-          style = leaf_tiles,
-          bounds = shp
-        ) |>
-          mapgl::add_source(
-            id = 'redistio',
-            data = shp,
-            promoteId = 'redistio_id'
-          ) |>
-          mapgl::add_fill_layer(
-            source = 'redistio',
-            id = 'precinct_fill',
-            fill_color = '#FFFFFFFF',
-            fill_outline_color = '#cccccc'
-          ) |>
-          mapgl::add_source(
-            data = map_sub(),
-            id = 'redistio_sub',
-            promoteId = 'redistio_sub_id'
-          ) |>
-          mapgl::add_fill_layer(
-            source = 'redistio_sub',
-            fill_color = discrete_palette(alg_pal, redistio_alg_plan$pl,
-                                          column = 'redistio_sub_id', base = base_id),
-            fill_opacity = input$fill_opacity,
-            id = 'alg_precincts'
-          )
-
-        if (!is.null(layers)) {
-          for (i in seq_along(layers)) {
-            map_alg <- map_alg |>
-              mapgl::add_line_layer(
-                source = layers[[i]],
-                line_width = opts$layer_weight %||% def_opts$layer_weight,
-                line_color = layer_colors[i],
-                id = names(layers)[i]
-              )
-            map_alg <- map_alg |>
-              mapgl::add_layers_control(
-                layers = names(layers),
-                collapsible = TRUE
-              )
-          }
-        }
-
-        map_alg
-      }) |>
-        shiny::bindEvent(input$alg_run)
+      algorithmsServer('algorithms', shp, shp_in, redistio_curr_plan, ndists, pal,
+        input$fill_opacity, input_precinct_border, input$fill_column,
+        leaf_tiles, layers, layer_colors, opts, def_opts,
+        val, tot_pop, tgt_pop, undo_l)
     }
 
-    output$alg_summary <- DT::renderDT(
-      {
-        shiny::isolate(alg_plans()) |>
-          DT::datatable(
-            options = list(
-              dom = 't', ordering = FALSE, scrollX = TRUE, scrollY = '70vh', # TODO make changeable
-              pagingType = 'numbers', scrollCollapse = TRUE,
-              pageLength = ndists * ((opts$alg_max_sims %||% def_opts$alg_max_sims) + 1)
-            ),
-            style = 'bootstrap',
-            rownames = FALSE,
-            escape = FALSE,
-            selection = list(target = 'row', mode = 'single', selected = 2),
-            fillContainer = TRUE
-          ) |>
-          DT::formatPercentage(columns = 'dev', digits = 1)
-      },
-      server = TRUE
-    )
-
-    dt_alg_proxy <- DT::dataTableProxy('alg_summary')
-
-    shiny::observe({
-      DT::replaceData(
-        proxy = dt_alg_proxy, alg_plans(), rownames = FALSE,
-        resetPaging = FALSE, clearSelection = 'none'
-      )
-    })
-
-    shiny::observeEvent(input$alg_summary_rows_selected, {
-      shiny::req(redistio_alg_plan$plans)
-      mapgl::maplibre_proxy('alg_map') |>
-        mapgl::set_paint_property(
-          layer_id = 'alg_precincts',
-          name = 'fill-color',
-          value = discrete_palette(alg_pal, redistio_alg_plan$plans[, input$alg_summary_rows_selected],
-                                   column = 'redistio_sub_id', base = base_id)
-        )
-    })
-
-
-    shiny::observeEvent(input$alg_accept, {
-      pl <- redistio_alg_plan$plans[, input$alg_summary_rows_selected]
-      idx <- which(redistio_curr_plan$pl %in% input$alg_district)
-      redistio_curr_plan$pl[idx] <- pl
-
-      undo_l(undo_log(undo_l(), redistio_curr_plan$pl))
-
-      mapgl::maplibre_proxy('map') |>
-        update_shape_style(
-          input$fill_column, pal(), redistio_curr_plan$pl, shp,
-          input$fill_opacity, input_precinct_border
-        )
-
-      mapgl::maplibre_proxy('alg_map') |>
-        mapgl::clear_layer(layer_id = 'alg_precincts')
-
-      alg_plans(alg_plans_static)
-      shiny::updateTabsetPanel(session, 'navbar', 'draw')
-
-      new_tb_pop <- val()
-      new_tb_pop$Population <- distr_pop(shp[[pop_col]], total = tot_pop, plan = redistio_curr_plan$pl, ndists = ndists)
-      new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - c(0L, rep(tgt_pop, ndists)))
-      val(new_tb_pop)
-
-      DT::replaceData(
-        proxy = dt_alg_proxy, alg_plans(), rownames = FALSE,
-        resetPaging = FALSE, clearSelection = 'none'
-      )
+    output$clicked_feature <- renderPrint({
+      req(input$map_feature_click)
+      input$map_feature_click
     })
   }
 
