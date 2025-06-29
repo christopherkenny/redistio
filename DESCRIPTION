@@ -29,6 +29,7 @@ Imports:
     mapgl,
     purrr,
     redistmetrics,
+    RColorBrewer,
     rlang,
     scales,
     sf,
