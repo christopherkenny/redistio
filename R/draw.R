@@ -693,7 +693,7 @@ draw <- function(shp, init_plan, ndists, palette,
 
     # precinct stats ----
     shiny::observeEvent(hov_reac_d(), {
-      if (!is.null(hov_reac_d()) && hov_reac_d()$id < nrow(shp)) {
+      if (!is.null(hov_reac_d()) && hov_reac_d()$id <= nrow(shp)) {
         if (input$tabRight == 'Precinct') {
           output$hover <- gt::render_gt({
             # produce hover tables ----
