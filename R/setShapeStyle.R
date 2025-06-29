@@ -51,7 +51,8 @@ update_shape_style <- function(leafl, fc, pal, rcp, shp, opac = 0.8, wt = 0.5) {
         legend_title = '',
         values = get_simple_legend_labels(pal),
         colors = get_simple_legend_colors(pal),
-        type = 'continuous'
+        type = 'continuous',
+        position = 'top-right'
       )
   }
 }
