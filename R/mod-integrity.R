@@ -3,13 +3,6 @@ palette_deviation <- c('#FFFFFF', '#301934')
 palette_compactness <- c('#FBFB98', '#98FB98')
 palette_splits <- c('#98FB98', '#FBFB98')
 
-color_pieces <- scales::col_numeric(palette = palette_pieces, domain = NULL)
-color_deviation <- function(x) {
-  scales::col_numeric(palette = palette_deviation, domain = c(0, max(abs(x), na.rm = TRUE)))(abs(x))
-}
-color_compactness <- scales::col_numeric(palette = palette_compactness, domain = c(0, 1))
-color_splits <- scales::col_numeric(palette = palette_splits, domain = NULL)
-
 #' Integrity Module
 #'
 #' @param id module id
@@ -89,19 +82,21 @@ integrityServer <- function(id, shp, redistio_curr_plan, adj, split_cols) {
         ) |>
         gt::data_color(
           columns = dplyr::any_of('Pieces'),
-          fn = color_pieces
+          fn = scales::col_numeric(palette = palette_pieces, domain = NULL)
         ) |>
         gt::data_color(
           columns = dplyr::any_of(c('deviation', 'pct_deviation')),
-          fn = color_deviation
+          fn = function(x) {
+            scales::col_numeric(palette = palette_deviation, domain = c(0, max(abs(x), na.rm = TRUE)))(abs(x))
+          }
         ) |>
         gt::data_color(
           columns = dplyr::starts_with('comp_'),
-          fn = color_compactness
+          fn = scales::col_numeric(palette = palette_compactness, domain = c(0, 1))
         ) |>
         gt::data_color(
           columns = dplyr::starts_with(c('admin_', 'subadmin_', 'multi_', 'total_')),
-          fn = color_splits
+          fn = scales::col_numeric(palette = palette_splits, domain = NULL)
         )
     })
   })
