@@ -414,7 +414,7 @@ draw <- function(shp, init_plan, ndists, palette,
     integrityUI('integrity'),
     electionsUI('elections'),
     if (use_algorithms) {
-      algorithmsUI('algorithms')
+      algorithmsUI('algorithms', opts, def_opts, ndists, shp)
     } else {
       NULL
     },
@@ -886,10 +886,13 @@ draw <- function(shp, init_plan, ndists, palette,
     electionsServer('elections', shp_tb, redistio_curr_plan)
 
     if (use_algorithms) {
-      algorithmsServer('algorithms', shp, shp_in, redistio_curr_plan, ndists, pal,
+      algorithmsServer(
+        'algorithms',
+        shp, shp_in, redistio_curr_plan, ndists, pal,
         input$fill_opacity, input_precinct_border, input$fill_column,
         leaf_tiles, layers, layer_colors, opts, def_opts,
-        val, tot_pop, tgt_pop, undo_l)
+        val, tot_pop, tgt_pop, pop_col, undo_l
+      )
     }
   }
 

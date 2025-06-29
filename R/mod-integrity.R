@@ -20,16 +20,14 @@ integrityUI <- function(id) {
 #' @param shp sf object
 #' @param curr_plan reactive plan
 #' @param adj adjacency list
-#' @param adj_col name of adjacency column
 #' @param split_cols list of split columns
 #'
 #' @return shiny server
 #' @noRd
-integrityServer <- function(id, shp, curr_plan, adj, adj_col, split_cols) {
+integrityServer <- function(id, shp, curr_plan, adj, split_cols) {
   shiny::moduleServer(id, function(input, output, session) {
     output$integrity <- gt::render_gt({
       if (!any(is.na(curr_plan$pl))) {
-        if (adj_col %in% names(shp)) {
           int_l <- list(
             rict_population(shp, plan = curr_plan$pl, as_gt = FALSE),
             rict_contiguity(shp, plan = curr_plan$pl, adj = adj, as_gt = FALSE),
@@ -41,18 +39,6 @@ integrityServer <- function(id, shp, curr_plan, adj, adj_col, split_cols) {
               as_gt = FALSE
             )
           )
-        } else {
-          int_l <- list(
-            rict_population(shp, curr_plan$pl, as_gt = FALSE),
-            rict_compactness(shp, curr_plan$pl, as_gt = FALSE),
-            rict_splits(shp,
-              plan = curr_plan$pl,
-              admin = split_cols$admin, subadmin = split_cols$subadmin,
-              multi = split_cols$multi, total = split_cols$total,
-              as_gt = FALSE
-            )
-          )
-        }
       } else {
         int_l <- list(
           rict_population(shp, curr_plan$pl, as_gt = FALSE),
