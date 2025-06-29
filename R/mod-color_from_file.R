@@ -20,7 +20,7 @@ color_from_fileServer <- function(id, plan, shp, map_reac,
 
   shiny::moduleServer(id, function(input, output, session) {
     shiny::observeEvent(input$file, {
-      dat <- read.csv(file = input$file$datapath)
+      dat <- utils::read.csv(file = input$file$datapath)
       intrscts <- intersect(names(shp), names(dat))
 
       if (ncol(dat) - length(intrscts) != 1) {
