@@ -289,11 +289,16 @@ draw <- function(shp, init_plan, ndists, palette,
                   step = 0.05,
                   value = 0.9
                 ),
-                # shiny::numericInput(
-                #   inputId = 'precinct_border',
-                #   label = 'Precinct border weight',
-                #   min = 0, max = 100, value = 0.5
-                # ),
+                shiny::numericInput(
+                  inputId = 'precinct_border',
+                  label = 'Precinct border weight',
+                  min = 0, max = 100, value = 0.5
+                ),
+                colourpicker::colourInput(
+                  inputId = 'precinct_linecolor',
+                  label = 'Precinct border color',
+                  value = opts$border_color %||% def_opts$border_color
+                ),
                 icon = shiny::icon('palette'),
                 style = 'min-height: 30vh'
               )
@@ -442,8 +447,6 @@ draw <- function(shp, init_plan, ndists, palette,
 
   # Server ----
   server <- function(input, output, session) {
-    # Temporarily disabled for mapgl
-    input_precinct_border <- 1
     # panel controls ----
     req_panels <- opts$panels %||% def_opts$panels
     if (!use_algorithms) {
@@ -511,7 +514,13 @@ draw <- function(shp, init_plan, ndists, palette,
           id = 'precinct_fill',
           fill_color = discrete_palette(palette, init_plan),
           fill_opacity = 0.9,
-          fill_outline_color = '#cccccc'
+          fill_outline_color = '#00000000'
+        ) |>
+        mapgl::add_line_layer(
+          id = 'precinct_border',
+          source = 'redistio',
+          line_color = '#000000',
+          line_width = 0.5
         )
 
       if (!is.null(hover_fn)) {
@@ -577,16 +586,16 @@ draw <- function(shp, init_plan, ndists, palette,
         mapgl::maplibre_proxy('map') |>
           update_shape_style(
             input$fill_column, pal(), redistio_curr_plan$pl, shp,
-            input$fill_opacity, input_precinct_border
+            input$fill_opacity, input$precinct_border, input$precinct_linecolor
           )
       }
     )
 
-    shiny::observeEvent(list(input$fill_opacity, input_precinct_border), {
+    shiny::observeEvent(list(input$fill_opacity, input$precinct_border, input$precinct_linecolor), {
       mapgl::maplibre_proxy('map') |>
         update_shape_style(
           input$fill_column, pal(), redistio_curr_plan$pl, shp,
-          input$fill_opacity, input_precinct_border
+          input$fill_opacity, input$precinct_border, input$precinct_linecolor
         )
     })
 
@@ -666,7 +675,7 @@ draw <- function(shp, init_plan, ndists, palette,
       mapgl::maplibre_proxy('map') |>
         update_shape_style(
           input$fill_column, pal(), redistio_curr_plan$pl, shp,
-          input$fill_opacity, input_precinct_border
+          input$fill_opacity, input$precinct_border, input$precinct_linecolor
         )
 
       new_tb_pop <- val()
@@ -817,7 +826,7 @@ draw <- function(shp, init_plan, ndists, palette,
         mapgl::maplibre_proxy('map') |>
           update_shape_style(
             input$fill_column, pal(), redistio_curr_plan$pl, shp,
-            input$fill_opacity, input_precinct_border
+            input$fill_opacity, input$precinct_border, input$precinct_linecolor
           )
       },
       ignoreInit = FALSE
@@ -852,7 +861,7 @@ draw <- function(shp, init_plan, ndists, palette,
           mapgl::maplibre_proxy('map') |>
             update_shape_style(
               input$fill_column, pal(), redistio_curr_plan$pl, shp,
-              input$fill_opacity, input_precinct_border
+              input$fill_opacity, input$precinct_border, input$precinct_linecolor
             )
         }
       }
@@ -872,7 +881,8 @@ draw <- function(shp, init_plan, ndists, palette,
     color_from_fileServer(
       'colorFromFile', redistio_curr_plan, shp,
       shiny::reactive(mapgl::maplibre_proxy('map')),
-      input$fill_column, input$fill_opacity, input_precinct_border,
+      input$fill_column, input$fill_opacity, input$precinct_border,
+      input$precinct_linecolor,
       pal, undo_l, undo_log, val, tot_pop, ndists, tgt_pop
     )
 
@@ -888,8 +898,8 @@ draw <- function(shp, init_plan, ndists, palette,
     if (use_algorithms) {
       algorithmsServer(
         'algorithms', session,
-        shp, shp_in, redistio_curr_plan, ndists, pal,
-        input$fill_opacity, input_precinct_border, input$fill_column,
+        shp, shp_in, redistio_curr_plan, ndists, palette_reactive,
+        input$fill_opacity, input$precinct_border, input$precinct_linecolor, input$fill_column,
         leaf_tiles, layers, layer_colors, opts, def_opts,
         val, tot_pop, tgt_pop, pop_col, undo_l
       )

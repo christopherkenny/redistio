@@ -1,4 +1,5 @@
-update_shape_style <- function(leafl, fc, pal, rcp, shp, opac = 0.8, wt = 0.5) {
+update_shape_style <- function(leafl, fc, pal, rcp, shp, opac = 0.8, wt = 0.5,
+                               border_color = '#000') {
   if (fc == 'District') {
     leafl |>
       mapgl::set_paint_property(
@@ -11,16 +12,15 @@ update_shape_style <- function(leafl, fc, pal, rcp, shp, opac = 0.8, wt = 0.5) {
         name = 'fill-opacity',
         value = opac
       ) |>
-      # TODO: this doesn't currently match onto anything for mapgl
       mapgl::set_paint_property(
-        layer_id = 'precinct_fill',
+        layer_id = 'precinct_border',
         name = 'line-width',
         value = wt
       ) |>
       mapgl::set_paint_property(
-        layer_id = 'precinct_fill',
+        layer_id = 'precinct_border',
         name = 'line-color',
-        value = '#000'
+        value = border_color
       ) |>
       mapgl::clear_legend()
   } else {
@@ -35,16 +35,15 @@ update_shape_style <- function(leafl, fc, pal, rcp, shp, opac = 0.8, wt = 0.5) {
         name = 'fill-opacity',
         value = opac
       ) |>
-      # TODO: this doesn't currently match onto anything for mapgl
       mapgl::set_paint_property(
-        layer_id = 'precinct_fill',
+        layer_id = 'precinct_border',
         name = 'line-width',
         value = wt
       ) |>
       mapgl::set_paint_property(
-        layer_id = 'precinct_fill',
+        layer_id = 'precinct_border',
         name = 'line-color',
-        value = '#000'
+        value = border_color
       ) |>
       mapgl::clear_legend() |>
       mapgl::add_legend(

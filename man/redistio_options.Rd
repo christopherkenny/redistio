@@ -8,6 +8,7 @@ redistio_options(
   theme = "flatly",
   panels = c("elections", "demographics", "integrity", "algorithms"),
   select_color = "purple",
+  border_color = "#000000",
   palette_pop = "Purples",
   palette_pct = "PuOr",
   palette_party = ggredist::ggredist$partisan,
@@ -33,6 +34,8 @@ redistio_options(
 \item{panels}{which panels to display in the app, \code{'draw'} is always shown.}
 
 \item{select_color}{a color to use for highlighting selected districts}
+
+\item{border_color}{a color to use for precinct borders in the map}
 
 \item{palette_pop}{a color palette to use for whole people. Defaults to
 \code{RColorBrewer::brewer.pal(n = 3, name = 'Purples')}.}

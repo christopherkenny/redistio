@@ -12,6 +12,7 @@ color_from_fileUI <- function(id) {
 
 color_from_fileServer <- function(id, plan, shp, map_reac,
                                   i_fill_column, i_fill_opacity, i_precinct_border,
+                                  i_precinct_linecolor,
                                   pal, undo_l, undo_log, val, tot_pop, ndists, tgt_pop) {
   stopifnot(shiny::is.reactivevalues(plan))
   stopifnot(shiny::is.reactive(map_reac))
@@ -66,7 +67,7 @@ color_from_fileServer <- function(id, plan, shp, map_reac,
       map_reac() |>
         update_shape_style(
           i_fill_column, pal(), dat[['.redistio_from_file']], shp,
-          i_fill_opacity, i_precinct_border
+          i_fill_opacity, i_precinct_border, i_precinct_linecolor
         )
     })
   })

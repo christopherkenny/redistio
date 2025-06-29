@@ -3,6 +3,7 @@
 #' @param theme a name of a bootswatch preset theme or other `bslib::bs_theme()` object
 #' @param panels which panels to display in the app, `'draw'` is always shown.
 #' @param select_color a color to use for highlighting selected districts
+#' @param border_color a color to use for precinct borders in the map
 #' @param palette_pop a color palette to use for whole people. Defaults to
 #' `RColorBrewer::brewer.pal(n = 3, name = 'Purples')`.
 #' @param palette_pct a color palette to use for percentages of people. Defaults
@@ -31,6 +32,7 @@
 redistio_options <- function(theme = 'flatly',
                              panels = c('elections', 'demographics', 'integrity', 'algorithms'),
                              select_color = 'purple',
+                             border_color = '#000000',
                              palette_pop = 'Purples',
                              palette_pct = 'PuOr',
                              palette_party = ggredist::ggredist$partisan,
@@ -57,6 +59,7 @@ redistio_options <- function(theme = 'flatly',
     theme = theme,
     panels = panels,
     select_color = select_color,
+    border_color = border_color,
     palette_pop = palette_pop,
     palette_pct = palette_pct,
     palette_party = palette_party,

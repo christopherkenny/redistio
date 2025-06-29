@@ -75,6 +75,7 @@ algorithmsUI <- function(id, opts, def_opts, ndists, shp) {
 #' @param pal palette
 #' @param fill_opacity fill opacity
 #' @param precinct_border precinct border
+#' @param precinct_linecolor precinct line color
 #' @param fill_column fill column
 #' @param leaf_tiles leaflet tiles
 #' @param layers layers
@@ -91,10 +92,10 @@ algorithmsUI <- function(id, opts, def_opts, ndists, shp) {
 #' @noRd
 algorithmsServer <- function(id, parent_session,
                              shp, shp_in, redistio_curr_plan, ndists, pal,
-                             fill_opacity, precinct_border, fill_column,
+                             fill_opacity, precinct_border, precinct_linecolor,
+                             fill_column,
                              leaf_tiles, layers, layer_colors, opts, def_opts,
                              val, tot_pop, tgt_pop, pop_col, undo_l) {
-  input_precinct_border <- 1
   shiny::moduleServer(id, function(input, output, session) {
     map_sub <- shiny::reactiveVal(shp)
     map_sub_in <- shiny::reactiveVal(shp_in)
@@ -272,7 +273,7 @@ algorithmsServer <- function(id, parent_session,
       mapgl::maplibre_proxy('map', session = parent_session) |>
         update_shape_style(
           'District', pal(), redistio_curr_plan$pl, shp,
-          input$fill_opacity, input_precinct_border
+          input$fill_opacity, precinct_border, precinct_linecolor
         )
 
       mapgl::maplibre_proxy('alg_map') |>
