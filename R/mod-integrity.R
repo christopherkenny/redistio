@@ -18,31 +18,31 @@ integrityUI <- function(id) {
 #'
 #' @param id module id
 #' @param shp sf object
-#' @param curr_plan reactive plan
+#' @param redistio_curr_plan reactive plan
 #' @param adj adjacency list
 #' @param split_cols list of split columns
 #'
 #' @return shiny server
 #' @noRd
-integrityServer <- function(id, shp, curr_plan, adj, split_cols) {
+integrityServer <- function(id, shp, redistio_curr_plan, adj, split_cols) {
   shiny::moduleServer(id, function(input, output, session) {
     output$integrity <- gt::render_gt({
-      if (!any(is.na(curr_plan$pl))) {
-          int_l <- list(
-            rict_population(shp, plan = curr_plan$pl, as_gt = FALSE),
-            rict_contiguity(shp, plan = curr_plan$pl, adj = adj, as_gt = FALSE),
-            rict_compactness(shp, plan = curr_plan$pl, as_gt = FALSE),
-            rict_splits(shp,
-              plan = curr_plan$pl,
-              admin = split_cols$admin, subadmin = split_cols$subadmin,
-              multi = split_cols$multi, total = split_cols$total,
-              as_gt = FALSE
-            )
+      if (!any(is.na(redistio_curr_plan$pl))) {
+        int_l <- list(
+          rict_population(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
+          rict_contiguity(shp, plan = redistio_curr_plan$pl, adj = adj, as_gt = FALSE),
+          rict_compactness(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
+          rict_splits(shp,
+                      plan = redistio_curr_plan$pl,
+                      admin = split_cols$admin, subadmin = split_cols$subadmin,
+                      multi = split_cols$multi, total = split_cols$total,
+                      as_gt = FALSE
           )
+        )
       } else {
         int_l <- list(
-          rict_population(shp, curr_plan$pl, as_gt = FALSE),
-          rict_contiguity(shp, plan = curr_plan$pl, adj = adj, as_gt = FALSE)
+          rict_population(shp, redistio_curr_plan$pl, as_gt = FALSE),
+          rict_contiguity(shp, plan = redistio_curr_plan$pl, adj = adj, as_gt = FALSE)
         )
       }
       int_l |>

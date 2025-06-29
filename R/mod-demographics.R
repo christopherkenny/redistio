@@ -18,17 +18,17 @@ demographicsUI <- function(id) {
 #'
 #' @param id module id
 #' @param shp sf object
-#' @param curr_plan reactive plan
+#' @param redistio_curr_plan reactive plan
 #'
 #' @return shiny server
 #' @noRd
-demographicsServer <- function(id, shp, curr_plan) {
+demographicsServer <- function(id, shp, redistio_curr_plan) {
   shiny::moduleServer(id, function(input, output, session) {
     output$demographics <- gt::render_gt({
       list(
-        rict_population(shp, curr_plan$pl, as_gt = FALSE),
-        tally_pop(shp, curr_plan$pl, normalize = TRUE),
-        tally_vap(shp, curr_plan$pl, normalize = TRUE)
+        rict_population(shp, redistio_curr_plan$pl, as_gt = FALSE),
+        tally_pop(shp, redistio_curr_plan$pl, normalize = TRUE),
+        tally_vap(shp, redistio_curr_plan$pl, normalize = TRUE)
       ) |>
         purrr::reduce(.f = dplyr::left_join, by = 'District') |>
         gt::gt() |>
