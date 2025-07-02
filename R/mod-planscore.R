@@ -46,7 +46,7 @@ planscoreServer <- function(id, plan, shp) {
       ) |>
         as.character() |>
         ps_link()
-      #cat(ps_link(), '\n')
+      # cat(ps_link(), '\n')
       upload_time(Sys.time())
 
       output$planscoreURLs <- shiny::renderUI({

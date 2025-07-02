@@ -410,6 +410,10 @@ draw <- function(shp, init_plan, ndists, palette,
                     'Color from file',
                     color_from_fileUI('colorFromFile')
                   ),
+                  bslib::nav_panel(
+                    'Color from column',
+                    color_from_columnUI('colorFromColumn')
+                  ), ,
                   align = 'right'
                 ),
                 selected = 'Precinct'
@@ -887,6 +891,14 @@ draw <- function(shp, init_plan, ndists, palette,
 
     color_from_fileServer(
       'colorFromFile', redistio_curr_plan, shp,
+      shiny::reactive(mapgl::maplibre_proxy('map')),
+      input$fill_column, input$fill_opacity, input$precinct_border,
+      input$precinct_linecolor,
+      pal, undo_l, undo_log, val, tot_pop, ndists, tgt_pop
+    )
+
+    color_from_columnServer(
+      'colorFromColumn', redistio_curr_plan, shp,
       shiny::reactive(mapgl::maplibre_proxy('map')),
       input$fill_column, input$fill_opacity, input$precinct_border,
       input$precinct_linecolor,
