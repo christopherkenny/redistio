@@ -58,6 +58,13 @@ draw <- function(shp, init_plan, ndists, palette,
     }
   }
 
+  if (is.character(init_plan)) {
+    # TODO: think through allowing non 1, 2, ..., ndists inits
+    init_plan <- as.integer(init_plan)
+  }
+
+  # TODO handle non 1, ..., ndists ints
+
   shp$redistio_id <- as.character(seq_len(length.out = nrow(shp)))
 
   if (!adj_col %in% names(shp)) {
