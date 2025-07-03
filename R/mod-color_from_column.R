@@ -36,19 +36,7 @@ color_from_columnServer <- function(id, plan, shp, map_reac,
     shiny::observeEvent(input$accept, {
       shiny::req(input$column)
 
-      dat <- shp[[input$column]]
-
-      if (any(is.na(dat))) {
-        output$status <- shiny::renderText({
-          paste0('Coloring by ', input$column, '. NA values will be treated as a separate category.')
-        })
-      } else {
-        output$status <- shiny::renderText({
-          paste0('Coloring by ', input$column)
-        })
-      }
-
-      plan$pl <- dat
+      plan$pl <- shp[[input$column]]
 
       undo_l(undo_log(undo_l(), plan$pl))
 
