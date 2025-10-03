@@ -85,7 +85,7 @@ adj_editor <- function(
           source = 'redistio',
           id = 'precinct_fill',
           fill_color = discrete_palette(palette, init_plan),
-          fill_opacity = 0.9,
+          fill_opacity = 0.2,
           fill_outline_color = '#00000000'
         ) |>
         mapgl::add_line_layer(
