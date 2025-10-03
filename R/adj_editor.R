@@ -52,15 +52,45 @@ adj_editor <- function(
     # editor panel ----
     bslib::nav_panel(
       title = ' adj editor',
-      bslib::card(
-        # interactive mapper
-        id = 'map-card',
-        full_screen = TRUE,
-        mapgl::maplibreOutput(
-          outputId = 'map',
-          height = opts$leaflet_height %||% def_opts$leaflet_height,
-        )
-      ),
+      bslib::layout_sidebar(
+        sidebar = bslib::sidebar(
+          bslib::accordion(
+            bslib::accordion_panel(
+              'Fill',
+              shiny::sliderInput(
+                inputId = 'fill_opacity',
+                label = 'Fill opacity',
+                min = 0,
+                max = 1,
+                step = 0.05,
+                value = 0.2
+              ),
+              shiny::numericInput(
+                inputId = 'precinct_border',
+                label = 'Precinct border weight',
+                min = 0,
+                max = 100,
+                value = 0.1
+              ),
+              colourpicker::colourInput(
+                inputId = 'precinct_linecolor',
+                label = 'Precinct border color',
+                value = opts$border_color %||% def_opts$border_color
+              ),
+              icon = shiny::icon('palette')
+            )
+          )
+        ),
+        bslib::card(
+          # interactive mapper
+          id = 'map-card',
+          full_screen = TRUE,
+          mapgl::maplibreOutput(
+            outputId = 'map',
+            height = opts$leaflet_height %||% def_opts$leaflet_height,
+          )
+        ),
+      )
     )
   )
 
@@ -103,6 +133,28 @@ adj_editor <- function(
 
       base_map
     })
+
+    shiny::observeEvent(
+      list(input$fill_opacity, input$precinct_border, input$precinct_linecolor),
+      {
+        mapgl::maplibre_proxy('map') |>
+          mapgl::set_paint_property(
+            layer_id = 'precinct_fill',
+            name = 'fill-opacity',
+            value = input$fill_opacity
+          ) |>
+          mapgl::set_paint_property(
+            layer_id = 'precinct_border',
+            name = 'line-color',
+            value = input$precinct_linecolor
+          ) |>
+          mapgl::set_paint_property(
+            layer_id = 'precinct_border',
+            name = 'line-width',
+            value = input$precinct_border
+          )
+      }
+    )
   }
   # run app ----
   shiny::shinyApp(ui = ui, server = server)
