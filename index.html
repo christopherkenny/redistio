@@ -62,18 +62,71 @@
 <p>You can install the development version of <code>redistio</code> from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">'christopherkenny/redistio'</span><span class="op">)</span></span></code></pre></div>
+<p>Or from <a href="https://christopherkenny.r-universe.dev/" class="external-link">R-universe</a> with:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">'redistio'</span>, repos <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'https://christopherkenny.r-universe.dev'</span>, <span class="st">'https://cloud.r-project.org'</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h2>
 <p>The most basic application of <code>redistio</code> starts with an <code>sf</code> tibble and a column of district assignments.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/christopherkenny/redistio" class="external-link">redistio</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="reference/draw.html">draw</a></span><span class="op">(</span><span class="va">dc</span>, <span class="va">dc</span><span class="op">$</span><span class="va">ward</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/example_interactive.png"></p>
 </div>
 </div>
+<div class="section level1">
+<h1 id="configuration">Configuration<a class="anchor" aria-label="anchor" href="#configuration"></a>
+</h1>
+<div class="section level2">
+<h2 id="editor-options">Editor options<a class="anchor" aria-label="anchor" href="#editor-options"></a>
+</h2>
+<p>The editor can be configured primarily through <code><a href="reference/redistio_options.html">redistio_options()</a></code>. Some configurable options:</p>
+<ul>
+<li>
+<code>theme</code>: the <a href="https://rstudio.github.io/bslib/" class="external-link">bslib</a> theme to use</li>
+<li>
+<code>panels</code>: which panels to include. Allows for removing panels like <code>elections</code>, if drawing districts in a party-blind manner</li>
+<li>
+<code>palette_party</code>: the colors to use for partisan maps</li>
+<li>
+<code>palette_pop</code>: the colors to use for population maps</li>
+<li>
+<code>palette_pct</code>: the colors to use for percentage maps. Diverging palettes are recommended.</li>
+<li>
+<code>map_tiles</code>: the base map style function to use from <a href="https://walker-data.com/mapgl/reference/index.html#styling-helpers" class="external-link">mapgl</a>
+</li>
+<li>
+<code>use_alogrithms</code>: whether to enable algorithmic assistance for map drawing. Requires a <code>redist_map</code> object.</li>
+<li>
+<code>alg_max_districts</code>: the maximum number of districts allowed in algorithmic simulations</li>
+<li>
+<code>alg_max_sims</code>: the maximum number of simulations allowed in algorithmic simulations</li>
+<li>
+<code>use_planscore</code>: whether to use the <a href="https://planscore.org/" class="external-link">PlanScore API</a> to evaluate plans. Requires internet access and a PlanScore key.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="data-dependent-options">Data Dependent Options<a class="anchor" aria-label="anchor" href="#data-dependent-options"></a>
+</h2>
+<p>Several data-based options may be configured inside <code><a href="reference/draw.html">draw()</a></code>:</p>
+<ul>
+<li>
+<code>layers</code>: Columns to use as toggle layers, where you can show things like county lines above the shapes</li>
+<li>
+<code>elect_cols</code>: Specify election columns directly. This use a guessing approach which follows the ALARM Project column naming schema by default.</li>
+<li>
+<code>demog_cols</code>: Specify demographic columns directly. This use a guessing approach which follows the ALARM Project column naming schema by default.</li>
+<li>
+<code>split_cols</code>: Specify columns which contain administrative units to check splits for.</li>
+<li>
+<code>hover_fn</code>: A function to display precinct-data based on the row of <code>shp</code> that the mouse is over.</li>
+</ul>
+</div>
+</div>
+
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
