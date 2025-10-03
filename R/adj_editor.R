@@ -9,11 +9,13 @@
 #'
 #' @examples
 #' if (interactive()) {
-#'   adj_editor(dc)
+#'   adj_editor(dc, init_plan = dc$ward)
 #' }
 adj_editor <- function(
   shp,
   adj = geomander::adjacency(shp),
+  init_plan,
+  palette = NULL,
   opts = redistio_options()
 ) {
   # defaults ----
@@ -29,6 +31,16 @@ adj_editor <- function(
   # process shp components ----
   shp <- prep_shp(shp, crs = opts$crs %||% def_opts$crs)$no_list_cols
   edges_centers <- edge_center_df(shp, adj)
+
+  # handle colors ----
+  if (missing(init_plan)) {
+    init_plan <- rep(NA_integer_, nrow(shp))
+  }
+  if (is.character(init_plan)) {
+    # TODO: think through allowing non 1, 2, ..., ndists inits
+    init_plan <- as.integer(init_plan)
+  }
+  palette <- prep_palette(palette, length(unique(init_plan)))
 
   # User Interface ----
   leaf_tiles <- opts$map_tiles %||% def_opts$map_tiles
@@ -69,18 +81,18 @@ adj_editor <- function(
           data = edges_centers$nb,
           promoteId = 'redistio_lines'
         ) |>
-        # mapgl::add_fill_layer(
-        #   source = 'redistio',
-        #   id = 'precinct_fill',
-        #   fill_color = discrete_palette(palette, init_plan),
-        #   fill_opacity = 0.9,
-        #   fill_outline_color = '#00000000'
-        # ) |>
+        mapgl::add_fill_layer(
+          source = 'redistio',
+          id = 'precinct_fill',
+          fill_color = discrete_palette(palette, init_plan),
+          fill_opacity = 0.9,
+          fill_outline_color = '#00000000'
+        ) |>
         mapgl::add_line_layer(
           id = 'precinct_border',
           source = 'redistio',
           line_color = opts$border_color %||% def_opts$border_color,
-          line_width = 0.5
+          line_width = 0.1
         ) |>
         mapgl::add_line_layer(
           id = 'edges',
