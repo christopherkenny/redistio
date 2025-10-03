@@ -536,7 +536,11 @@ draw <- function(shp, init_plan, ndists, palette,
 
       if (!is.null(hover_fn)) {
         base_map <- base_map |>
-          mapgl::enable_shiny_hover(coordinates = FALSE, features = 'precinct_fill')
+          mapgl::enable_shiny_hover(
+            coordinates = FALSE,
+            features = 'precinct_fill',
+            layer_id = 'precinct_fill'
+            )
       }
 
       if (!is.null(layers)) {
