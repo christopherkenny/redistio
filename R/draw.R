@@ -24,18 +24,30 @@
 #'   draw(dc, dc$ward, layers = list(neighborhoods = 'adv_nbr'))
 #' }
 #'
-draw <- function(shp, init_plan, ndists, palette,
-                 layers = NULL,
-                 pop_tol = 0.05, pop_col = 'pop',
-                 adj_col = 'adj',
-                 split_cols = guess_admins,
-                 elect_cols = guess_elections,
-                 demog_cols = guesstimate_demographics,
-                 hover_fn = hover_precinct,
-                 opts = redistio_options()) {
+draw <- function(
+  shp,
+  init_plan,
+  ndists,
+  palette = NULL,
+  layers = NULL,
+  pop_tol = 0.05,
+  pop_col = 'pop',
+  adj_col = 'adj',
+  split_cols = guess_admins,
+  elect_cols = guess_elections,
+  demog_cols = guesstimate_demographics,
+  hover_fn = hover_precinct,
+  opts = redistio_options()
+) {
   # defaults ----
   def_opts <- redistio_options()
-  poss_panels <- c('draw', 'demographics', 'integrity', 'elections', 'algorithms')
+  poss_panels <- c(
+    'draw',
+    'demographics',
+    'integrity',
+    'elections',
+    'algorithms'
+  )
 
   # run basic inputs ----
   if (missing(shp)) {
@@ -85,7 +97,8 @@ draw <- function(shp, init_plan, ndists, palette,
     shp <- shp |>
       dplyr::mutate(
         {{ nom }} := !!rlang::sym(elect_cols[[i]]$dem) /
-          (!!rlang::sym(elect_cols[[i]]$dem) + !!rlang::sym(elect_cols[[i]]$rep))
+          (!!rlang::sym(elect_cols[[i]]$dem) +
+            !!rlang::sym(elect_cols[[i]]$rep))
       )
   }
   if (rlang::is_closure(demog_cols)) {
@@ -106,19 +119,9 @@ draw <- function(shp, init_plan, ndists, palette,
   }
 
   # process shp components ----
-  if (!sf::st_is_longlat(shp)) {
-    shp <- sf::st_transform(shp, opts$crs %||% def_opts$crs)
-  }
-
-  shp <- shp |>
-    sf::st_make_valid()
-
-  shp_in <- shp
-  shp <- shp |>
-    tibble::as_tibble() |>
-    sf::st_as_sf() |>
-    dplyr::select(-where(is.list))
-
+  shp_proc <- prep_shp(shp, crs = opts$crs %||% def_opts$crs)
+  shp_in <- shp_proc$all_cols
+  shp <- shp_proc$no_list_cols
 
   # handle palettes ----
   palette <- prep_palette(palette, ndists)
@@ -145,14 +148,19 @@ draw <- function(shp, init_plan, ndists, palette,
 
   hov <- hover_fn(
     shp_tb,
-    pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap')
+    pop = dplyr::starts_with('pop'),
+    vap = dplyr::starts_with('vap')
   ) |>
     dplyr::bind_rows(.id = 'group') |>
     format_alarm_names()
 
   # prep layers -----
   if (!is.null(layers)) {
-    sf_entries <- which(vapply(layers, function(x) inherits(x, 'sf'), logical(1)))
+    sf_entries <- which(vapply(
+      layers,
+      function(x) inherits(x, 'sf'),
+      logical(1)
+    ))
     char_entries <- which(vapply(layers, is.character, logical(1)))
     if ((length(sf_entries) + length(char_entries)) != length(layers)) {
       stop('`layers` must be a list of `sf` objects and character vectors.')
@@ -183,7 +191,10 @@ draw <- function(shp, init_plan, ndists, palette,
   tgt_pop <- as.integer(round(tgt_pop))
   pretty_bounds <- paste0(
     'Population must be in [',
-    scales::label_comma()(min_pop), ', ', scales::label_comma()(max_pop), '].'
+    scales::label_comma()(min_pop),
+    ', ',
+    scales::label_comma()(max_pop),
+    '].'
   )
 
   use_algorithms <- inherits(shp_in, 'redist_map') &&
@@ -282,7 +293,9 @@ draw <- function(shp, init_plan, ndists, palette,
                 shiny::numericInput(
                   inputId = 'precinct_border',
                   label = 'Precinct border weight',
-                  min = 0, max = 100, value = 0.5
+                  min = 0,
+                  max = 100,
+                  value = 0.5
                 ),
                 colourpicker::colourInput(
                   inputId = 'precinct_linecolor',
@@ -396,7 +409,8 @@ draw <- function(shp, init_plan, ndists, palette,
                   bslib::nav_panel(
                     'Color from column',
                     color_from_columnUI('colorFromColumn')
-                  ), ,
+                  ),
+                  ,
                   align = 'right'
                 ),
                 selected = 'Precinct'
@@ -470,8 +484,21 @@ draw <- function(shp, init_plan, ndists, palette,
         c(as.character(shiny::icon('eraser')), seq_len(ndists)),
         ' </p>'
       ),
-      Population = distr_pop(shp[[pop_col]], total = tot_pop, plan = init_plan, ndists = ndists),
-      Deviation = as.integer(distr_pop(shp[[pop_col]], total = tot_pop, plan = init_plan, ndists = ndists) - c(0L, rep(tgt_pop, ndists)))
+      Population = distr_pop(
+        shp[[pop_col]],
+        total = tot_pop,
+        plan = init_plan,
+        ndists = ndists
+      ),
+      Deviation = as.integer(
+        distr_pop(
+          shp[[pop_col]],
+          total = tot_pop,
+          plan = init_plan,
+          ndists = ndists
+        ) -
+          c(0L, rep(tgt_pop, ndists))
+      )
     )
     val <- shiny::reactiveVal(tab_pop_static)
     map_sub <- shiny::reactiveVal(shp)
@@ -523,7 +550,7 @@ draw <- function(shp, init_plan, ndists, palette,
             coordinates = FALSE,
             features = 'precinct_fill',
             layer_id = 'precinct_fill'
-            )
+          )
       }
 
       if (!is.null(layers)) {
@@ -567,8 +594,15 @@ draw <- function(shp, init_plan, ndists, palette,
         }
 
         idx <- which(shp$redistio_id == click$id)
-        new_dist <- ifelse(input$district_rows_selected == 1, NA_integer_, input$district_rows_selected - 1L)
-        if (isTRUE(redistio_curr_plan$pl[idx] %in% input$locks) || isTRUE(new_dist %in% input$locks)) {
+        new_dist <- ifelse(
+          input$district_rows_selected == 1,
+          NA_integer_,
+          input$district_rows_selected - 1L
+        )
+        if (
+          isTRUE(redistio_curr_plan$pl[idx] %in% input$locks) ||
+            isTRUE(new_dist %in% input$locks)
+        ) {
           return(NULL)
         }
 
@@ -577,25 +611,45 @@ draw <- function(shp, init_plan, ndists, palette,
         undo_l(undo_log(undo_l(), redistio_curr_plan$pl))
 
         new_tb_pop <- val()
-        new_tb_pop$Population <- distr_pop(shp[[pop_col]], total = tot_pop, plan = redistio_curr_plan$pl, ndists = ndists)
-        new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - c(0L, rep(tgt_pop, ndists)))
+        new_tb_pop$Population <- distr_pop(
+          shp[[pop_col]],
+          total = tot_pop,
+          plan = redistio_curr_plan$pl,
+          ndists = ndists
+        )
+        new_tb_pop$Deviation <- as.integer(
+          new_tb_pop$Population - c(0L, rep(tgt_pop, ndists))
+        )
         val(new_tb_pop)
 
         mapgl::maplibre_proxy('map') |>
           update_shape_style(
-            input$fill_column, pal(), redistio_curr_plan$pl, shp,
-            input$fill_opacity, input$precinct_border, input$precinct_linecolor
+            input$fill_column,
+            pal(),
+            redistio_curr_plan$pl,
+            shp,
+            input$fill_opacity,
+            input$precinct_border,
+            input$precinct_linecolor
           )
       }
     )
 
-    shiny::observeEvent(list(input$fill_opacity, input$precinct_border, input$precinct_linecolor), {
-      mapgl::maplibre_proxy('map') |>
-        update_shape_style(
-          input$fill_column, pal(), redistio_curr_plan$pl, shp,
-          input$fill_opacity, input$precinct_border, input$precinct_linecolor
-        )
-    })
+    shiny::observeEvent(
+      list(input$fill_opacity, input$precinct_border, input$precinct_linecolor),
+      {
+        mapgl::maplibre_proxy('map') |>
+          update_shape_style(
+            input$fill_column,
+            pal(),
+            redistio_curr_plan$pl,
+            shp,
+            input$fill_opacity,
+            input$precinct_border,
+            input$precinct_linecolor
+          )
+      }
+    )
 
     # district stats ----
     output$district <- DT::renderDT(
@@ -603,7 +657,8 @@ draw <- function(shp, init_plan, ndists, palette,
         shiny::isolate(val()) |>
           DT::datatable(
             options = list(
-              dom = 't', ordering = FALSE,
+              dom = 't',
+              ordering = FALSE,
               scrollY = paste0(min(ndists * 6, 90), 'vh'),
               # scrollX = TRUE, # TODO make changeable
               pageLength = ndists + 1L
@@ -624,8 +679,11 @@ draw <- function(shp, init_plan, ndists, palette,
 
     shiny::observe({
       DT::replaceData(
-        proxy = dt_proxy, val(), rownames = FALSE,
-        resetPaging = FALSE, clearSelection = 'none'
+        proxy = dt_proxy,
+        val(),
+        rownames = FALSE,
+        resetPaging = FALSE,
+        clearSelection = 'none'
       )
     })
 
@@ -634,12 +692,15 @@ draw <- function(shp, init_plan, ndists, palette,
     output$tab_pop <- gt::render_gt({
       val() |>
         # dplyr::slice(-1) |>
-        dplyr::mutate(District = stringr::str_extract(.data$District, ' \\d+ ')) |>
+        dplyr::mutate(
+          District = stringr::str_extract(.data$District, ' \\d+ ')
+        ) |>
         gt::gt() |>
         gt::tab_style(
           style = gt::cell_fill(color = 'red'),
           locations = gt::cells_body(
-            rows = (.data$Population > max_pop | .data$Population < min_pop) & !is.na(.data$District)
+            rows = (.data$Population > max_pop | .data$Population < min_pop) &
+              !is.na(.data$District)
           )
         ) |>
         gt::cols_label(
@@ -672,16 +733,27 @@ draw <- function(shp, init_plan, ndists, palette,
 
       mapgl::maplibre_proxy('map') |>
         update_shape_style(
-          input$fill_column, pal(), redistio_curr_plan$pl, shp,
-          input$fill_opacity, input$precinct_border, input$precinct_linecolor
+          input$fill_column,
+          pal(),
+          redistio_curr_plan$pl,
+          shp,
+          input$fill_opacity,
+          input$precinct_border,
+          input$precinct_linecolor
         )
 
       new_tb_pop <- val()
-      new_tb_pop$Population <- distr_pop(shp[[pop_col]], total = tot_pop, plan = redistio_curr_plan$pl, ndists = ndists)
-      new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - c(0L, rep(tgt_pop, ndists)))
+      new_tb_pop$Population <- distr_pop(
+        shp[[pop_col]],
+        total = tot_pop,
+        plan = redistio_curr_plan$pl,
+        ndists = ndists
+      )
+      new_tb_pop$Deviation <- as.integer(
+        new_tb_pop$Population - c(0L, rep(tgt_pop, ndists))
+      )
       val(new_tb_pop)
     })
-
 
     # reactive mouseover
     hov_reac <- shiny::reactive({
@@ -696,9 +768,16 @@ draw <- function(shp, init_plan, ndists, palette,
           output$hover <- gt::render_gt({
             # produce hover tables ----
             hov |>
-              dplyr::select(dplyr::any_of(c('group', 'rowname', paste0('V', as.integer(hov_reac_d()$id))))) |>
+              dplyr::select(dplyr::any_of(c(
+                'group',
+                'rowname',
+                paste0('V', as.integer(hov_reac_d()$id))
+              ))) |>
               gt::gt() |>
-              gt::cols_label_with(columns = gt::starts_with('V'), fn = function(x) '') |>
+              gt::cols_label_with(
+                columns = gt::starts_with('V'),
+                fn = function(x) ''
+              ) |>
               gt::tab_style(
                 style = list(
                   gt::cell_text(align = 'left')
@@ -706,7 +785,10 @@ draw <- function(shp, init_plan, ndists, palette,
                 locations = gt::cells_stub(rows = TRUE)
               ) |>
               gt::tab_header(
-                title = paste0('Current District: ', redistio_curr_plan$pl[as.integer(hov_reac_d()$id)]),
+                title = paste0(
+                  'Current District: ',
+                  redistio_curr_plan$pl[as.integer(hov_reac_d()$id)]
+                ),
                 subtitle = paste0('Precinct ID: ', hov_reac_d()$id)
               ) |>
               gt::tab_options(
@@ -723,8 +805,11 @@ draw <- function(shp, init_plan, ndists, palette,
     })
 
     # downloader ----
-    shiny::updateSelectizeInput(session, 'download_id',
-      choices = names(shp), selected = 'redistio_id',
+    shiny::updateSelectizeInput(
+      session,
+      'download_id',
+      choices = names(shp),
+      selected = 'redistio_id',
       server = TRUE
     )
 
@@ -767,20 +852,26 @@ draw <- function(shp, init_plan, ndists, palette,
     # fill mini panel ----
     shiny::observeEvent(input$fill_input, {
       if (input$fill_input == 'District') {
-        shiny::updateSelectizeInput(session, 'fill_column',
+        shiny::updateSelectizeInput(
+          session,
+          'fill_column',
           choices = c('District'),
           selected = NULL,
           server = FALSE
         )
         pal(as.character(palette_reactive()))
       } else if (input$fill_input == 'Elections') {
-        shiny::updateSelectizeInput(session, 'fill_column',
+        shiny::updateSelectizeInput(
+          session,
+          'fill_column',
           choices = names(elect_cols),
           selected = names(elect_cols)[1],
           server = FALSE
         )
       } else {
-        shiny::updateSelectizeInput(session, 'fill_column',
+        shiny::updateSelectizeInput(
+          session,
+          'fill_column',
           choices = demog_cols,
           selected = demog_cols[1],
           server = FALSE
@@ -789,7 +880,8 @@ draw <- function(shp, init_plan, ndists, palette,
       }
     })
 
-    shiny::observeEvent(input$fill_column,
+    shiny::observeEvent(
+      input$fill_column,
       {
         if (input$fill_input == 'Demographics') {
           if (input$fill_column %in% c('pop', 'vap', 'cvap')) {
@@ -798,8 +890,12 @@ draw <- function(shp, init_plan, ndists, palette,
                 data = shp,
                 column = input$fill_column,
                 method = 'equal',
-                n = length(as.character(opts$palette_pop %||% def_opts$palette_pop)),
-                colors = as.character(opts$palette_pop %||% def_opts$palette_pop),
+                n = length(as.character(
+                  opts$palette_pop %||% def_opts$palette_pop
+                )),
+                colors = as.character(
+                  opts$palette_pop %||% def_opts$palette_pop
+                ),
                 na_color = opts$na_color %||% def_opts$na_color
               )
             )
@@ -807,7 +903,9 @@ draw <- function(shp, init_plan, ndists, palette,
             pal(
               percent_palette(
                 column = input$fill_column,
-                palette = as.character(opts$palette_pct %||% def_opts$palette_pct),
+                palette = as.character(
+                  opts$palette_pct %||% def_opts$palette_pct
+                ),
                 na_color = opts$na_color %||% def_opts$na_color
               )
             )
@@ -816,15 +914,22 @@ draw <- function(shp, init_plan, ndists, palette,
           pal(
             percent_palette(
               column = input$fill_column,
-              palette = as.character(opts$palette_party %||% def_opts$palette_party),
+              palette = as.character(
+                opts$palette_party %||% def_opts$palette_party
+              ),
               na_color = opts$na_color %||% def_opts$na_color
             )
           )
         }
         mapgl::maplibre_proxy('map') |>
           update_shape_style(
-            input$fill_column, pal(), redistio_curr_plan$pl, shp,
-            input$fill_opacity, input$precinct_border, input$precinct_linecolor
+            input$fill_column,
+            pal(),
+            redistio_curr_plan$pl,
+            shp,
+            input$fill_opacity,
+            input$precinct_border,
+            input$precinct_linecolor
           )
       },
       ignoreInit = FALSE
@@ -838,9 +943,13 @@ draw <- function(shp, init_plan, ndists, palette,
       handlerExpr = {
         # update palette
         palette_reactive(
-          vapply(seq_len(ndists), function(i) {
-            input[[paste0('color_', i)]]
-          }, FUN.VALUE = character(1))
+          vapply(
+            seq_len(ndists),
+            function(i) {
+              input[[paste0('color_', i)]]
+            },
+            FUN.VALUE = character(1)
+          )
         )
         pal(palette_reactive())
 
@@ -858,8 +967,13 @@ draw <- function(shp, init_plan, ndists, palette,
         if (input$fill_input == 'District') {
           mapgl::maplibre_proxy('map') |>
             update_shape_style(
-              input$fill_column, pal(), redistio_curr_plan$pl, shp,
-              input$fill_opacity, input$precinct_border, input$precinct_linecolor
+              input$fill_column,
+              pal(),
+              redistio_curr_plan$pl,
+              shp,
+              input$fill_opacity,
+              input$precinct_border,
+              input$precinct_linecolor
             )
         }
       }
@@ -867,34 +981,61 @@ draw <- function(shp, init_plan, ndists, palette,
 
     # tools mini panel ----
     discontiguousServer(
-      'discontiguous', redistio_curr_plan, adj, shp,
+      'discontiguous',
+      redistio_curr_plan,
+      adj,
+      shp,
       shiny::reactive(mapgl::maplibre_proxy('map'))
     )
 
     unassignedServer(
-      'unassigned', redistio_curr_plan, shp,
+      'unassigned',
+      redistio_curr_plan,
+      shp,
       shiny::reactive(mapgl::maplibre_proxy('map'))
     )
 
     color_from_fileServer(
-      'colorFromFile', redistio_curr_plan, shp,
+      'colorFromFile',
+      redistio_curr_plan,
+      shp,
       shiny::reactive(mapgl::maplibre_proxy('map')),
-      input$fill_column, input$fill_opacity, input$precinct_border,
+      input$fill_column,
+      input$fill_opacity,
+      input$precinct_border,
       input$precinct_linecolor,
-      pal, undo_l, undo_log, val, tot_pop, ndists, tgt_pop
+      pal,
+      undo_l,
+      undo_log,
+      val,
+      tot_pop,
+      ndists,
+      tgt_pop
     )
 
     color_from_columnServer(
-      'colorFromColumn', redistio_curr_plan, shp,
+      'colorFromColumn',
+      redistio_curr_plan,
+      shp,
       shiny::reactive(mapgl::maplibre_proxy('map')),
-      input$fill_column, input$fill_opacity, input$precinct_border,
+      input$fill_column,
+      input$fill_opacity,
+      input$precinct_border,
       input$precinct_linecolor,
-      pal, undo_l, undo_log, val, tot_pop, ndists, tgt_pop
+      pal,
+      undo_l,
+      undo_log,
+      val,
+      tot_pop,
+      ndists,
+      tgt_pop
     )
 
     # planscore nav panel ----
     planscoreServer(
-      'planscore', redistio_curr_plan, shp
+      'planscore',
+      redistio_curr_plan,
+      shp
     )
 
     demographicsServer('demographics', shp, redistio_curr_plan)
@@ -903,11 +1044,27 @@ draw <- function(shp, init_plan, ndists, palette,
 
     if (use_algorithms) {
       algorithmsServer(
-        'algorithms', session,
-        shp, shp_in, redistio_curr_plan, ndists, palette_reactive,
-        input$fill_opacity, input$precinct_border, input$precinct_linecolor, input$fill_column,
-        leaf_tiles, layers, layer_colors, opts, def_opts,
-        val, tot_pop, tgt_pop, pop_col, undo_l
+        'algorithms',
+        session,
+        shp,
+        shp_in,
+        redistio_curr_plan,
+        ndists,
+        palette_reactive,
+        input$fill_opacity,
+        input$precinct_border,
+        input$precinct_linecolor,
+        input$fill_column,
+        leaf_tiles,
+        layers,
+        layer_colors,
+        opts,
+        def_opts,
+        val,
+        tot_pop,
+        tgt_pop,
+        pop_col,
+        undo_l
       )
     }
   }

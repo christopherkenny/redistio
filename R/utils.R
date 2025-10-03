@@ -24,3 +24,24 @@ prep_palette <- function(palette = NULL, ndists) {
   }
   palette
 }
+
+prep_shp <- function(shp, crs) {
+  # process shp components ----
+  if (!sf::st_is_longlat(shp)) {
+    shp <- sf::st_transform(shp, crs)
+  }
+
+  shp <- shp |>
+    sf::st_make_valid()
+
+  shp_in <- shp
+  shp <- shp |>
+    tibble::as_tibble() |>
+    sf::st_as_sf() |>
+    dplyr::select(-where(is.list))
+
+  list(
+    all_cols = shp_in,
+    no_list_cols = shp
+  )
+}

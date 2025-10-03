@@ -27,17 +27,10 @@ adj_editor <- function(
   shp$redistio_id <- as.character(seq_len(length.out = nrow(shp)))
 
   # process shp components ----
-  if (!sf::st_is_longlat(shp)) {
-    shp <- sf::st_transform(shp, opts$crs %||% def_opts$crs)
-  }
-
+  shp <- prep_shp(shp, crs = opts$crs %||% def_opts$crs)$no_list_cols
   edges_centers <- edge_center_df(shp, adj)
 
-  shp <- shp |>
-    sf::st_make_valid()
-
   # User Interface ----
-
   leaf_tiles <- opts$map_tiles %||% def_opts$map_tiles
 
   ui <- bslib::page_navbar(
