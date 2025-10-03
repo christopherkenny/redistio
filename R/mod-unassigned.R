@@ -43,12 +43,7 @@ unassignedServer <- function(id, plan, shp, map_reac) {
       if (!is.logical(current())) {
         bb <- sf::st_bbox(shp)
         map_reac() |>
-          leaflet::flyToBounds(
-            lng1 = unname(bb['xmin']),
-            lat1 = unname(bb['ymin']),
-            lng2 = unname(bb['xmax']),
-            lat2 = unname(bb['ymax'])
-          )
+          mapgl::fit_bounds(bbox = unname(bb))
       }
       current(FALSE)
     })
@@ -71,11 +66,8 @@ unassignedServer <- function(id, plan, shp, map_reac) {
 
       bb <- sf::st_bbox(shp[nas()[current()], ])
       map_reac() |>
-        leaflet::fitBounds(
-          lng1 = unname(bb['xmin']),
-          lat1 = unname(bb['ymin']),
-          lng2 = unname(bb['xmax']),
-          lat2 = unname(bb['ymax'])
+        mapgl::fit_bounds(
+          bbox = c(unname(bb['xmin']), unname(bb['ymin']), unname(bb['xmax']), unname(bb['ymax']))
         )
     })
 
@@ -90,11 +82,8 @@ unassignedServer <- function(id, plan, shp, map_reac) {
       }
       bb <- sf::st_bbox(shp[nas()[current()], ])
       map_reac() |>
-        leaflet::fitBounds(
-          lng1 = unname(bb['xmin']),
-          lat1 = unname(bb['ymin']),
-          lng2 = unname(bb['xmax']),
-          lat2 = unname(bb['ymax'])
+        mapgl::fit_bounds(
+          bounds = c(unname(bb['xmin']), unname(bb['ymin']), unname(bb['xmax']), unname(bb['ymax']))
         )
     })
   })

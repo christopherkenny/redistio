@@ -23,7 +23,6 @@ planscoreServer <- function(id, plan, shp) {
   stopifnot(!shiny::is.reactive(shp))
 
   shiny::moduleServer(id, function(input, output, session) {
-
     upload_time <- shiny::reactiveVal()
     ps_link <- shiny::reactiveVal()
     ps_data <- shiny::reactiveVal()
@@ -47,7 +46,7 @@ planscoreServer <- function(id, plan, shp) {
       ) |>
         as.character() |>
         ps_link()
-      cat(ps_link(),'\n')
+      # cat(ps_link(), '\n')
       upload_time(Sys.time())
 
       output$planscoreURLs <- shiny::renderUI({
@@ -66,7 +65,12 @@ planscoreServer <- function(id, plan, shp) {
 
     shiny::observeEvent(input$ingest, {
       ps_info <- NULL
-      try({ps_info <- planscorer::ps_ingest(ps_link()[1])}, silent = TRUE)
+      try(
+        {
+          ps_info <- planscorer::ps_ingest(ps_link()[1])
+        },
+        silent = TRUE
+      )
       if (is.null(ps_info)) {
         shiny::showModal(
           shiny::modalDialog('Error ingesting results. Try again in a few seconds.')
@@ -120,8 +124,7 @@ planscorer_summary <- function(ps_info) {
   )
 
   bslib::layout_column_wrap(
-    width = "250px",
+    width = '250px',
     !!!vbs
   )
 }
-

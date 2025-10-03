@@ -3,15 +3,18 @@
 #' @param theme a name of a bootswatch preset theme or other `bslib::bs_theme()` object
 #' @param panels which panels to display in the app, `'draw'` is always shown.
 #' @param select_color a color to use for highlighting selected districts
-#' @param palette_pop a color palette to use for whole people
-#' @param palette_pct a color palette to use for percentages of people
+#' @param border_color a color to use for precinct borders in the map
+#' @param palette_pop a color palette to use for whole people. Defaults to
+#' `RColorBrewer::brewer.pal(n = 3, name = 'Purples')`.
+#' @param palette_pct a color palette to use for percentages of people. Defaults
+#' to `RColorBrewer::brewer.pal(n = 3, name = 'PuOr')`.
 #' @param palette_party a color palette to use for parties
 #' @param map_tiles a tileset to use for the map background, from `leaflet::providers`
 #' @param leaflet_height height to pass to `leaflet::leafletOutput()`
 #' @param crs a coordinate reference system to use in `leaflet::leaflet()`
 #' @param na_color a color to use for unassigned precincts
 #' @param layer_weight a stroke width to use for layers in `leaflet::leaflet()`
-#' @param layer_color colors to use for layers in `leaflet::leaflet()`
+#' @param layer_color colors to use for layers in `mapgl::maplibre()`
 #' @param locked_districts districts to lock on app start to stop edits
 #' @param use_algorithms whether to use redistricting simulation algorithms
 #' @param alg_max_districts maximum number of districts to use in algorithms
@@ -29,10 +32,11 @@
 redistio_options <- function(theme = 'flatly',
                              panels = c('elections', 'demographics', 'integrity', 'algorithms'),
                              select_color = 'purple',
+                             border_color = '#000000',
                              palette_pop = 'Purples',
                              palette_pct = 'PuOr',
                              palette_party = ggredist::ggredist$partisan,
-                             map_tiles = 'CartoDB.Positron',
+                             map_tiles = mapgl::carto_style('voyager'),
                              leaflet_height = '91vh', crs = 4326,
                              na_color = '#0000',
                              layer_weight = 1.5, layer_color = '#000000',
@@ -43,14 +47,18 @@ redistio_options <- function(theme = 'flatly',
                              save_assignment_path = 'redistio.csv',
                              save_shape_path = 'redistio.geojson',
                              ...) {
-  if (!rlang::is_closure(map_tiles)) {
-    mt <- map_tiles
-    map_tiles <- function(map) leaflet::addProviderTiles(map, provider = mt)
+  if (length(palette_pop) == 1) {
+    palette_pop <- RColorBrewer::brewer.pal(n = 3, name = palette_pop)
   }
+  if (length(palette_pct) == 1) {
+    palette_pct <- RColorBrewer::brewer.pal(n = 3, name = palette_pct)
+  }
+
   list(
     theme = theme,
     panels = panels,
     select_color = select_color,
+    border_color = border_color,
     palette_pop = palette_pop,
     palette_pct = palette_pct,
     palette_party = palette_party,

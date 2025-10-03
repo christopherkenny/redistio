@@ -8,10 +8,11 @@ redistio_options(
   theme = "flatly",
   panels = c("elections", "demographics", "integrity", "algorithms"),
   select_color = "purple",
+  border_color = "#000000",
   palette_pop = "Purples",
   palette_pct = "PuOr",
   palette_party = ggredist::ggredist$partisan,
-  map_tiles = "CartoDB.Positron",
+  map_tiles = mapgl::carto_style("voyager"),
   leaflet_height = "91vh",
   crs = 4326,
   na_color = "#0000",
@@ -34,9 +35,13 @@ redistio_options(
 
 \item{select_color}{a color to use for highlighting selected districts}
 
-\item{palette_pop}{a color palette to use for whole people}
+\item{border_color}{a color to use for precinct borders in the map}
 
-\item{palette_pct}{a color palette to use for percentages of people}
+\item{palette_pop}{a color palette to use for whole people. Defaults to
+\code{RColorBrewer::brewer.pal(n = 3, name = 'Purples')}.}
+
+\item{palette_pct}{a color palette to use for percentages of people. Defaults
+to \code{RColorBrewer::brewer.pal(n = 3, name = 'PuOr')}.}
 
 \item{palette_party}{a color palette to use for parties}
 
@@ -50,7 +55,7 @@ redistio_options(
 
 \item{layer_weight}{a stroke width to use for layers in \code{leaflet::leaflet()}}
 
-\item{layer_color}{colors to use for layers in \code{leaflet::leaflet()}}
+\item{layer_color}{colors to use for layers in \code{mapgl::maplibre()}}
 
 \item{locked_districts}{districts to lock on app start to stop edits}
 

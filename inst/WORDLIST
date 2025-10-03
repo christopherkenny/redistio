@@ -1,7 +1,9 @@
 CMD
-Polychrome
+PlanScore
 VTDs
 bootswatch
 districting
+mapgl
 tibble
 tidyselections
+tileset

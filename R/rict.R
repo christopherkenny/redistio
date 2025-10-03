@@ -27,9 +27,9 @@ rict_population <- function(map, plan, as_gt = TRUE) {
   }
 }
 
-rict_contiguity <- function(map, plan, as_gt = TRUE) {
+rict_contiguity <- function(map, plan, adj, as_gt = TRUE) {
   plan[is.na(plan)] <- max(plan, na.rm = TRUE) + 1L
-  df <- geomander::check_contiguity(adj = map$adj, group = plan) |>
+  df <- geomander::check_contiguity(adj = adj, group = plan) |>
     dplyr::group_by(District = .data$group) |>
     dplyr::summarise(Pieces = max(.data$component)) |>
     dplyr::mutate(
