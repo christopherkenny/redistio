@@ -3,6 +3,7 @@
 #' @param shp an `sf` tibble that you want to draw with
 #' @param adj a zero-indexed adjacency graph
 #' @param opts list of options. Default is `redistio_options()`
+#' @param hover_fn Function to generate tables for mouse hovering. Default is `hover_precinct()`.
 #'
 #' @return Shiny app
 #' @export
@@ -16,6 +17,7 @@ adj_editor <- function(
   adj = geomander::adjacency(shp),
   init_plan,
   palette = NULL,
+  hover_fn = hover_precinct,
   opts = redistio_options()
 ) {
   # defaults ----
@@ -31,6 +33,18 @@ adj_editor <- function(
   # process shp components ----
   shp <- prep_shp(shp, crs = opts$crs %||% def_opts$crs)$no_list_cols
   edges_centers <- edge_center_df(shp, adj)
+
+  # prep hover ----
+  shp_tb <- shp |>
+    tibble::as_tibble()
+
+  hov <- hover_fn(
+    shp_tb,
+    pop = dplyr::starts_with('pop'),
+    vap = dplyr::starts_with('vap')
+  ) |>
+    dplyr::bind_rows(.id = 'group') |>
+    format_alarm_names()
 
   # handle colors ----
   if (missing(init_plan)) {
@@ -81,21 +95,32 @@ adj_editor <- function(
             )
           )
         ),
-        bslib::card(
-          # interactive mapper
-          id = 'map-card',
-          full_screen = TRUE,
-          mapgl::maplibreOutput(
-            outputId = 'map',
-            height = opts$leaflet_height %||% def_opts$leaflet_height,
+        bslib::layout_sidebar(
+          sidebar = bslib::sidebar(
+            position = 'right',
+            bslib::navset_bar(
+              id = 'tabRight',
+              bslib::nav_panel(title = 'Precinct', gt::gt_output('hover'))
+            )
+          ),
+          bslib::card(
+            # interactive mapper
+            id = 'map-card',
+            full_screen = TRUE,
+            mapgl::maplibreOutput(
+              outputId = 'map',
+              height = opts$leaflet_height %||% def_opts$leaflet_height,
+            )
           )
-        ),
+        )
       )
     )
   )
 
   # Server ----
   server <- function(input, output, session) {
+    redistio_curr_plan <- shiny::reactiveValues(pl = init_plan)
+
     output$map <- mapgl::renderMaplibre({
       base_map <- mapgl::maplibre(
         bounds = shp,
@@ -131,7 +156,63 @@ adj_editor <- function(
           line_width = 1
         )
 
+      if (!is.null(hover_fn)) {
+        base_map <- base_map |>
+          mapgl::enable_shiny_hover(
+            coordinates = FALSE,
+            features = 'precinct_fill',
+            layer_id = 'precinct_fill'
+          )
+      }
+
       base_map
+    })
+
+    # reactive mouseover
+    hov_reac <- shiny::reactive({
+      input$map_feature_hover
+    })
+    hov_reac_d <- shiny::debounce(hov_reac, 100)
+
+    # precinct stats ----
+    shiny::observeEvent(hov_reac_d(), {
+      if (!is.null(hov_reac_d()) && hov_reac_d()$id <= nrow(shp)) {
+        output$hover <- gt::render_gt({
+          # produce hover tables ----
+          hov |>
+            dplyr::select(dplyr::any_of(c(
+              'group',
+              'rowname',
+              paste0('V', as.integer(hov_reac_d()$id))
+            ))) |>
+            gt::gt() |>
+            gt::cols_label_with(
+              columns = gt::starts_with('V'),
+              fn = function(x) ''
+            ) |>
+            gt::tab_style(
+              style = list(
+                gt::cell_text(align = 'left')
+              ),
+              locations = gt::cells_stub(rows = TRUE)
+            ) |>
+            gt::tab_header(
+              title = paste0(
+                'Current District: ',
+                redistio_curr_plan$pl[as.integer(hov_reac_d()$id)]
+              ),
+              subtitle = paste0('Precinct ID: ', hov_reac_d()$id)
+            ) |>
+            gt::tab_options(
+              data_row.padding = gt::px(1),
+              table.width = '100%',
+              container.padding.y = '0',
+              column_labels.padding = '0',
+              table.background.color = '#fff0'
+            ) |>
+            gt::fmt_number(columns = gt::starts_with('V'), decimals = 0)
+        })
+      }
     })
 
     shiny::observeEvent(
