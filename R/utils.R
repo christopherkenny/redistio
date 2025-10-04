@@ -47,30 +47,32 @@ prep_shp <- function(shp, crs) {
 }
 
 prep_layers <- function(layers, shp) {
-  sf_entries <- which(vapply(
-    layers,
-    function(x) inherits(x, 'sf'),
-    logical(1)
-  ))
-  char_entries <- which(vapply(layers, is.character, logical(1)))
-  if ((length(sf_entries) + length(char_entries)) != length(layers)) {
-    stop('`layers` must be a list of `sf` objects and character vectors.')
-  }
-  for (i in seq_along(char_entries)) {
-    nom <- layers[[char_entries[i]]]
-    layers[[char_entries[i]]] <- shp |>
-      dplyr::select(-where(is.list)) |>
-      dplyr::group_by(!!rlang::sym(layers[[char_entries[i]]])) |>
-      dplyr::summarize()
-    if (is.null(names(layers)) || names(layers)[char_entries[i]] == '') {
-      names(layers)[char_entries[i]] <- nom
+  if (!is.null(layers)) {
+    sf_entries <- which(vapply(
+      layers,
+      function(x) inherits(x, 'sf'),
+      logical(1)
+    ))
+    char_entries <- which(vapply(layers, is.character, logical(1)))
+    if ((length(sf_entries) + length(char_entries)) != length(layers)) {
+      stop('`layers` must be a list of `sf` objects and character vectors.')
     }
-  }
-  if (is.null(names(layers))) {
-    names(layers) <- paste0('layer_', seq_along(layers))
-  }
-  if (any(names(layers) == '')) {
-    names(layers)[names(layers) == ''] <- paste0('layer_', seq_along(layers))
+    for (i in seq_along(char_entries)) {
+      nom <- layers[[char_entries[i]]]
+      layers[[char_entries[i]]] <- shp |>
+        dplyr::select(-where(is.list)) |>
+        dplyr::group_by(!!rlang::sym(layers[[char_entries[i]]])) |>
+        dplyr::summarize()
+      if (is.null(names(layers)) || names(layers)[char_entries[i]] == '') {
+        names(layers)[char_entries[i]] <- nom
+      }
+    }
+    if (is.null(names(layers))) {
+      names(layers) <- paste0('layer_', seq_along(layers))
+    }
+    if (any(names(layers) == '')) {
+      names(layers)[names(layers) == ''] <- paste0('layer_', seq_along(layers))
+    }
   }
   layers
 }
