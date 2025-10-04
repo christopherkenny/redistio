@@ -81,6 +81,24 @@ adj_editor <- function(
         sidebar = bslib::sidebar(
           bslib::accordion(
             bslib::accordion_panel(
+              'Adjacency Editor',
+              shiny::radioButtons(
+                inputId = 'edge_mode',
+                label = 'Edge Mode',
+                choices = c('Add Edge' = 'add', 'Remove Edge' = 'remove'),
+                selected = 'add'
+              ),
+              shiny::actionButton(
+                inputId = 'clear_selection',
+                label = 'Clear Selection',
+                width = '100%',
+                class = 'btn-secondary'
+              ),
+              shiny::hr(),
+              shiny::htmlOutput('selection_status'),
+              icon = shiny::icon('project-diagram')
+            ),
+            bslib::accordion_panel(
               'Fill',
               shiny::sliderInput(
                 inputId = 'fill_opacity',
@@ -131,6 +149,12 @@ adj_editor <- function(
   # Server ----
   server <- function(input, output, session) {
     redistio_curr_plan <- shiny::reactiveValues(pl = init_plan)
+
+    # Adjacency editing state
+    adj_state <- shiny::reactiveValues(
+      adj = adj,
+      selected = character(0)
+    )
 
     output$map <- mapgl::renderMaplibre({
       base_map <- mapgl::maplibre(
@@ -196,6 +220,75 @@ adj_editor <- function(
       base_map
     })
 
+    # Track clicks reactively
+    click_reac <- shiny::reactive({
+      input$map_feature_click
+    })
+
+    # Handle clicks for adjacency editing
+    shiny::observeEvent(click_reac(),
+      {
+        click_data <- click_reac()
+
+        if (!is.null(click_data) && !is.null(click_data$id)) {
+          clicked_id_char <- as.character(click_data$id)
+          clicked_id <- as.integer(click_data$id)
+
+          print(paste('Processing click for ID:', clicked_id))
+          print(paste('Current selection:', paste(adj_state$selected, collapse = ', ')))
+
+          if (clicked_id_char %in% adj_state$selected) {
+            # Deselect if already selected
+            adj_state$selected <- setdiff(adj_state$selected, clicked_id_char)
+            print(paste('Deselected. Now have:', paste(adj_state$selected, collapse = ', ')))
+          } else if (length(adj_state$selected) < 2) {
+            # Add to selection if less than 2 selected
+            adj_state$selected <- c(adj_state$selected, clicked_id_char)
+            print(paste('Selected. Now have:', paste(adj_state$selected, collapse = ', ')))
+          }
+
+          # If two precincts selected, modify adjacency
+          if (length(adj_state$selected) == 2) {
+            if (input$edge_mode == 'add') {
+              # Add edge to adjacency list
+              print(paste0('Need to add edges: ', paste0(adj_state$selected, collapse = ', ')))
+            } else {
+              # Remove edge from adjacency list
+              print(paste0('Need to remove edges: ', paste0(adj_state$selected, collapse = ', ')))
+            }
+
+            # Clear selection after operation
+            adj_state$selected <- character(0)
+          }
+        }
+      },
+      ignoreInit = TRUE
+    )
+
+    # Clear selection button
+    shiny::observeEvent(input$clear_selection, {
+      adj_state$selected <- character(0)
+    })
+
+    # Selection status display
+    output$selection_status <- shiny::renderUI({
+      selected <- adj_state$selected
+      if (length(selected) == 0) {
+        shiny::HTML('<p style="color: #666;">No precincts selected</p>')
+      } else if (length(selected) == 1) {
+        shiny::HTML(paste0(
+          '<p><strong>Selected:</strong> Precinct ', selected[1], '</p>',
+          '<p style="color: #666;">Click another precinct to ',
+          input$edge_mode, ' edge</p>'
+        ))
+      } else {
+        shiny::HTML(paste0(
+          '<p><strong>Selected:</strong> Precincts ',
+          paste(selected, collapse = ', '), '</p>'
+        ))
+      }
+    })
+
     # reactive mouseover
     hov_reac <- shiny::reactive({
       input$map_feature_hover
@@ -204,9 +297,8 @@ adj_editor <- function(
 
     # precinct stats ----
     shiny::observeEvent(hov_reac_d(), {
-      if (!is.null(hov_reac_d()) && hov_reac_d()$id <= nrow(shp)) {
+      if (!is.null(hov_reac_d())) {
         output$hover <- gt::render_gt({
-          # produce hover tables ----
           hov |>
             dplyr::select(dplyr::any_of(c(
               'group',
