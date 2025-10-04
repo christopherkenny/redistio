@@ -200,7 +200,7 @@ adj_editor <- function(
     hov_reac <- shiny::reactive({
       input$map_feature_hover
     })
-    hov_reac_d <- shiny::debounce(hov_reac, 100)
+    hov_reac_d <- shiny::debounce(hov_reac, opts$debounce %||% def_opts$debounce)
 
     # precinct stats ----
     shiny::observeEvent(hov_reac_d(), {
