@@ -139,6 +139,7 @@ draw <- function(
 
   # prep hover ----
   shp_tb <- shp |>
+    sf::st_drop_geometry() |>
     tibble::as_tibble()
   # sf::st_drop_geometry()
   # Using sf::st_drop_geometry causes a
@@ -522,7 +523,7 @@ draw <- function(
         base_map <- base_map |>
           mapgl::enable_shiny_hover(
             coordinates = FALSE,
-            features = 'precinct_fill',
+            features = TRUE,
             layer_id = 'precinct_fill'
           )
       }
@@ -737,7 +738,7 @@ draw <- function(
 
     # precinct stats ----
     shiny::observeEvent(hov_reac_d(), {
-      if (!is.null(hov_reac_d()) && hov_reac_d()$id <= nrow(shp)) {
+      if (!is.null(hov_reac_d())) {
         if (input$tabRight == 'Precinct') {
           output$hover <- gt::render_gt({
             # produce hover tables ----
