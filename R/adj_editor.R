@@ -11,12 +11,14 @@
 #' @examples
 #' if (interactive()) {
 #'   adj_editor(dc, init_plan = dc$ward)
+#'   adj_editor(dc, init_plan = dc$ward, layers = list(neighborhoods = 'adv_nbr'))
 #' }
 adj_editor <- function(
   shp,
   adj = geomander::adjacency(shp),
   init_plan,
   palette = NULL,
+  layers = NULL,
   hover_fn = hover_precinct,
   opts = redistio_options()
 ) {
@@ -55,6 +57,15 @@ adj_editor <- function(
     init_plan <- as.integer(init_plan)
   }
   palette <- prep_palette(palette, length(unique(init_plan)))
+
+  # prep layer colors ----
+  if (!is.null(layers)) {
+    layer_colors <- opts$layer_color %||% def_opts$layer_color
+    if (length(layer_colors) == 1L) {
+      layer_colors <- rep(layer_colors, length(layers))[seq_along(layers)]
+    }
+    layers <- prep_layers(layers, shp)
+  }
 
   # User Interface ----
   leaf_tiles <- opts$map_tiles %||% def_opts$map_tiles
@@ -155,6 +166,23 @@ adj_editor <- function(
           line_color = opts$border_color %||% def_opts$border_color,
           line_width = 1
         )
+
+      if (!is.null(layers)) {
+        for (i in seq_along(layers)) {
+          base_map <- base_map |>
+            mapgl::add_line_layer(
+              source = layers[[i]],
+              id = names(layers)[i],
+              line_width = opts$layer_weight %||% def_opts$layer_weight,
+              line_color = layer_colors[i]
+            )
+        }
+        base_map <- base_map |>
+          mapgl::add_layers_control(
+            layers = names(layers),
+            collapsible = TRUE
+          )
+      }
 
       if (!is.null(hover_fn)) {
         base_map <- base_map |>

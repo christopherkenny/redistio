@@ -4,12 +4,22 @@
 \alias{adj_editor}
 \title{Interactive Adjacency Graph Editing}
 \usage{
-adj_editor(shp, adj = geomander::adjacency(shp), opts = redistio_options())
+adj_editor(
+  shp,
+  adj = geomander::adjacency(shp),
+  init_plan,
+  palette = NULL,
+  layers = NULL,
+  hover_fn = hover_precinct,
+  opts = redistio_options()
+)
 }
 \arguments{
 \item{shp}{an \code{sf} tibble that you want to draw with}
 
 \item{adj}{a zero-indexed adjacency graph}
+
+\item{hover_fn}{Function to generate tables for mouse hovering. Default is \code{hover_precinct()}.}
 
 \item{opts}{list of options. Default is \code{redistio_options()}}
 }
@@ -21,6 +31,7 @@ Interactive Adjacency Graph Editing
 }
 \examples{
 if (interactive()) {
-  adj_editor(dc)
+  adj_editor(dc, init_plan = dc$ward)
+  adj_editor(dc, init_plan = dc$ward, layers = list(neighborhoods = 'adv_nbr'))
 }
 }

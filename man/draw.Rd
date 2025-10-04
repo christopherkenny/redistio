@@ -8,7 +8,7 @@ draw(
   shp,
   init_plan,
   ndists,
-  palette,
+  palette = NULL,
   layers = NULL,
   pop_tol = 0.05,
   pop_col = "pop",
