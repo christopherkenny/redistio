@@ -67,6 +67,9 @@ adj_editor <- function(
     layers <- prep_layers(layers, shp)
   }
 
+  # init log ----
+  log <- log_adj()
+
   # User Interface ----
   leaf_tiles <- opts$map_tiles %||% def_opts$map_tiles
 
@@ -252,9 +255,11 @@ adj_editor <- function(
             if (input$edge_mode == 'add') {
               # Add edge to adjacency list
               print(paste0('Need to add edges: ', paste0(adj_state$selected, collapse = ', ')))
+              log_adj_update(log, act = '+', p = sort(as.integer(adj_state$selected)))
             } else {
               # Remove edge from adjacency list
               print(paste0('Need to remove edges: ', paste0(adj_state$selected, collapse = ', ')))
+              log_adj_update(log, act = '-', p = sort(as.integer(adj_state$selected)))
             }
 
             # Clear selection after operation

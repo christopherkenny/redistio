@@ -75,8 +75,6 @@ draw <- function(
     init_plan <- as.integer(init_plan)
   }
 
-  # TODO handle non 1, ..., ndists ints
-
   shp$redistio_id <- as.character(seq_len(length.out = nrow(shp)))
 
   if (!adj_col %in% names(shp)) {
