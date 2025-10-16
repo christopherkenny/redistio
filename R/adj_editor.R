@@ -79,7 +79,7 @@ adj_editor <- function(
     id = 'navbar',
     # editor panel ----
     bslib::nav_panel(
-      title = ' adj editor',
+      title = 'adj editor',
       bslib::layout_sidebar(
         sidebar = bslib::sidebar(
           bslib::accordion(
@@ -238,7 +238,6 @@ adj_editor <- function(
           clicked_id <- as.integer(click_data$id)
 
           print(paste('Processing click for ID:', clicked_id))
-          print(paste('Current selection:', paste(adj_state$selected, collapse = ', ')))
 
           if (clicked_id_char %in% adj_state$selected) {
             # Deselect if already selected
@@ -255,6 +254,15 @@ adj_editor <- function(
             if (input$edge_mode == 'add') {
               # Add edge to adjacency list
               print(paste0('Need to add edges: ', paste0(adj_state$selected, collapse = ', ')))
+              mapgl::maplibre_proxy('map') |>
+                mapgl::add_line_layer(
+                  id = paste0(sort(adj_state$selected), collapse = '-'),
+                  source = new_single_edge(
+                    edges_centers$centers,
+                    min(as.integer(adj_state$selected)),
+                    max(as.integer(adj_state$selected))
+                  )
+                )
               log_adj_update(log, act = '+', p = sort(as.integer(adj_state$selected)))
             } else {
               # Remove edge from adjacency list

@@ -44,3 +44,26 @@ edge_center_df <- function(shp, adj) {
 
   list(nb = nb, centers = centers)
 }
+
+new_single_edge <- function(centers, i, j) {
+
+  geoms <- lapply(seq_along(i), function(x) {
+    mat <- matrix(
+      c(
+        as.numeric(sf::st_geometry(centers)[[as.integer(i)[x]]]),
+        as.numeric(sf::st_geometry(centers)[[as.integer(j)[x]]])
+      ),
+      nrow = 2,
+      byrow = TRUE
+    )
+    sf::st_linestring(mat)
+  })
+
+  dplyr::tibble(
+    i = i,
+    j = j
+  ) |>
+    dplyr::mutate(geometry = sf::st_sfc(geoms)) |>
+    sf::st_as_sf() |>
+    sf::st_set_crs(sf::st_crs(centers))
+}
