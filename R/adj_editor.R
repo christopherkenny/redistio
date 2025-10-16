@@ -282,8 +282,8 @@ adj_editor <- function(
               } else if (isFALSE(state$shown) && isTRUE(state$original)) {
                 # then we have to fix the filter
                 current_edges <- get_current_edge_ids(adj_state$tracker)
-                mapgl::maplibre_proxy('map')  |>
-                  mapgl::set_filter('edges', list('in', 'line_id', current_edges))
+                mapgl::maplibre_proxy('map') |>
+                  mapgl::set_filter('edges', list('match', mapgl::get_column('line_id'), as.list(current_edges), TRUE, FALSE))
               }
 
               log <- log_adj_update(log, act = '+', p = sort(as.integer(adj_state$selected)))
@@ -291,7 +291,6 @@ adj_editor <- function(
               # Remove edge from adjacency list
               print(paste0('Need to remove edges: ', paste0(adj_state$selected, collapse = ', ')))
 
-              # TODO consider the right set of conditionals to update state
               adj_state$tracker <- remove_edge_from_tracker(
                 adj_state$tracker,
                 min(as.integer(adj_state$selected)),
@@ -306,9 +305,8 @@ adj_editor <- function(
                     )
                 } else if (isTRUE(state$original) && isTRUE(state$shown)) {
                   current_edges <- get_current_edge_ids(adj_state$tracker)
-                  print(current_edges)
-                  mapgl::maplibre_proxy('map')  |>
-                    mapgl::set_filter('edges', list('in', list(current_edges), 'line_id'))
+                  mapgl::maplibre_proxy('map') |>
+                    mapgl::set_filter('edges', list('match', mapgl::get_column('line_id'), as.list(current_edges), TRUE, FALSE))
                 }
               }
 
