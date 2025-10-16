@@ -35,6 +35,7 @@ adj_editor <- function(
   # process shp components ----
   shp <- prep_shp(shp, crs = opts$crs %||% def_opts$crs)$no_list_cols
   edges_centers <- edge_center_df(shp, adj)
+  edge_tracker <- init_edge_tracker(edges_centers$nb)
 
   # prep hover ----
   shp_tb <- shp |>
@@ -156,7 +157,8 @@ adj_editor <- function(
     # Adjacency editing state
     adj_state <- shiny::reactiveValues(
       adj = adj,
-      selected = character(0)
+      selected = character(0),
+      tracker = edge_tracker
     )
 
     output$map <- mapgl::renderMaplibre({
@@ -251,22 +253,63 @@ adj_editor <- function(
 
           # If two precincts selected, modify adjacency
           if (length(adj_state$selected) == 2) {
+
+            state <- check_edge_state(
+              adj_state$tracker,
+              min(as.integer(adj_state$selected)),
+              max(as.integer(adj_state$selected))
+            )
+
             if (input$edge_mode == 'add') {
               # Add edge to adjacency list
               print(paste0('Need to add edges: ', paste0(adj_state$selected, collapse = ', ')))
-              mapgl::maplibre_proxy('map') |>
-                mapgl::add_line_layer(
-                  id = paste0(sort(adj_state$selected), collapse = '-'),
-                  source = new_single_edge(
-                    edges_centers$centers,
-                    min(as.integer(adj_state$selected)),
-                    max(as.integer(adj_state$selected))
+
+              if (!state$exists || (isFALSE(state$original) && isFALSE(state$shown))) {
+                mapgl::maplibre_proxy('map') |>
+                  mapgl::add_line_layer(
+                    id = paste0(sort(adj_state$selected), collapse = '-'),
+                    source = new_single_edge(
+                      edges_centers$centers,
+                      min(as.integer(adj_state$selected)),
+                      max(as.integer(adj_state$selected))
+                    )
                   )
+
+                adj_state$tracker <- add_edge_to_tracker(
+                  adj_state$tracker,
+                  min(as.integer(adj_state$selected)),
+                  max(as.integer(adj_state$selected))
                 )
+              } else if (isFALSE(state$shown) && isTRUE(state$original)) {
+                # then we have to fix the filter
+              }
+
               log_adj_update(log, act = '+', p = sort(as.integer(adj_state$selected)))
             } else {
               # Remove edge from adjacency list
               print(paste0('Need to remove edges: ', paste0(adj_state$selected, collapse = ', ')))
+
+              # TODO consider the right set of conditionals to update state
+              adj_state$tracker <- remove_edge_from_tracker(
+                adj_state$tracker,
+                min(as.integer(adj_state$selected)),
+                max(as.integer(adj_state$selected))
+              )
+
+              if (state$exists) {
+                if (isFALSE(state$original) && isTRUE(state$shown)) {
+                  mapgl::maplibre_proxy('map') |>
+                    mapgl::clear_layer(
+                      layer_id = paste0(sort(adj_state$selected), collapse = '-')
+                    )
+                } else if (isTRUE(state$original) && isTRUE(state$shown)) {
+                  # then we have to fix the filter
+                  # set current shown here
+                  # mapgl::maplibre_proxy('map')  |>
+                  #   mapgl::set_filter("selected", list('in', 'id', features$id))
+                }
+              }
+
               log_adj_update(log, act = '-', p = sort(as.integer(adj_state$selected)))
             }
 

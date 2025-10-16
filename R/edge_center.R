@@ -37,7 +37,10 @@ edge_center_df <- function(shp, adj) {
   })
 
   edgedf <- edgedf |>
-    dplyr::mutate(geometry = sf::st_sfc(geoms))
+    dplyr::mutate(
+      line_id = paste0(i, '-', j) |>
+      geometry = sf::st_sfc(geoms)
+    )
 
   suppressWarnings(nb <- sf::st_as_sf(edgedf))
   suppressWarnings(sf::st_crs(nb) <- sf::st_crs(shp))
