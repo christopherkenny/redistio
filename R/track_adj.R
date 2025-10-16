@@ -53,3 +53,10 @@ check_edge_state <- function(tracker, i, j) {
     )
   }
 }
+
+get_current_edge_ids <- function(tracker) {
+  tracker |>
+    dplyr::filter(.data$shown) |>
+    dplyr::mutate(id = paste0(.data$i, '-', .data$j)) |>
+    dplyr::pull('id')
+}

@@ -38,7 +38,7 @@ edge_center_df <- function(shp, adj) {
 
   edgedf <- edgedf |>
     dplyr::mutate(
-      line_id = paste0(i, '-', j) |>
+      line_id = paste0(i, '-', j),
       geometry = sf::st_sfc(geoms)
     )
 

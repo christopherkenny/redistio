@@ -174,7 +174,7 @@ adj_editor <- function(
         mapgl::add_source(
           id = 'lines',
           data = edges_centers$nb,
-          promoteId = 'redistio_lines'
+          promoteId = 'line_id'
         ) |>
         mapgl::add_fill_layer(
           source = 'redistio',
@@ -263,6 +263,11 @@ adj_editor <- function(
             if (input$edge_mode == 'add') {
               # Add edge to adjacency list
               print(paste0('Need to add edges: ', paste0(adj_state$selected, collapse = ', ')))
+              adj_state$tracker <- add_edge_to_tracker(
+                adj_state$tracker,
+                min(as.integer(adj_state$selected)),
+                max(as.integer(adj_state$selected))
+              )
 
               if (!state$exists || (isFALSE(state$original) && isFALSE(state$shown))) {
                 mapgl::maplibre_proxy('map') |>
@@ -274,17 +279,14 @@ adj_editor <- function(
                       max(as.integer(adj_state$selected))
                     )
                   )
-
-                adj_state$tracker <- add_edge_to_tracker(
-                  adj_state$tracker,
-                  min(as.integer(adj_state$selected)),
-                  max(as.integer(adj_state$selected))
-                )
               } else if (isFALSE(state$shown) && isTRUE(state$original)) {
                 # then we have to fix the filter
+                current_edges <- get_current_edge_ids(adj_state$tracker)
+                mapgl::maplibre_proxy('map')  |>
+                  mapgl::set_filter('edges', list('in', 'line_id', current_edges))
               }
 
-              log_adj_update(log, act = '+', p = sort(as.integer(adj_state$selected)))
+              log <- log_adj_update(log, act = '+', p = sort(as.integer(adj_state$selected)))
             } else {
               # Remove edge from adjacency list
               print(paste0('Need to remove edges: ', paste0(adj_state$selected, collapse = ', ')))
@@ -303,14 +305,14 @@ adj_editor <- function(
                       layer_id = paste0(sort(adj_state$selected), collapse = '-')
                     )
                 } else if (isTRUE(state$original) && isTRUE(state$shown)) {
-                  # then we have to fix the filter
-                  # set current shown here
-                  # mapgl::maplibre_proxy('map')  |>
-                  #   mapgl::set_filter("selected", list('in', 'id', features$id))
+                  current_edges <- get_current_edge_ids(adj_state$tracker)
+                  print(current_edges)
+                  mapgl::maplibre_proxy('map')  |>
+                    mapgl::set_filter('edges', list('in', list(current_edges), 'line_id'))
                 }
               }
 
-              log_adj_update(log, act = '-', p = sort(as.integer(adj_state$selected)))
+              log <- log_adj_update(log, act = '-', p = sort(as.integer(adj_state$selected)))
             }
 
             # Clear selection after operation
