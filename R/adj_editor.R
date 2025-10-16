@@ -158,7 +158,8 @@ adj_editor <- function(
     adj_state <- shiny::reactiveValues(
       adj = adj,
       selected = character(0),
-      tracker = edge_tracker
+      tracker = edge_tracker,
+      log = log
     )
 
     output$map <- mapgl::renderMaplibre({
@@ -286,7 +287,7 @@ adj_editor <- function(
                   mapgl::set_filter('edges', list('match', mapgl::get_column('line_id'), as.list(current_edges), TRUE, FALSE))
               }
 
-              log <- log_adj_update(log, act = '+', p = sort(as.integer(adj_state$selected)))
+              adj_state$log <- log_adj_update(adj_state$log, act = '+', p = sort(as.integer(adj_state$selected)))
             } else {
               # Remove edge from adjacency list
               print(paste0('Need to remove edges: ', paste0(adj_state$selected, collapse = ', ')))
@@ -310,9 +311,8 @@ adj_editor <- function(
                 }
               }
 
-              log <- log_adj_update(log, act = '-', p = sort(as.integer(adj_state$selected)))
+              adj_state$log <- log_adj_update(adj_state$log, act = '-', p = sort(as.integer(adj_state$selected)))
             }
-
             # Clear selection after operation
             adj_state$selected <- character(0)
           }
