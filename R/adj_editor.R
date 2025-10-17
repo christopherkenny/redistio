@@ -147,6 +147,23 @@ adj_editor <- function(
           )
         )
       )
+    ),
+    # export panel ----
+    bslib::nav_panel(
+      title = 'Export',
+      bslib::layout_columns(
+        col_widths = c(6, 6),
+        bslib::card(
+          bslib::card_header('Edit Log'),
+          full_screen = TRUE,
+          gt::gt_output('edit_log_table')
+        ),
+        bslib::card(
+          bslib::card_header('Code'),
+          full_screen = TRUE,
+          shiny::verbatimTextOutput('edit_code')
+        )
+      )
     )
   )
 
@@ -156,7 +173,6 @@ adj_editor <- function(
 
     # Adjacency editing state
     adj_state <- shiny::reactiveValues(
-      adj = adj,
       selected = character(0),
       tracker = edge_tracker,
       log = log
@@ -233,92 +249,91 @@ adj_editor <- function(
 
     # Handle clicks for adjacency editing
     shiny::observeEvent(click_reac(),
-      {
-        click_data <- click_reac()
+                        {
+                          click_data <- click_reac()
+                          if (!is.null(click_data) && !is.null(click_data$id) & click_data$layer == 'precinct_fill') {
+                            clicked_id_char <- as.character(click_data$id)
+                            clicked_id <- as.integer(click_data$id)
 
-        if (!is.null(click_data) && !is.null(click_data$id)) {
-          clicked_id_char <- as.character(click_data$id)
-          clicked_id <- as.integer(click_data$id)
+                            print(paste('Processing click for ID:', clicked_id))
 
-          print(paste('Processing click for ID:', clicked_id))
+                            if (clicked_id_char %in% adj_state$selected) {
+                              # Deselect if already selected
+                              adj_state$selected <- setdiff(adj_state$selected, clicked_id_char)
+                              print(paste('Deselected. Now have:', paste(adj_state$selected, collapse = ', ')))
+                            } else if (length(adj_state$selected) < 2) {
+                              # Add to selection if less than 2 selected
+                              adj_state$selected <- c(adj_state$selected, clicked_id_char)
+                              print(paste('Selected. Now have:', paste(adj_state$selected, collapse = ', ')))
+                            }
 
-          if (clicked_id_char %in% adj_state$selected) {
-            # Deselect if already selected
-            adj_state$selected <- setdiff(adj_state$selected, clicked_id_char)
-            print(paste('Deselected. Now have:', paste(adj_state$selected, collapse = ', ')))
-          } else if (length(adj_state$selected) < 2) {
-            # Add to selection if less than 2 selected
-            adj_state$selected <- c(adj_state$selected, clicked_id_char)
-            print(paste('Selected. Now have:', paste(adj_state$selected, collapse = ', ')))
-          }
+                            # If two precincts selected, modify adjacency
+                            if (length(adj_state$selected) == 2) {
 
-          # If two precincts selected, modify adjacency
-          if (length(adj_state$selected) == 2) {
+                              state <- check_edge_state(
+                                adj_state$tracker,
+                                min(as.integer(adj_state$selected)),
+                                max(as.integer(adj_state$selected))
+                              )
 
-            state <- check_edge_state(
-              adj_state$tracker,
-              min(as.integer(adj_state$selected)),
-              max(as.integer(adj_state$selected))
-            )
+                              if (input$edge_mode == 'add') {
+                                # Add edge to adjacency list
+                                print(paste0('Need to add edges: ', paste0(adj_state$selected, collapse = ', ')))
+                                adj_state$tracker <- add_edge_to_tracker(
+                                  adj_state$tracker,
+                                  min(as.integer(adj_state$selected)),
+                                  max(as.integer(adj_state$selected))
+                                )
 
-            if (input$edge_mode == 'add') {
-              # Add edge to adjacency list
-              print(paste0('Need to add edges: ', paste0(adj_state$selected, collapse = ', ')))
-              adj_state$tracker <- add_edge_to_tracker(
-                adj_state$tracker,
-                min(as.integer(adj_state$selected)),
-                max(as.integer(adj_state$selected))
-              )
+                                if (!state$exists || (isFALSE(state$original) && isFALSE(state$shown))) {
+                                  mapgl::maplibre_proxy('map') |>
+                                    mapgl::add_line_layer(
+                                      id = paste0(sort(adj_state$selected), collapse = '-'),
+                                      source = new_single_edge(
+                                        edges_centers$centers,
+                                        min(as.integer(adj_state$selected)),
+                                        max(as.integer(adj_state$selected))
+                                      )
+                                    )
+                                } else if (isFALSE(state$shown) && isTRUE(state$original)) {
+                                  # then we have to fix the filter
+                                  current_edges <- get_current_edge_ids(adj_state$tracker)
+                                  mapgl::maplibre_proxy('map') |>
+                                    mapgl::set_filter('edges', list('match', mapgl::get_column('line_id'), as.list(current_edges), TRUE, FALSE))
+                                }
 
-              if (!state$exists || (isFALSE(state$original) && isFALSE(state$shown))) {
-                mapgl::maplibre_proxy('map') |>
-                  mapgl::add_line_layer(
-                    id = paste0(sort(adj_state$selected), collapse = '-'),
-                    source = new_single_edge(
-                      edges_centers$centers,
-                      min(as.integer(adj_state$selected)),
-                      max(as.integer(adj_state$selected))
-                    )
-                  )
-              } else if (isFALSE(state$shown) && isTRUE(state$original)) {
-                # then we have to fix the filter
-                current_edges <- get_current_edge_ids(adj_state$tracker)
-                mapgl::maplibre_proxy('map') |>
-                  mapgl::set_filter('edges', list('match', mapgl::get_column('line_id'), as.list(current_edges), TRUE, FALSE))
-              }
+                                adj_state$log <- log_adj_update(adj_state$log, act = '+', p = sort(as.integer(adj_state$selected)))
+                              } else {
+                                # Remove edge from adjacency list
+                                print(paste0('Need to remove edges: ', paste0(adj_state$selected, collapse = ', ')))
 
-              adj_state$log <- log_adj_update(adj_state$log, act = '+', p = sort(as.integer(adj_state$selected)))
-            } else {
-              # Remove edge from adjacency list
-              print(paste0('Need to remove edges: ', paste0(adj_state$selected, collapse = ', ')))
+                                adj_state$tracker <- remove_edge_from_tracker(
+                                  adj_state$tracker,
+                                  min(as.integer(adj_state$selected)),
+                                  max(as.integer(adj_state$selected))
+                                )
 
-              adj_state$tracker <- remove_edge_from_tracker(
-                adj_state$tracker,
-                min(as.integer(adj_state$selected)),
-                max(as.integer(adj_state$selected))
-              )
+                                if (state$exists) {
+                                  if (isFALSE(state$original) && isTRUE(state$shown)) {
+                                    mapgl::maplibre_proxy('map') |>
+                                      mapgl::clear_layer(
+                                        layer_id = paste0(sort(adj_state$selected), collapse = '-')
+                                      )
+                                  } else if (isTRUE(state$original) && isTRUE(state$shown)) {
+                                    current_edges <- get_current_edge_ids(adj_state$tracker)
+                                    mapgl::maplibre_proxy('map') |>
+                                      mapgl::set_filter('edges', list('match', mapgl::get_column('line_id'), as.list(current_edges), TRUE, FALSE))
+                                  }
+                                }
 
-              if (state$exists) {
-                if (isFALSE(state$original) && isTRUE(state$shown)) {
-                  mapgl::maplibre_proxy('map') |>
-                    mapgl::clear_layer(
-                      layer_id = paste0(sort(adj_state$selected), collapse = '-')
-                    )
-                } else if (isTRUE(state$original) && isTRUE(state$shown)) {
-                  current_edges <- get_current_edge_ids(adj_state$tracker)
-                  mapgl::maplibre_proxy('map') |>
-                    mapgl::set_filter('edges', list('match', mapgl::get_column('line_id'), as.list(current_edges), TRUE, FALSE))
-                }
-              }
-
-              adj_state$log <- log_adj_update(adj_state$log, act = '-', p = sort(as.integer(adj_state$selected)))
-            }
-            # Clear selection after operation
-            adj_state$selected <- character(0)
-          }
-        }
-      },
-      ignoreInit = TRUE
+                                adj_state$log <- log_adj_update(adj_state$log, act = '-', p = sort(as.integer(adj_state$selected)))
+                              }
+                              # Clear selection after operation
+                              adj_state$selected <- character(0)
+                            }
+                          }
+                        },
+                        ignoreInit = TRUE
     )
 
     # Clear selection button
@@ -412,6 +427,61 @@ adj_editor <- function(
           )
       }
     )
+
+    # Export outputs ----
+    output$edit_log_table <- gt::render_gt({
+      log_data <- adj_state$log
+      non_empty <- which(log_data$action != '')
+
+      if (length(non_empty) == 0) {
+        return(
+          data.frame(
+            Action = character(0),
+            i = integer(0),
+            j = integer(0)
+          ) |>
+            gt::gt() |>
+            gt::tab_header(title = 'No edits yet')
+        )
+      }
+
+      data.frame(
+        Action = log_data$action[non_empty],
+        i = log_data$pair[non_empty, 1],
+        j = log_data$pair[non_empty, 2]
+      ) |>
+        gt::gt() |>
+        gt::tab_header(title = 'Adjacency Edits') |>
+        gt::tab_options(
+          table.width = '100%',
+          container.padding.y = '10px'
+        )
+    })
+
+    output$edit_code <- shiny::renderText({
+      log_data <- adj_state$log
+      non_empty <- which(log_data$action != '')
+
+      if (length(non_empty) == 0) {
+        return('adj')
+      }
+
+      code_lines <- c('adj')
+
+      for (idx in non_empty) {
+        action <- log_data$action[idx]
+        i <- log_data$pair[idx, 1]
+        j <- log_data$pair[idx, 2]
+
+        if (action == '+') {
+          code_lines <- c(code_lines, paste0('  add_edge(', i, ', ', j, ')'))
+        } else if (action == '-') {
+          code_lines <- c(code_lines, paste0('  subtract_edge(', i, ', ', j, ')'))
+        }
+      }
+
+      paste(code_lines, collapse = ' |>\n')
+    })
   }
   # run app ----
   shiny::shinyApp(ui = ui, server = server)
