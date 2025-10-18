@@ -19,6 +19,13 @@ adj_editor(
 
 \item{adj}{a zero-indexed adjacency graph}
 
+\item{init_plan}{plan to initialize coloring}
+
+\item{palette}{Color palette to fill shapes with. Default is \verb{Polychrome 36} or,
+if installed, \code{crayons::crayons$no_48}.}
+
+\item{layers}{Named list of \code{sf} objects to overlay. Also takes column names in \code{shp} to group by.}
+
 \item{hover_fn}{Function to generate tables for mouse hovering. Default is \code{hover_precinct()}.}
 
 \item{opts}{list of options. Default is \code{redistio_options()}}

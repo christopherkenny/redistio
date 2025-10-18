@@ -2,8 +2,12 @@
 #'
 #' @param shp an `sf` tibble that you want to draw with
 #' @param adj a zero-indexed adjacency graph
-#' @param opts list of options. Default is `redistio_options()`
+#' @param init_plan plan to initialize coloring
+#' @param palette Color palette to fill shapes with. Default is `Polychrome 36` or,
+#' if installed, `crayons::crayons$no_48`.
+#' @param layers Named list of `sf` objects to overlay. Also takes column names in `shp` to group by.
 #' @param hover_fn Function to generate tables for mouse hovering. Default is `hover_precinct()`.
+#' @param opts list of options. Default is `redistio_options()`
 #'
 #' @return Shiny app
 #' @export

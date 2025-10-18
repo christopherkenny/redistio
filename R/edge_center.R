@@ -20,7 +20,7 @@ edge_center_df <- function(shp, adj) {
   )
   edgedf <- edgedf |>
     dplyr::mutate(i = pmin(.data$start, .data$finish), j = pmax(.data$start, .data$finish)) |>
-    dplyr::select('i', 'j')
+    dplyr::select(dplyr::all_of(c('i', 'j')))
   edgedf <- edgedf[!duplicated(edgedf), ]
 
   geoms <- lapply(seq_len(nrow(edgedf)), function(x) {
@@ -38,7 +38,7 @@ edge_center_df <- function(shp, adj) {
 
   edgedf <- edgedf |>
     dplyr::mutate(
-      line_id = paste0(i, '-', j),
+      line_id = paste0(.data$i, '-', .data$j),
       geometry = sf::st_sfc(geoms)
     )
 
