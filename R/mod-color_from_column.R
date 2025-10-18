@@ -47,7 +47,7 @@ color_from_columnServer <- function(id, plan, shp, map_reac,
 
       map_reac() |>
         update_shape_style(
-          i_fill_column, pal(), dat, shp,
+          i_fill_column, pal(), shp[[input$column]], shp,
           i_fill_opacity, i_precinct_border, i_precinct_linecolor
         )
     })
