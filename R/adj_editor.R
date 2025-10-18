@@ -14,13 +14,13 @@
 #'   adj_editor(dc, init_plan = dc$ward, layers = list(neighborhoods = 'adv_nbr'))
 #' }
 adj_editor <- function(
-  shp,
-  adj = geomander::adjacency(shp),
-  init_plan,
-  palette = NULL,
-  layers = NULL,
-  hover_fn = hover_precinct,
-  opts = redistio_options()
+    shp,
+    adj = geomander::adjacency(shp),
+    init_plan,
+    palette = NULL,
+    layers = NULL,
+    hover_fn = hover_precinct,
+    opts = redistio_options()
 ) {
   # defaults ----
   def_opts <- redistio_options()
@@ -92,15 +92,19 @@ adj_editor <- function(
                 choices = c('Add Edge' = 'add', 'Remove Edge' = 'remove'),
                 selected = 'add'
               ),
+              shiny::textInput(
+                inputId = 'edit_comment',
+                label = 'Comment (optional)',
+                placeholder = 'e.g., River, County line, etc.'
+              ),
+              shiny::hr(),
+              shiny::htmlOutput('selection_status'),
               shiny::actionButton(
                 inputId = 'clear_selection',
                 label = 'Clear Selection',
                 width = '100%',
                 class = 'btn-secondary'
-              ),
-              shiny::hr(),
-              shiny::htmlOutput('selection_status'),
-              icon = shiny::icon('project-diagram')
+              )
             ),
             bslib::accordion_panel(
               'Fill',
@@ -302,7 +306,7 @@ adj_editor <- function(
                                     mapgl::set_filter('edges', list('match', mapgl::get_column('line_id'), as.list(current_edges), TRUE, FALSE))
                                 }
 
-                                adj_state$log <- log_adj_update(adj_state$log, act = '+', p = sort(as.integer(adj_state$selected)))
+                                adj_state$log <- log_adj_update(adj_state$log, act = '+', p = sort(as.integer(adj_state$selected)), comment = input$edit_comment)
                               } else {
                                 # Remove edge from adjacency list
                                 print(paste0('Need to remove edges: ', paste0(adj_state$selected, collapse = ', ')))
@@ -326,7 +330,7 @@ adj_editor <- function(
                                   }
                                 }
 
-                                adj_state$log <- log_adj_update(adj_state$log, act = '-', p = sort(as.integer(adj_state$selected)))
+                                adj_state$log <- log_adj_update(adj_state$log, act = '-', p = sort(as.integer(adj_state$selected)), comment = input$edit_comment)
                               }
                               # Clear selection after operation
                               adj_state$selected <- character(0)
@@ -438,7 +442,8 @@ adj_editor <- function(
           data.frame(
             Action = character(0),
             i = integer(0),
-            j = integer(0)
+            j = integer(0),
+            Comment = character(0)
           ) |>
             gt::gt() |>
             gt::tab_header(title = 'No edits yet')
@@ -448,7 +453,8 @@ adj_editor <- function(
       data.frame(
         Action = log_data$action[non_empty],
         i = log_data$pair[non_empty, 1],
-        j = log_data$pair[non_empty, 2]
+        j = log_data$pair[non_empty, 2],
+        Comment = log_data$comment[non_empty]
       ) |>
         gt::gt() |>
         gt::tab_header(title = 'Adjacency Edits') |>
@@ -466,21 +472,25 @@ adj_editor <- function(
         return('adj')
       }
 
-      code_lines <- c('adj')
+      # prep edits
+      actions <- log_data$action[non_empty]
+      a_vals <- log_data$pair[non_empty, 1]
+      b_vals <- log_data$pair[non_empty, 2]
+      comments <- log_data$comment[non_empty]
 
-      for (idx in non_empty) {
-        action <- log_data$action[idx]
-        i <- log_data$pair[idx, 1]
-        j <- log_data$pair[idx, 2]
+      # replace +/- with fn
+      fn_names <- ifelse(actions == '+', 'add_edge', 'subtract_edge')
+      fn_calls <- paste0('  ', fn_names, '(', a_vals, ', ', b_vals, ')')
 
-        if (action == '+') {
-          code_lines <- c(code_lines, paste0('  add_edge(', i, ', ', j, ')'))
-        } else if (action == '-') {
-          code_lines <- c(code_lines, paste0('  subtract_edge(', i, ', ', j, ')'))
-        }
-      }
+      # add pipes, but not to last line
+      pipes <- c(rep(' |>', length(fn_calls) - 1), '')
 
-      paste(code_lines, collapse = ' |>\n')
+      # add comments
+      comment_parts <- ifelse(nzchar(comments), paste0(' # ', comments), '')
+
+      # combine all parts
+      code_lines <- paste0(fn_calls, pipes, comment_parts)
+      paste(c('adj |>', code_lines), collapse = '\n')
     })
   }
   # run app ----
