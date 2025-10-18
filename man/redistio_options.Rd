@@ -25,6 +25,7 @@ redistio_options(
   use_planscore = TRUE,
   save_assignment_path = "redistio.csv",
   save_shape_path = "redistio.geojson",
+  debounce = 150,
   ...
 )
 }
@@ -70,6 +71,9 @@ to \code{RColorBrewer::brewer.pal(n = 3, name = 'PuOr')}.}
 \item{save_assignment_path}{Output path to save assignment file to.}
 
 \item{save_shape_path}{Output path to save shapefile to.}
+
+\item{debounce}{Number of milliseconds to debounce map hover events. Defaults
+to 150.}
 
 \item{...}{additional arguments (currently ignored)}
 }

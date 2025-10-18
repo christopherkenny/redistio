@@ -22,6 +22,8 @@
 #' @param use_planscore whether to use PlanScore to evaluate plans
 #' @param save_assignment_path Output path to save assignment file to.
 #' @param save_shape_path Output path to save shapefile to.
+#' @param debounce Number of milliseconds to debounce map hover events. Defaults
+#' to 150.
 #' @param ... additional arguments (currently ignored)
 #'
 #' @return a `list`
@@ -46,12 +48,16 @@ redistio_options <- function(theme = 'flatly',
                              use_planscore = TRUE,
                              save_assignment_path = 'redistio.csv',
                              save_shape_path = 'redistio.geojson',
+                             debounce = 150,
                              ...) {
   if (length(palette_pop) == 1) {
     palette_pop <- RColorBrewer::brewer.pal(n = 3, name = palette_pop)
   }
   if (length(palette_pct) == 1) {
     palette_pct <- RColorBrewer::brewer.pal(n = 3, name = palette_pct)
+  }
+  if (!is.numeric(debounce) || length(debounce) != 1 || debounce < 0) {
+    stop('`debounce` must be a single nonnegative number.')
   }
 
   list(
@@ -74,6 +80,7 @@ redistio_options <- function(theme = 'flatly',
     alg_max_sims = alg_max_sims,
     use_planscore = use_planscore,
     save_assignment_path = save_assignment_path,
-    save_shape_path = save_shape_path
+    save_shape_path = save_shape_path,
+    debounce = debounce
   )
 }
