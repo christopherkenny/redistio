@@ -263,16 +263,12 @@ adj_editor <- function(
                             clicked_id_char <- as.character(click_data$id)
                             clicked_id <- as.integer(click_data$id)
 
-                            print(paste('Processing click for ID:', clicked_id))
-
                             if (clicked_id_char %in% adj_state$selected) {
                               # Deselect if already selected
                               adj_state$selected <- setdiff(adj_state$selected, clicked_id_char)
-                              print(paste('Deselected. Now have:', paste(adj_state$selected, collapse = ', ')))
                             } else if (length(adj_state$selected) < 2) {
                               # Add to selection if less than 2 selected
                               adj_state$selected <- c(adj_state$selected, clicked_id_char)
-                              print(paste('Selected. Now have:', paste(adj_state$selected, collapse = ', ')))
                             }
 
                             # If two precincts selected, modify adjacency
@@ -286,7 +282,6 @@ adj_editor <- function(
 
                               if (input$edge_mode == 'add') {
                                 # Add edge to adjacency list
-                                print(paste0('Need to add edges: ', paste0(adj_state$selected, collapse = ', ')))
                                 adj_state$tracker <- add_edge_to_tracker(
                                   adj_state$tracker,
                                   min(as.integer(adj_state$selected)),
@@ -313,7 +308,6 @@ adj_editor <- function(
                                 adj_state$log <- log_adj_update(adj_state$log, act = '+', p = sort(as.integer(adj_state$selected)), comment = input$edit_comment)
                               } else {
                                 # Remove edge from adjacency list
-                                print(paste0('Need to remove edges: ', paste0(adj_state$selected, collapse = ', ')))
 
                                 adj_state$tracker <- remove_edge_from_tracker(
                                   adj_state$tracker,
