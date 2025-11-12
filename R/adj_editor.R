@@ -256,86 +256,87 @@ adj_editor <- function(
     })
 
     # Handle clicks for adjacency editing
-    shiny::observeEvent(click_reac(),
-                        {
-                          click_data <- click_reac()
-                          if (!is.null(click_data) && !is.null(click_data$id) & click_data$layer == 'precinct_fill') {
-                            clicked_id_char <- as.character(click_data$id)
-                            clicked_id <- as.integer(click_data$id)
+    shiny::observeEvent(
+      click_reac(),
+      {
+        click_data <- click_reac()
+        if (!is.null(click_data) && !is.null(click_data$id) & click_data$layer == 'precinct_fill') {
+          clicked_id_char <- as.character(click_data$id)
+          clicked_id <- as.integer(click_data$id)
 
-                            if (clicked_id_char %in% adj_state$selected) {
-                              # Deselect if already selected
-                              adj_state$selected <- setdiff(adj_state$selected, clicked_id_char)
-                            } else if (length(adj_state$selected) < 2) {
-                              # Add to selection if less than 2 selected
-                              adj_state$selected <- c(adj_state$selected, clicked_id_char)
-                            }
+          if (clicked_id_char %in% adj_state$selected) {
+            # Deselect if already selected
+            adj_state$selected <- setdiff(adj_state$selected, clicked_id_char)
+          } else if (length(adj_state$selected) < 2) {
+            # Add to selection if less than 2 selected
+            adj_state$selected <- c(adj_state$selected, clicked_id_char)
+          }
 
-                            # If two precincts selected, modify adjacency
-                            if (length(adj_state$selected) == 2) {
+          # If two precincts selected, modify adjacency
+          if (length(adj_state$selected) == 2) {
 
-                              state <- check_edge_state(
-                                adj_state$tracker,
-                                min(as.integer(adj_state$selected)),
-                                max(as.integer(adj_state$selected))
-                              )
+            state <- check_edge_state(
+              adj_state$tracker,
+              min(as.integer(adj_state$selected)),
+              max(as.integer(adj_state$selected))
+            )
 
-                              if (input$edge_mode == 'add') {
-                                # Add edge to adjacency list
-                                adj_state$tracker <- add_edge_to_tracker(
-                                  adj_state$tracker,
-                                  min(as.integer(adj_state$selected)),
-                                  max(as.integer(adj_state$selected))
-                                )
+            if (input$edge_mode == 'add') {
+              # Add edge to adjacency list
+              adj_state$tracker <- add_edge_to_tracker(
+                adj_state$tracker,
+                min(as.integer(adj_state$selected)),
+                max(as.integer(adj_state$selected))
+              )
 
-                                if (!state$exists || (isFALSE(state$original) && isFALSE(state$shown))) {
-                                  mapgl::maplibre_proxy('map') |>
-                                    mapgl::add_line_layer(
-                                      id = paste0(sort(adj_state$selected), collapse = '-'),
-                                      source = new_single_edge(
-                                        edges_centers$centers,
-                                        min(as.integer(adj_state$selected)),
-                                        max(as.integer(adj_state$selected))
-                                      )
-                                    )
-                                } else if (isFALSE(state$shown) && isTRUE(state$original)) {
-                                  # then we have to fix the filter
-                                  current_edges <- get_current_edge_ids(adj_state$tracker)
-                                  mapgl::maplibre_proxy('map') |>
-                                    mapgl::set_filter('edges', list('match', mapgl::get_column('line_id'), as.list(current_edges), TRUE, FALSE))
-                                }
+              if (!state$exists || (isFALSE(state$original) && isFALSE(state$shown))) {
+                mapgl::maplibre_proxy('map') |>
+                  mapgl::add_line_layer(
+                    id = paste0(sort(adj_state$selected), collapse = '-'),
+                    source = new_single_edge(
+                      edges_centers$centers,
+                      min(as.integer(adj_state$selected)),
+                      max(as.integer(adj_state$selected))
+                    )
+                  )
+              } else if (isFALSE(state$shown) && isTRUE(state$original)) {
+                # then we have to fix the filter
+                current_edges <- get_current_edge_ids(adj_state$tracker)
+                mapgl::maplibre_proxy('map') |>
+                  mapgl::set_filter('edges', list('match', mapgl::get_column('line_id'), as.list(current_edges), TRUE, FALSE))
+              }
 
-                                adj_state$log <- log_adj_update(adj_state$log, act = '+', p = sort(as.integer(adj_state$selected)), comment = input$edit_comment)
-                              } else {
-                                # Remove edge from adjacency list
+              adj_state$log <- log_adj_update(adj_state$log, act = '+', p = sort(as.integer(adj_state$selected)), comment = input$edit_comment)
+            } else {
+              # Remove edge from adjacency list
 
-                                adj_state$tracker <- remove_edge_from_tracker(
-                                  adj_state$tracker,
-                                  min(as.integer(adj_state$selected)),
-                                  max(as.integer(adj_state$selected))
-                                )
+              adj_state$tracker <- remove_edge_from_tracker(
+                adj_state$tracker,
+                min(as.integer(adj_state$selected)),
+                max(as.integer(adj_state$selected))
+              )
 
-                                if (state$exists) {
-                                  if (isFALSE(state$original) && isTRUE(state$shown)) {
-                                    mapgl::maplibre_proxy('map') |>
-                                      mapgl::clear_layer(
-                                        layer_id = paste0(sort(adj_state$selected), collapse = '-')
-                                      )
-                                  } else if (isTRUE(state$original) && isTRUE(state$shown)) {
-                                    current_edges <- get_current_edge_ids(adj_state$tracker)
-                                    mapgl::maplibre_proxy('map') |>
-                                      mapgl::set_filter('edges', list('match', mapgl::get_column('line_id'), as.list(current_edges), TRUE, FALSE))
-                                  }
-                                }
+              if (state$exists) {
+                if (isFALSE(state$original) && isTRUE(state$shown)) {
+                  mapgl::maplibre_proxy('map') |>
+                    mapgl::clear_layer(
+                      layer_id = paste0(sort(adj_state$selected), collapse = '-')
+                    )
+                } else if (isTRUE(state$original) && isTRUE(state$shown)) {
+                  current_edges <- get_current_edge_ids(adj_state$tracker)
+                  mapgl::maplibre_proxy('map') |>
+                    mapgl::set_filter('edges', list('match', mapgl::get_column('line_id'), as.list(current_edges), TRUE, FALSE))
+                }
+              }
 
-                                adj_state$log <- log_adj_update(adj_state$log, act = '-', p = sort(as.integer(adj_state$selected)), comment = input$edit_comment)
-                              }
-                              # Clear selection after operation
-                              adj_state$selected <- character(0)
-                            }
-                          }
-                        },
-                        ignoreInit = TRUE
+              adj_state$log <- log_adj_update(adj_state$log, act = '-', p = sort(as.integer(adj_state$selected)), comment = input$edit_comment)
+            }
+            # Clear selection after operation
+            adj_state$selected <- character(0)
+          }
+        }
+      },
+      ignoreInit = TRUE
     )
 
     # Clear selection button
@@ -488,7 +489,7 @@ adj_editor <- function(
 
       # combine all parts
       code_lines <- paste0(fn_calls, pipes, comment_parts)
-      paste(c('adj |>', code_lines), collapse = '\n')
+      paste(c('library(geomander)', 'adj |>', code_lines), collapse = '\n')
     })
   }
   # run app ----
