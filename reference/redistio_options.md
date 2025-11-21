@@ -27,6 +27,7 @@ redistio_options(
   save_assignment_path = "redistio.csv",
   save_shape_path = "redistio.geojson",
   debounce = 150,
+  projection = "mercator",
   ...
 )
 ```
@@ -122,6 +123,10 @@ redistio_options(
 
   Number of milliseconds to debounce map hover events. Defaults to 150.
 
+- projection:
+
+  Maplibre projection to use. Default is `'mercator'`.
+
 - ...:
 
   additional arguments (currently ignored)
@@ -198,5 +203,8 @@ redistio_options()
 #> 
 #> $debounce
 #> [1] 150
+#> 
+#> $projection
+#> [1] "mercator"
 #> 
 ```

@@ -60,6 +60,7 @@
 <span>  save_assignment_path <span class="op">=</span> <span class="st">"redistio.csv"</span>,</span>
 <span>  save_shape_path <span class="op">=</span> <span class="st">"redistio.geojson"</span>,</span>
 <span>  debounce <span class="op">=</span> <span class="fl">150</span>,</span>
+<span>  projection <span class="op">=</span> <span class="st">"mercator"</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -155,6 +156,10 @@ to <code>RColorBrewer::brewer.pal(n = 3, name = 'PuOr')</code>.</p></dd>
 to 150.</p></dd>
 
 
+<dt id="arg-projection">projection<a class="anchor" aria-label="anchor" href="#arg-projection"></a></dt>
+<dd><p>Maplibre projection to use. Default is <code>'mercator'</code>.</p></dd>
+
+
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>additional arguments (currently ignored)</p></dd>
 
@@ -231,6 +236,9 @@ to 150.</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $debounce</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 150</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $projection</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "mercator"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>
     </div>
