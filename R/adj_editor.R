@@ -219,7 +219,8 @@ adj_editor <- function(
           source = 'lines',
           line_color = opts$border_color %||% def_opts$border_color,
           line_width = 1
-        )
+        ) |>
+        mapgl::set_projection(opts$projection %||% def_opts$projection)
 
       if (!is.null(layers)) {
         for (i in seq_along(layers)) {

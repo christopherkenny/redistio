@@ -515,7 +515,8 @@ draw <- function(
           source = 'redistio',
           line_color = opts$border_color %||% def_opts$border_color,
           line_width = 0.5
-        )
+        ) |>
+        mapgl::set_projection(opts$projection %||% def_opts$projection)
 
       if (!is.null(hover_fn)) {
         base_map <- base_map |>

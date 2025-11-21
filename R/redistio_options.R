@@ -24,6 +24,7 @@
 #' @param save_shape_path Output path to save shapefile to.
 #' @param debounce Number of milliseconds to debounce map hover events. Defaults
 #' to 150.
+#' @param projection Maplibre projection to use. Default is `'mercator'`.
 #' @param ... additional arguments (currently ignored)
 #'
 #' @return a `list`
@@ -49,6 +50,7 @@ redistio_options <- function(theme = 'flatly',
                              save_assignment_path = 'redistio.csv',
                              save_shape_path = 'redistio.geojson',
                              debounce = 150,
+                             projection = 'mercator',
                              ...) {
   if (length(palette_pop) == 1) {
     palette_pop <- RColorBrewer::brewer.pal(n = 3, name = palette_pop)
@@ -81,6 +83,7 @@ redistio_options <- function(theme = 'flatly',
     use_planscore = use_planscore,
     save_assignment_path = save_assignment_path,
     save_shape_path = save_shape_path,
-    debounce = debounce
+    debounce = debounce,
+    projection = projection
   )
 }

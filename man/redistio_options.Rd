@@ -26,6 +26,7 @@ redistio_options(
   save_assignment_path = "redistio.csv",
   save_shape_path = "redistio.geojson",
   debounce = 150,
+  projection = "mercator",
   ...
 )
 }
@@ -74,6 +75,8 @@ to \code{RColorBrewer::brewer.pal(n = 3, name = 'PuOr')}.}
 
 \item{debounce}{Number of milliseconds to debounce map hover events. Defaults
 to 150.}
+
+\item{projection}{Maplibre projection to use. Default is \code{'mercator'}.}
 
 \item{...}{additional arguments (currently ignored)}
 }
