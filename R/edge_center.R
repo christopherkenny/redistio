@@ -1,5 +1,4 @@
 edge_center_df <- function(shp, adj) {
-
   # Extract Centers
   suppressWarnings(centers <- sf::st_centroid(shp))
   sf::st_crs(centers) <- sf::st_crs(shp)
@@ -49,7 +48,6 @@ edge_center_df <- function(shp, adj) {
 }
 
 new_single_edge <- function(centers, i, j) {
-
   geoms <- lapply(seq_along(i), function(x) {
     mat <- matrix(
       c(

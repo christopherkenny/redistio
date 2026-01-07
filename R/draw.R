@@ -25,20 +25,19 @@
 #' }
 #'
 draw <- function(
-  shp,
-  init_plan,
-  ndists,
-  palette = NULL,
-  layers = NULL,
-  pop_tol = 0.05,
-  pop_col = 'pop',
-  adj_col = 'adj',
-  split_cols = guess_admins,
-  elect_cols = guess_elections,
-  demog_cols = guesstimate_demographics,
-  hover_fn = hover_precinct,
-  opts = redistio_options()
-) {
+    shp,
+    init_plan,
+    ndists,
+    palette = NULL,
+    layers = NULL,
+    pop_tol = 0.05,
+    pop_col = 'pop',
+    adj_col = 'adj',
+    split_cols = guess_admins,
+    elect_cols = guess_elections,
+    demog_cols = guesstimate_demographics,
+    hover_fn = hover_precinct,
+    opts = redistio_options()) {
   # defaults ----
   def_opts <- redistio_options()
   poss_panels <- c(
@@ -382,8 +381,7 @@ draw <- function(
                   bslib::nav_panel(
                     'Color from column',
                     color_from_columnUI('colorFromColumn')
-                  ),
-                  ,
+                  ), ,
                   align = 'right'
                 ),
                 selected = 'Precinct'

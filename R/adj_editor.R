@@ -24,8 +24,7 @@ adj_editor <- function(
     palette = NULL,
     layers = NULL,
     hover_fn = hover_precinct,
-    opts = redistio_options()
-) {
+    opts = redistio_options()) {
   # defaults ----
   def_opts <- redistio_options()
 
@@ -275,7 +274,6 @@ adj_editor <- function(
 
           # If two precincts selected, modify adjacency
           if (length(adj_state$selected) == 2) {
-
             state <- check_edge_state(
               adj_state$tracker,
               min(as.integer(adj_state$selected)),
