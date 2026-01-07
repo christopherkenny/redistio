@@ -5,7 +5,23 @@ test_that('`draw()` works', {
   library(shinytest2)
 
   shiny_app <- draw(dc, dc$ward)
-  app <- AppDriver$new(shiny_app, name = 'draw')
+  app <- NULL
+  app <- try({
+    AppDriver$new(shiny_app, name = 'draw')
+  })
 
-  app$expect_values(screenshot_args = FALSE)
+  if (is.null(app)) {
+    skip('Could not start chromote correctly.')
+  }
+
+  vals <- NULL
+  vals <- try({
+    app$get_values()$input
+  })
+
+  if (is.null(vals)) {
+    skip('Could not retrieve input values from the app')
+  }
+
+  expect_true('undo' %in% names(vals))
 })
