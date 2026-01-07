@@ -87,3 +87,8 @@ Several data-based options may be configured inside `draw()`:
   check splits for.
 - `hover_fn`: A function to display precinct-data based on the row of
   `shp` that the mouse is over.
+
+## Demo on Bluesky
+
+For a short video demo of `redistio`, see [this post on Bluesky
+Social](https://bsky.app/profile/chriskenny.bsky.social/post/3m2c3yw2agk2c).
