@@ -63,6 +63,7 @@ adj_editor <- function(
   palette <- prep_palette(palette, length(unique(init_plan)))
 
   # prep layer colors ----
+  layer_colors <- NULL
   if (!is.null(layers)) {
     layer_colors <- opts$layer_color %||% def_opts$layer_color
     if (length(layer_colors) == 1L) {
