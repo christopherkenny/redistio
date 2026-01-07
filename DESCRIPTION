@@ -46,6 +46,7 @@ Suggests:
     crayons,
     planscorer,
     redist,
+    shinytest2,
     shinyWidgets,
     spelling,
     testthat (>= 3.0.0)
