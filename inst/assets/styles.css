@@ -27,6 +27,21 @@ p.distr-sel {
   cursor: pointer;
 }
 
+/* Lock toggle */
+.lock-toggle {
+  cursor: pointer;
+  color: #888;
+  padding: 0 0.25rem;
+}
+.lock-toggle:hover {
+  color: #333;
+}
+#map-left-sidebar table.dataTable td:nth-child(2) {
+  text-align: center;
+  padding: 0;
+  width: 30px;
+}
+
 /* Map buttons */
 .collapse-toggle[aria-expanded="false"] {
     background-color: white;

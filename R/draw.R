@@ -335,31 +335,6 @@ draw <- function(
                     )
                   ),
                   bslib::nav_panel(
-                    'Lock',
-                    shiny::tags$style(lock_css),
-                    if (!rlang::is_installed('shinyWidgets')) {
-                      shiny::checkboxGroupInput(
-                        inputId = 'locks',
-                        choices = seq_len(ndists),
-                        label = 'Lock districts',
-                        selected = opts$locked_districts %||%
-                          def_opts$locked_districts
-                      )
-                    } else {
-                      shinyWidgets::checkboxGroupButtons(
-                        inputId = 'locks',
-                        label = 'Lock districts',
-                        choices = seq_len(ndists),
-                        status = 'lockClass',
-                        checkIcon = list(
-                          yes = shiny::icon('lock'),
-                          no = shiny::icon('lock-open')
-                        ),
-                        direction = 'vertical'
-                      )
-                    }
-                  ),
-                  bslib::nav_panel(
                     'District colors',
                     lapply(seq_len(ndists), function(i) {
                       colourpicker::colourInput(
@@ -447,6 +422,8 @@ draw <- function(
     redistio_alg_plan <- shiny::reactiveValues(pl = NULL, plans = NULL)
     clicked <- shiny::reactiveValues(clickedMarker = NULL)
     palette_reactive <- shiny::reactiveVal(palette)
+    initial_locks <- as.character(opts$locked_districts %||% def_opts$locked_districts %||% integer(0))
+    locks_reactive <- shiny::reactiveVal(initial_locks)
 
     tab_pop_static <- dplyr::tibble(
       District = paste0(
@@ -456,6 +433,7 @@ draw <- function(
         c(as.character(shiny::icon('eraser')), seq_len(ndists)),
         ' </p>'
       ),
+      Lock = generate_lock_icons(ndists, initial_locks),
       Population = distr_pop(
         shp[[pop_col]],
         total = tot_pop,
@@ -572,9 +550,10 @@ draw <- function(
           NA_integer_,
           input$district_rows_selected - 1L
         )
+        locked_dists <- as.integer(locks_reactive())
         if (
-          isTRUE(redistio_curr_plan$pl[idx] %in% input$locks) ||
-            isTRUE(new_dist %in% input$locks)
+          isTRUE(redistio_curr_plan$pl[idx] %in% locked_dists) ||
+            isTRUE(new_dist %in% locked_dists)
         ) {
           return(NULL)
         }
@@ -641,7 +620,7 @@ draw <- function(
             escape = FALSE,
             selection = list(target = 'row', mode = 'single', selected = 2),
             fillContainer = TRUE,
-            colnames = c('District', 'Pop.', 'Dev.')
+            colnames = c('District', '', 'Pop.', 'Dev.')
           ) |>
           DT::formatRound(columns = c('Population', 'Deviation'), digits = 0)
       },
@@ -660,6 +639,19 @@ draw <- function(
       )
     })
 
+    shiny::observeEvent(input$lock_click, {
+      district <- as.character(input$lock_click$district)
+      current_locks <- locks_reactive()
+      if (district %in% current_locks) {
+        locks_reactive(setdiff(current_locks, district))
+      } else {
+        locks_reactive(c(current_locks, district))
+      }
+      new_tb <- val()
+      new_tb$Lock <- generate_lock_icons(ndists, locks_reactive())
+      val(new_tb)
+    })
+
     shiny::outputOptions(output, 'district', suspendWhenHidden = FALSE)
 
     output$tab_pop <- gt::render_gt({
@@ -669,6 +661,7 @@ draw <- function(
           District = stringr::str_extract(.data$District, ' \\d+ ')
         ) |>
         gt::gt() |>
+        gt::cols_hide(columns = 'Lock') |>
         gt::tab_style(
           style = gt::cell_fill(color = 'red'),
           locations = gt::cells_body(
@@ -935,6 +928,7 @@ draw <- function(
           c(as.character(shiny::icon('eraser')), seq_len(ndists)),
           ' </p>'
         )
+        new_color_tbl$Lock <- generate_lock_icons(ndists, locks_reactive())
         val(new_color_tbl)
 
         if (input$fill_input == 'District') {
