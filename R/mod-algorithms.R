@@ -108,6 +108,16 @@ algorithmsServer <- function(id, parent_session,
     base_id <- 1e6
 
     output$alg_map <- mapgl::renderMaplibre({
+      district_centroids <- shp |>
+        dplyr::mutate(district = redistio_curr_plan$pl) |>
+        dplyr::filter(!is.na(.data$district)) |>
+        dplyr::group_by(.data$district) |>
+        dplyr::summarise(geometry = sf::st_union(.data$geometry)) |>
+        sf::st_centroid() |>
+        dplyr::mutate(label = as.character(.data$district)) |>
+        # avoid st_centroid assumptions
+        suppressWarnings()
+
       map_alg <- mapgl::maplibre(
         style = leaf_tiles,
         bounds = shp
@@ -123,6 +133,19 @@ algorithmsServer <- function(id, parent_session,
           fill_color = discrete_palette(pal(), redistio_curr_plan$pl, column = 'redistio_id'),
           fill_opacity = fill_opacity,
           fill_outline_color = '#cccccc'
+        ) |>
+        mapgl::add_source(
+          id = 'district_labels',
+          data = district_centroids
+        ) |>
+        mapgl::add_symbol_layer(
+          id = 'district_label_layer',
+          source = 'district_labels',
+          text_field = list('get', 'label'),
+          text_size = 16,
+          text_color = '#000000',
+          text_halo_color = '#FFFFFF',
+          text_halo_width = 2
         )
 
       if (!is.null(layers)) {
@@ -218,6 +241,11 @@ algorithmsServer <- function(id, parent_session,
           layer_id = 'precinct_fill',
           name = 'fill-color',
           value = '#FFFFFF00'
+        ) |>
+        mapgl::set_layout_property(
+          layer_id = 'district_label_layer',
+          name = 'visibility',
+          value = 'none'
         ) |>
         mapgl::add_source(
           data = map_sub(),
