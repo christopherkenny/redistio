@@ -520,7 +520,12 @@ draw <- function(
             collapsible = TRUE
           )
       }
-      base_map
+
+      base_map |>
+        mapgl::add_screenshot_control(
+          position = 'bottom-left',
+          filename = 'redistio-plan'
+        )
     })
 
     shiny::observeEvent(input$map_feature_click, {
