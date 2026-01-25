@@ -108,6 +108,46 @@ algorithmsServer <- function(id, parent_session,
     base_id <- 1e6
 
     output$alg_map <- mapgl::renderMaplibre({
+      map_alg <- mapgl::maplibre(
+        style = leaf_tiles,
+        bounds = shp
+      ) |>
+        mapgl::add_source(
+          id = 'redistio',
+          data = shp,
+          promoteId = 'redistio_id'
+        ) |>
+        mapgl::add_fill_layer(
+          source = 'redistio',
+          id = 'precinct_fill',
+          fill_color = discrete_palette(pal(), redistio_curr_plan$pl, column = 'redistio_id'),
+          fill_opacity = fill_opacity,
+          fill_outline_color = '#cccccc'
+        )
+
+      if (!is.null(layers)) {
+        for (i in seq_along(layers)) {
+          map_alg <- map_alg |>
+            mapgl::add_line_layer(
+              source = layers[[i]],
+              line_width = opts$layer_weight %||% def_opts$layer_weight,
+              line_color = layer_colors[i],
+              id = names(layers)[i]
+            )
+          map_alg <- map_alg |>
+            mapgl::add_layers_control(
+              layers = names(layers),
+              collapsible = TRUE
+            )
+        }
+      }
+
+      map_alg
+    })
+
+    shiny::outputOptions(output, 'alg_map')
+
+    shiny::observeEvent(input$alg_run, {
       map_sub(shp |>
         dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
         `attr<-`('existing_col', 'redistio_plan') |>
@@ -173,20 +213,11 @@ algorithmsServer <- function(id, parent_session,
         dplyr::select(dplyr::all_of(c('draw', 'dev')))
       alg_plans(sims_sum)
 
-      map_alg <- mapgl::maplibre(
-        style = leaf_tiles,
-        bounds = shp
-      ) |>
-        mapgl::add_source(
-          id = 'redistio',
-          data = shp,
-          promoteId = 'redistio_id'
-        ) |>
-        mapgl::add_fill_layer(
-          source = 'redistio',
-          id = 'precinct_fill',
-          fill_color = '#FFFFFFFF',
-          fill_outline_color = '#cccccc'
+      mapgl::maplibre_proxy('alg_map') |>
+        mapgl::set_paint_property(
+          layer_id = 'precinct_fill',
+          name = 'fill-color',
+          value = '#FFFFFF00'
         ) |>
         mapgl::add_source(
           data = map_sub(),
@@ -201,27 +232,7 @@ algorithmsServer <- function(id, parent_session,
           fill_opacity = fill_opacity,
           id = 'alg_precincts'
         )
-
-      if (!is.null(layers)) {
-        for (i in seq_along(layers)) {
-          map_alg <- map_alg |>
-            mapgl::add_line_layer(
-              source = layers[[i]],
-              line_width = opts$layer_weight %||% def_opts$layer_weight,
-              line_color = layer_colors[i],
-              id = names(layers)[i]
-            )
-          map_alg <- map_alg |>
-            mapgl::add_layers_control(
-              layers = names(layers),
-              collapsible = TRUE
-            )
-        }
-      }
-
-      map_alg
-    }) |>
-      shiny::bindEvent(input$alg_run)
+    })
 
     output$alg_summary <- DT::renderDT(
       {
