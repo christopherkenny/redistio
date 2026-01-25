@@ -73,3 +73,9 @@ p.distr-sel {
 #map-right-sidebar .tab-pane {
   padding-top: 0;
 }
+
+/* Hide map screenshot control (triggered via Download panel button) */
+.maplibregl-ctrl-screenshot,
+.mapboxgl-ctrl-screenshot {
+  display: none !important;
+}

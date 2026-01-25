@@ -213,7 +213,13 @@ draw <- function(
         rel = 'stylesheet',
         type = 'text/css',
         href = 'assets/styles.css'
-      )
+      ),
+      shiny::tags$script(shiny::HTML("
+        Shiny.addCustomMessageHandler('trigger_map_screenshot', function(message) {
+          var btn = document.querySelector('button.maplibregl-ctrl-screenshot, button.mapboxgl-ctrl-screenshot');
+          if (btn) btn.click();
+        });
+      "))
     ),
 
     # draw panel ----
@@ -307,7 +313,7 @@ draw <- function(
                 bslib::nav_menu(
                   title = 'More',
                   bslib::nav_panel(
-                    'Download',
+                    'Export',
                     shiny::h5('Download assignment file'),
                     shiny::textInput(
                       'save_path',
@@ -332,6 +338,12 @@ draw <- function(
                     shiny::downloadButton(
                       'save_shp',
                       label = 'Export shapefile'
+                    ),
+                    shiny::h5('Screenshot map'),
+                    shiny::actionButton(
+                      'screenshot_map',
+                      label = 'Capture screenshot',
+                      icon = shiny::icon('camera')
                     )
                   ),
                   bslib::nav_panel(
@@ -819,6 +831,10 @@ draw <- function(
           sf::st_write(file)
       }
     )
+
+    shiny::observeEvent(input$screenshot_map, {
+      session$sendCustomMessage('trigger_map_screenshot', list())
+    })
 
     # fill mini panel ----
     shiny::observeEvent(input$fill_input, {
