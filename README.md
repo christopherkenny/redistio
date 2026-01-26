@@ -9,6 +9,8 @@
 badge](https://christopherkenny.r-universe.dev/badges/redistio)](https://christopherkenny.r-universe.dev/ui#package:redistio)
 [![](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![R-CMD-check](https://github.com/christopherkenny/redistio/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/christopherkenny/redistio/actions/workflows/R-CMD-check.yaml)
+[![Codecov test
+coverage](https://codecov.io/gh/christopherkenny/redistio/graph/badge.svg)](https://app.codecov.io/gh/christopherkenny/redistio)
 <!-- badges: end -->
 
 `redistio` provides a point-and-click districting interface powered by

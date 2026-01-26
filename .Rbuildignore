@@ -9,3 +9,4 @@
 ^pkgdown$
 ^dev/dev_tester\.R$
 _\.new\.png$
+^codecov\.yml$
