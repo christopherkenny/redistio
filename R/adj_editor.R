@@ -193,7 +193,7 @@ adj_editor <- function(
       ) |>
         mapgl::add_source(
           id = 'redistio',
-          data = shp,
+          data = create_mapgl_source(shp),
           promoteId = 'redistio_id'
         ) |>
         mapgl::add_source(

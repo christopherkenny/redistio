@@ -24,3 +24,9 @@ generate_lock_icons <- function(ndists, locked_districts) {
     }, character(1))
   )
 }
+
+# Keep only geometry and redistio_id for mapgl rendering
+# This dramatically reduces data sent to the JavaScript layer
+create_mapgl_source <- function(shp) {
+  shp[, c('redistio_id')]
+}
