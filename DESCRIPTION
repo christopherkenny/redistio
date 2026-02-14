@@ -42,8 +42,10 @@ LazyData: true
 URL: https://github.com/christopherkenny/redistio,
     https://christophertkenny.com/redistio/
 BugReports: https://github.com/christopherkenny/redistio/issues
-Suggests: 
+Suggests:
+    alarmdata,
     crayons,
+    ggplot2,
     planscorer,
     redist,
     shinytest2,

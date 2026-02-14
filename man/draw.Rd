@@ -16,6 +16,8 @@ draw(
   split_cols = guess_admins,
   elect_cols = guess_elections,
   demog_cols = guesstimate_demographics,
+  plans = NULL,
+  plans_fn = NULL,
   hover_fn = hover_precinct,
   opts = redistio_options()
 )
@@ -43,6 +45,11 @@ if installed, \code{crayons::crayons$no_48}.}
 \item{elect_cols}{Names of column in \code{shp} that contain election data}
 
 \item{demog_cols}{Names of column in \code{shp} that contain demographic data}
+
+\item{plans}{a \code{redist_plans} object of pre-computed plans for browsing and comparison.}
+
+\item{plans_fn}{a function to add a reference plan to \code{plans} and compute summary statistics.
+Should follow the signature of \code{alarmdata::alarm_add_plan()}.}
 
 \item{hover_fn}{Function to generate tables for mouse hovering. Default is \code{hover_precinct()}.}
 

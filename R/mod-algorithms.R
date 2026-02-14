@@ -248,7 +248,7 @@ algorithmsServer <- function(id, parent_session,
           value = 'none'
         ) |>
         mapgl::add_source(
-          data = create_mapgl_source(map_sub()),
+          data = create_mapgl_source(map_sub(), id_col = 'redistio_sub_id'),
           id = 'redistio_sub',
           promoteId = 'redistio_sub_id'
         ) |>

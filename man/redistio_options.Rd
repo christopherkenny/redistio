@@ -6,7 +6,8 @@
 \usage{
 redistio_options(
   theme = "flatly",
-  panels = c("elections", "demographics", "integrity", "algorithms"),
+  panels = c("elections", "demographics", "integrity", "algorithms", "plans",
+    "comparisons"),
   select_color = "purple",
   border_color = "#000000",
   palette_pop = "Purples",
@@ -22,11 +23,16 @@ redistio_options(
   use_algorithms = TRUE,
   alg_max_districts = 3,
   alg_max_sims = 100,
+  use_plans = TRUE,
+  use_comparisons = TRUE,
   use_planscore = TRUE,
   save_assignment_path = "redistio.csv",
   save_shape_path = "redistio.geojson",
   debounce = 150,
   projection = "mercator",
+  plot_theme = ggplot2::theme_bw(),
+  plot_geom = "jitter",
+  plot_ref_geom = NULL,
   ...
 )
 }
@@ -67,6 +73,10 @@ to \code{RColorBrewer::brewer.pal(n = 3, name = 'PuOr')}.}
 
 \item{alg_max_sims}{maximum number of simulations to use in algorithms}
 
+\item{use_plans}{whether to show the plans browser tab when \code{plans} is provided}
+
+\item{use_comparisons}{whether to show the comparisons tab when \code{plans} and \code{plans_fn} are provided}
+
 \item{use_planscore}{whether to use PlanScore to evaluate plans}
 
 \item{save_assignment_path}{Output path to save assignment file to.}
@@ -77,6 +87,18 @@ to \code{RColorBrewer::brewer.pal(n = 3, name = 'PuOr')}.}
 to 150.}
 
 \item{projection}{Maplibre projection to use. Default is \code{'mercator'}.}
+
+\item{plot_theme}{a ggplot2 theme to apply to comparison plots. Default is
+\code{ggplot2::theme_bw()}.}
+
+\item{plot_geom}{a geom to use for district-level comparison plots, passed
+to the \code{geom} argument of \code{\link[redist:redist.plot.distr_qtys]{redist::redist.plot.distr_qtys()}}. Can be a
+string like \code{'jitter'} (default) or a ggplot2 geom function like
+\code{ggplot2::geom_violin}.}
+
+\item{plot_ref_geom}{a geom function to use for the reference plan overlay
+in district-level comparison plots, passed to the \code{ref_geom} argument of
+\code{\link[redist:redist.plot.distr_qtys]{redist::redist.plot.distr_qtys()}}. Should be a function that accepts \code{...}.}
 
 \item{...}{additional arguments (currently ignored)}
 }

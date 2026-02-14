@@ -19,12 +19,23 @@
 #' @param use_algorithms whether to use redistricting simulation algorithms
 #' @param alg_max_districts maximum number of districts to use in algorithms
 #' @param alg_max_sims maximum number of simulations to use in algorithms
+#' @param use_plans whether to show the plans browser tab when `plans` is provided
+#' @param use_comparisons whether to show the comparisons tab when `plans` and `plans_fn` are provided
 #' @param use_planscore whether to use PlanScore to evaluate plans
 #' @param save_assignment_path Output path to save assignment file to.
 #' @param save_shape_path Output path to save shapefile to.
 #' @param debounce Number of milliseconds to debounce map hover events. Defaults
 #' to 150.
 #' @param projection Maplibre projection to use. Default is `'mercator'`.
+#' @param plot_theme a ggplot2 theme to apply to comparison plots. Default is
+#' `ggplot2::theme_bw()`.
+#' @param plot_geom a geom to use for district-level comparison plots, passed
+#' to the `geom` argument of [redist::redist.plot.distr_qtys()]. Can be a
+#' string like `'jitter'` (default) or a ggplot2 geom function like
+#' `ggplot2::geom_violin`.
+#' @param plot_ref_geom a geom function to use for the reference plan overlay
+#' in district-level comparison plots, passed to the `ref_geom` argument of
+#' [redist::redist.plot.distr_qtys()]. Should be a function that accepts `...`.
 #' @param ... additional arguments (currently ignored)
 #'
 #' @return a `list`
@@ -33,7 +44,7 @@
 #' @examples
 #' redistio_options()
 redistio_options <- function(theme = 'flatly',
-                             panels = c('elections', 'demographics', 'integrity', 'algorithms'),
+                             panels = c('elections', 'demographics', 'integrity', 'algorithms', 'plans', 'comparisons'),
                              select_color = 'purple',
                              border_color = '#000000',
                              palette_pop = 'Purples',
@@ -46,11 +57,16 @@ redistio_options <- function(theme = 'flatly',
                              locked_districts = NULL,
                              use_algorithms = TRUE, alg_max_districts = 3,
                              alg_max_sims = 100,
+                             use_plans = TRUE,
+                             use_comparisons = TRUE,
                              use_planscore = TRUE,
                              save_assignment_path = 'redistio.csv',
                              save_shape_path = 'redistio.geojson',
                              debounce = 150,
                              projection = 'mercator',
+                             plot_theme = ggplot2::theme_bw(),
+                             plot_geom = 'jitter',
+                             plot_ref_geom = NULL,
                              ...) {
   if (length(palette_pop) == 1) {
     palette_pop <- RColorBrewer::brewer.pal(n = 3, name = palette_pop)
@@ -80,10 +96,15 @@ redistio_options <- function(theme = 'flatly',
     use_algorithms = use_algorithms,
     alg_max_districts = alg_max_districts,
     alg_max_sims = alg_max_sims,
+    use_plans = use_plans,
+    use_comparisons = use_comparisons,
     use_planscore = use_planscore,
     save_assignment_path = save_assignment_path,
     save_shape_path = save_shape_path,
     debounce = debounce,
-    projection = projection
+    projection = projection,
+    plot_theme = plot_theme,
+    plot_geom = plot_geom,
+    plot_ref_geom = plot_ref_geom
   )
 }

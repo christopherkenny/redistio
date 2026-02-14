@@ -12,6 +12,9 @@
 #' @param split_cols Names of column in `shp` that contain administrative units
 #' @param elect_cols Names of column in `shp` that contain election data
 #' @param demog_cols Names of column in `shp` that contain demographic data
+#' @param plans a `redist_plans` object of pre-computed plans for browsing and comparison.
+#' @param plans_fn a function to add a reference plan to `plans` and compute summary statistics.
+#'   Should follow the signature of `alarmdata::alarm_add_plan()`.
 #' @param hover_fn Function to generate tables for mouse hovering. Default is `hover_precinct()`.
 #' @param opts list of options. Default is `redistio_options()`
 #'
@@ -36,6 +39,8 @@ draw <- function(
     split_cols = guess_admins,
     elect_cols = guess_elections,
     demog_cols = guesstimate_demographics,
+    plans = NULL,
+    plans_fn = NULL,
     hover_fn = hover_precinct,
     opts = redistio_options()) {
   # defaults ----
@@ -45,7 +50,9 @@ draw <- function(
     'demographics',
     'integrity',
     'elections',
-    'algorithms'
+    'algorithms',
+    'plans',
+    'comparisons'
   )
 
   # run basic inputs ----
@@ -178,6 +185,18 @@ draw <- function(
     opts$use_planscore %||% def_opts$use_planscore &&
     rlang::is_installed('planscorer') &&
     planscorer::ps_has_key()
+
+  use_plans <- !is.null(plans) &&
+    opts$use_plans %||% def_opts$use_plans &&
+    rlang::is_installed('redist')
+
+  use_comparisons <- !is.null(plans) && !is.null(plans_fn) &&
+    opts$use_comparisons %||% def_opts$use_comparisons &&
+    rlang::is_installed('redist')
+
+  if (!is.null(plans_fn) && is.null(plans)) {
+    warning('`plans_fn` provided without `plans`. Ignoring `plans_fn`.')
+  }
 
   # User Interface ----
   if (!is.null(opts$select_color)) {
@@ -385,6 +404,16 @@ draw <- function(
     demographicsUI('demographics'),
     integrityUI('integrity'),
     electionsUI('elections'),
+    if (use_plans) {
+      plansUI('plans', opts, def_opts)
+    } else {
+      NULL
+    },
+    if (use_comparisons) {
+      comparisonsUI('comparisons')
+    } else {
+      NULL
+    },
     if (use_algorithms) {
       algorithmsUI('algorithms', opts, def_opts, ndists, shp)
     } else {
@@ -419,6 +448,14 @@ draw <- function(
     if (!use_algorithms) {
       poss_panels <- setdiff(poss_panels, 'algorithms')
       req_panels <- setdiff(req_panels, 'algorithms')
+    }
+    if (!use_plans) {
+      poss_panels <- setdiff(poss_panels, 'plans')
+      req_panels <- setdiff(req_panels, 'plans')
+    }
+    if (!use_comparisons) {
+      poss_panels <- setdiff(poss_panels, 'comparisons')
+      req_panels <- setdiff(req_panels, 'comparisons')
     }
     if (!all(req_panels %in% poss_panels)) {
       stop('Invalid panel selection')
@@ -628,8 +665,8 @@ draw <- function(
             options = list(
               dom = 't',
               ordering = FALSE,
-              scrollY = paste0(min(ndists * 6, 90), 'vh'),
-              # scrollX = TRUE, # TODO make changeable
+              scrollY = 'calc(100vh - 220px)',
+              scrollCollapse = TRUE,
               pageLength = ndists + 1L
             ),
             style = 'bootstrap',
@@ -1053,6 +1090,51 @@ draw <- function(
         tgt_pop,
         pop_col,
         undo_l
+      )
+    }
+
+    # plans and comparisons ----
+    if (use_plans || use_comparisons) {
+      plans_reactive <- shiny::reactiveVal(plans)
+    }
+
+    if (use_plans) {
+      plansServer(
+        'plans',
+        session,
+        plans_reactive,
+        shp,
+        shp_in,
+        redistio_curr_plan,
+        ndists,
+        palette_reactive,
+        input$fill_opacity,
+        input$precinct_border,
+        input$precinct_linecolor,
+        leaf_tiles,
+        layers,
+        layer_colors,
+        opts,
+        def_opts,
+        val,
+        tot_pop,
+        tgt_pop,
+        pop_col,
+        undo_l
+      )
+    }
+
+    if (use_comparisons) {
+      comparisonsServer(
+        'comparisons',
+        session,
+        plans_reactive,
+        plans_fn,
+        shp_in,
+        redistio_curr_plan,
+        ndists,
+        opts,
+        def_opts
       )
     }
   }
