@@ -40,8 +40,17 @@ a `redist_plans` object with the reference plan added
 ``` r
 dc_map <- redist::redist_map(dc, existing_plan = ward)
 #> Projecting to CRS 3857
-plans <- redist_smc(dc_map, nsims = 10)
-#> Error in redist_smc(dc_map, nsims = 10): could not find function "redist_smc"
+plans <- redist::redist_smc(dc_map, nsims = 10)
+#> Loading required package: redistmetrics
+#> 
+#> Attaching package: ‘redist’
+#> The following object is masked from ‘package:stats’:
+#> 
+#>     filter
+#> SEQUENTIAL MONTE CARLO
+#> Sampling 10 143-unit maps with 8 districts and population between 80790 and 91596.
+#> Split [0/7] ■                                | ETA?
+#> Split [7/7] ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■  | ETA 0s
+#> 
 plans <- add_plan_stats(plans, dc_map$ward, map = dc_map, name = 'example')
-#> Error: object 'plans' not found
 ```

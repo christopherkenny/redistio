@@ -74,10 +74,19 @@
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">dc_map</span> <span class="op">&lt;-</span> <span class="fu">redist</span><span class="fu">::</span><span class="fu"><a href="http://alarm-redist.org/redist/reference/redist_map.html" class="external-link">redist_map</a></span><span class="op">(</span><span class="va">dc</span>, existing_plan <span class="op">=</span> <span class="va">ward</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Projecting to CRS 3857</span>
-<span class="r-in"><span><span class="va">plans</span> <span class="op">&lt;-</span> <span class="fu">redist_smc</span><span class="op">(</span><span class="va">dc_map</span>, nsims <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in redist_smc(dc_map, nsims = 10):</span> could not find function "redist_smc"</span>
+<span class="r-in"><span><span class="va">plans</span> <span class="op">&lt;-</span> <span class="fu">redist</span><span class="fu">::</span><span class="fu"><a href="http://alarm-redist.org/redist/reference/redist_smc.html" class="external-link">redist_smc</a></span><span class="op">(</span><span class="va">dc_map</span>, nsims <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: redistmetrics</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Attaching package: ‘redist’</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> The following object is masked from ‘package:stats’:</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>     filter</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> SEQUENTIAL MONTE CARLO</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sampling 10 143-unit maps with 8 districts and population between 80790 and 91596.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Split [0/7] <span style="color: #00BB00;">■                               </span> | ETA?</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Split [7/7] <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ </span> | ETA 0s</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="va">plans</span> <span class="op">&lt;-</span> <span class="fu">add_plan_stats</span><span class="op">(</span><span class="va">plans</span>, <span class="va">dc_map</span><span class="op">$</span><span class="va">ward</span>, map <span class="op">=</span> <span class="va">dc_map</span>, name <span class="op">=</span> <span class="st">'example'</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'plans' not found</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
