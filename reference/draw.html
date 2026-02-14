@@ -50,6 +50,8 @@
 <span>  split_cols <span class="op">=</span> <span class="va">guess_admins</span>,</span>
 <span>  elect_cols <span class="op">=</span> <span class="va">guess_elections</span>,</span>
 <span>  demog_cols <span class="op">=</span> <span class="va">guesstimate_demographics</span>,</span>
+<span>  plans <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  plans_fn <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  hover_fn <span class="op">=</span> <span class="va">hover_precinct</span>,</span>
 <span>  opts <span class="op">=</span> <span class="fu"><a href="redistio_options.html">redistio_options</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -102,6 +104,15 @@ if installed, <code>crayons::crayons$no_48</code>.</p></dd>
 
 <dt id="arg-demog-cols">demog_cols<a class="anchor" aria-label="anchor" href="#arg-demog-cols"></a></dt>
 <dd><p>Names of column in <code>shp</code> that contain demographic data</p></dd>
+
+
+<dt id="arg-plans">plans<a class="anchor" aria-label="anchor" href="#arg-plans"></a></dt>
+<dd><p>a <code>redist_plans</code> object of pre-computed plans for browsing and comparison.</p></dd>
+
+
+<dt id="arg-plans-fn">plans_fn<a class="anchor" aria-label="anchor" href="#arg-plans-fn"></a></dt>
+<dd><p>a function to add a reference plan to <code>plans</code> and compute summary statistics.
+Should follow the signature of <code><a href="http://alarm-redist.org/alarmdata/reference/alarm_add_plan.html" class="external-link">alarmdata::alarm_add_plan()</a></code>.</p></dd>
 
 
 <dt id="arg-hover-fn">hover_fn<a class="anchor" aria-label="anchor" href="#arg-hover-fn"></a></dt>

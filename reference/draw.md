@@ -17,6 +17,8 @@ draw(
   split_cols = guess_admins,
   elect_cols = guess_elections,
   demog_cols = guesstimate_demographics,
+  plans = NULL,
+  plans_fn = NULL,
   hover_fn = hover_precinct,
   opts = redistio_options()
 )
@@ -69,6 +71,17 @@ draw(
 - demog_cols:
 
   Names of column in `shp` that contain demographic data
+
+- plans:
+
+  a `redist_plans` object of pre-computed plans for browsing and
+  comparison.
+
+- plans_fn:
+
+  a function to add a reference plan to `plans` and compute summary
+  statistics. Should follow the signature of
+  [`alarmdata::alarm_add_plan()`](http://alarm-redist.org/alarmdata/reference/alarm_add_plan.md).
 
 - hover_fn:
 

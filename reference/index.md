@@ -2,6 +2,9 @@
 
 ## All functions
 
+- [`add_plan_stats()`](http://www.christophertkenny.com/redistio/reference/add_plan_stats.md)
+  : Add summary statistics to plans
+
 - [`adj_editor()`](http://www.christophertkenny.com/redistio/reference/adj_editor.md)
   : Interactive Adjacency Graph Editing
 
