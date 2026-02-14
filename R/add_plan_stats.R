@@ -11,7 +11,7 @@
 #'
 #' @examples
 #' dc_map <- redist::redist_map(dc, existing_plan = ward)
-#' plans <- redist_smc(dc_map, nsims = 10)
+#' plans <- redist::redist_smc(dc_map, nsims = 10)
 #' plans <- add_plan_stats(plans, dc_map$ward, map = dc_map, name = 'example')
 add_plan_stats <- function(plans, ref_plan, map = NULL, name = NULL, ...) {
   if (!inherits(plans, 'redist_plans')) {
