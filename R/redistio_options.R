@@ -65,7 +65,7 @@ redistio_options <- function(theme = 'flatly',
                              debounce = 150,
                              projection = 'mercator',
                              plot_theme = ggplot2::theme_bw(),
-                             plot_geom = 'jitter',
+                             plot_geom = 'boxplot',
                              plot_ref_geom = NULL,
                              ...) {
   if (length(palette_pop) == 1) {
