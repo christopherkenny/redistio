@@ -32,7 +32,7 @@ redistio_options(
   debounce = 150,
   projection = "mercator",
   plot_theme = ggplot2::theme_bw(),
-  plot_geom = "jitter",
+  plot_geom = "boxplot",
   plot_ref_geom = NULL,
   ...
 )
@@ -607,7 +607,7 @@ redistio_options()
 #>  @ validate: logi TRUE
 #> 
 #> $plot_geom
-#> [1] "jitter"
+#> [1] "boxplot"
 #> 
 #> $plot_ref_geom
 #> NULL
