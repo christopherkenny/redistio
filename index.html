@@ -55,7 +55,7 @@
 </div>
 <!-- badges: start -->
 
-<p><code>redistio</code> provides a point-and-click districting interface powered by <a href="https://shiny.posit.co/" class="external-link">Shiny</a> and <a href="https://github.com/walkerke/mapgl" class="external-link">mapgl</a>. For regular <code>sf</code> objects, it can be used to draw districts and export assignment files. For <code>redist_map</code> objects, algorithmic assistance is enabled for map drawing.</p>
+<p><code>redistio</code> provides a point-and-click districting interface powered by <a href="https://shiny.posit.co/" class="external-link">Shiny</a> and <a href="https://github.com/walkerke/mapgl" class="external-link">mapgl</a>. For regular <code>sf</code> objects, it can be used to draw districts and export assignment files. For <code>redist_map</code> objects, algorithmic assistance is enabled for map drawing. It also includes an interactive adjacency graph editor via <code><a href="reference/adj_editor.html">adj_editor()</a></code>.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -75,6 +75,36 @@
 <span></span>
 <span><span class="fu"><a href="reference/draw.html">draw</a></span><span class="op">(</span><span class="va">dc</span>, <span class="va">dc</span><span class="op">$</span><span class="va">ward</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/example_interactive.png"></p>
+</div>
+<div class="section level2">
+<h2 id="plans-browser-and-comparisons">Plans Browser and Comparisons<a class="anchor" aria-label="anchor" href="#plans-browser-and-comparisons"></a>
+</h2>
+<p>When working with <code>redist_map</code> objects and <code>redist_plans</code>, you can pass pre-computed plans to <code><a href="reference/draw.html">draw()</a></code> for browsing and comparison. This enables two additional tabs in the app:</p>
+<ul>
+<li>
+<strong>Plans</strong>: Browse and preview simulated plans on the map, and adopt any plan as your current working plan.</li>
+<li>
+<strong>Comparisons</strong>: Compare your current plan against the simulated plans using summary statistics and plots.</li>
+</ul>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/christopherkenny/redistio" class="external-link">redistio</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://alarm-redist.org/redist/" class="external-link">redist</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">map</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://alarm-redist.org/redist/reference/redist_map.html" class="external-link">redist_map</a></span><span class="op">(</span><span class="va">dc</span>, existing_plan <span class="op">=</span> <span class="va">ward</span><span class="op">)</span></span>
+<span><span class="va">plans</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://alarm-redist.org/redist/reference/redist_smc.html" class="external-link">redist_smc</a></span><span class="op">(</span><span class="va">map</span>, nsims <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="reference/draw.html">draw</a></span><span class="op">(</span><span class="va">map</span>, init_plan <span class="op">=</span> <span class="va">map</span><span class="op">$</span><span class="va">ward</span>, plans <span class="op">=</span> <span class="va">plans</span>, plans_fn <span class="op">=</span> <span class="va">add_plan_stats</span><span class="op">)</span></span></code></pre></div>
+<p>The <code>plans_fn</code> argument accepts a function that adds the current plan to the <code>redist_plans</code> object and computes summary statistics for comparison. The built-in <code><a href="reference/add_plan_stats.html">add_plan_stats()</a></code> function handles this automatically, computing statistics like population parity, compactness, partisan metrics, and administrative splits to match whatever columns are present in <code>plans</code>.</p>
+</div>
+<div class="section level2">
+<h2 id="adjacency-editor">Adjacency Editor<a class="anchor" aria-label="anchor" href="#adjacency-editor"></a>
+</h2>
+<p><code>redistio</code> includes an interactive adjacency graph editor for fixing adjacency issues in your data (e.g., removing edges across rivers or adding edges for missing connections):</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/christopherkenny/redistio" class="external-link">redistio</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="reference/adj_editor.html">adj_editor</a></span><span class="op">(</span><span class="va">dc</span>, init_plan <span class="op">=</span> <span class="va">dc</span><span class="op">$</span><span class="va">ward</span><span class="op">)</span></span></code></pre></div>
+<p>The editor lets you add or remove edges by clicking pairs of precincts, and provides an export tab with an edit log and reproducible code using <code>geomander</code> functions.</p>
 </div>
 </div>
 <div class="section level1">
@@ -99,13 +129,23 @@
 <code>map_tiles</code>: the base map style function to use from <a href="https://walker-data.com/mapgl/reference/index.html#styling-helpers" class="external-link">mapgl</a>
 </li>
 <li>
-<code>use_alogrithms</code>: whether to enable algorithmic assistance for map drawing. Requires a <code>redist_map</code> object.</li>
+<code>use_algorithms</code>: whether to enable algorithmic assistance for map drawing. Requires a <code>redist_map</code> object.</li>
 <li>
 <code>alg_max_districts</code>: the maximum number of districts allowed in algorithmic simulations</li>
 <li>
 <code>alg_max_sims</code>: the maximum number of simulations allowed in algorithmic simulations</li>
 <li>
+<code>use_plans</code>: whether to show the plans browser tab when <code>plans</code> is provided to <code><a href="reference/draw.html">draw()</a></code>
+</li>
+<li>
+<code>use_comparisons</code>: whether to show the comparisons tab when <code>plans</code> and <code>plans_fn</code> are provided to <code><a href="reference/draw.html">draw()</a></code>
+</li>
+<li>
 <code>use_planscore</code>: whether to use the <a href="https://planscore.org/" class="external-link">PlanScore API</a> to evaluate plans. Requires internet access and a PlanScore key.</li>
+<li>
+<code>locked_districts</code>: districts to lock at app start, preventing edits to those districts</li>
+<li>
+<code>projection</code>: the Maplibre map projection to use (default is <code>'mercator'</code>)</li>
 </ul>
 </div>
 <div class="section level2">
@@ -123,6 +163,10 @@
 <code>split_cols</code>: Specify columns which contain administrative units to check splits for.</li>
 <li>
 <code>hover_fn</code>: A function to display precinct-data based on the row of <code>shp</code> that the mouse is over.</li>
+<li>
+<code>plans</code>: A <code>redist_plans</code> object for browsing and comparison.</li>
+<li>
+<code>plans_fn</code>: A function to add a reference plan and compute summary statistics (e.g., <code><a href="reference/add_plan_stats.html">add_plan_stats()</a></code>).</li>
 </ul>
 </div>
 </div>
