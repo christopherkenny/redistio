@@ -10,3 +10,4 @@
 ^dev/dev_tester\.R$
 _\.new\.png$
 ^codecov\.yml$
+^_disable_autoload\.R$

@@ -171,95 +171,104 @@ algorithmsServer <- function(id, parent_session,
     shiny::outputOptions(output, 'alg_map')
 
     shiny::observeEvent(input$alg_run, {
-      map_sub(shp |>
-        dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
-        `attr<-`('existing_col', 'redistio_plan') |>
-        redist::filter(.data$redistio_plan %in% input$alg_district) |>
-        dplyr::mutate(
-          redistio_sub_id = as.character(dplyr::row_number() + base_id)
-        ))
-      map_sub_in(shp_in |>
-        dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
-        `attr<-`('existing_col', 'redistio_plan') |>
-        redist::filter(.data$redistio_plan %in% input$alg_district) |>
-        dplyr::mutate(
-          redistio_sub_id = as.character(dplyr::row_number() + base_id)
-        ))
+      tryCatch({
+        map_sub(shp |>
+          dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
+          `attr<-`('existing_col', 'redistio_plan') |>
+          redist::filter(.data$redistio_plan %in% input$alg_district) |>
+          dplyr::mutate(
+            redistio_sub_id = as.character(dplyr::row_number() + base_id)
+          ))
+        map_sub_in(shp_in |>
+          dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
+          `attr<-`('existing_col', 'redistio_plan') |>
+          redist::filter(.data$redistio_plan %in% input$alg_district) |>
+          dplyr::mutate(
+            redistio_sub_id = as.character(dplyr::row_number() + base_id)
+          ))
 
-      district_order <- map_sub()$redistio_plan |> unique()
+        district_order <- map_sub()$redistio_plan |> unique()
 
-      run_sims <- switch(input$alg_algorithm,
-        'SMC' = redist::redist_smc,
-        'Merge Split' = \(...) redist::redist_mergesplit(warmup = 0, ...),
-        'Flip' = redist::redist_flip,
-      )
-
-      if (input$alg_algorithm %in% c('SMC', 'Merge Split')) {
-        if (input$alg_counties_id != 'NONE') {
-          sims <- run_sims(map_sub_in(),
-            nsims = input$alg_nsims,
-            counties = !!rlang::sym(input$alg_counties_id)
-          )
-        } else {
-          sims <- run_sims(map_sub_in(), nsims = input$alg_nsims)
-        }
-      } else {
-        if (input$alg_counties_id != 'NONE') {
-          cons <- redist::redist_constr(map_sub_in()) |>
-            redist::add_constr_edges_rem(0.4) |>
-            redist::add_constr_splits(strength = 0.25, admin = !!rlang::sym(input$alg_counties_id))
-          sims <- run_sims(map_sub_in(),
-            nsims = input$alg_nsims,
-            constraints = cons
-          )
-        } else {
-          sims <- run_sims(map_sub_in(), nsims = input$alg_nsims)
-        }
-      }
-      if (length(input$alg_district) > 1) {
-        sims <- sims |>
-          redist::match_numbers('redistio_plan')
-      }
-
-      redistio_alg_plan$plans <- redist::get_plans_matrix(sims) |>
-        apply(MARGIN = 2, FUN = function(col) district_order[col])
-      redistio_alg_plan$pl <- redistio_alg_plan$plans[, 2]
-
-      sims_sum <- sims |>
-        dplyr::mutate(
-          dev = redist::plan_parity(map = map_sub_in())
-        ) |>
-        tibble::as_tibble() |>
-        dplyr::group_by(draw) |>
-        dplyr::slice(1) |>
-        dplyr::ungroup() |>
-        dplyr::select(dplyr::all_of(c('draw', 'dev')))
-      alg_plans(sims_sum)
-
-      mapgl::maplibre_proxy('alg_map') |>
-        mapgl::set_paint_property(
-          layer_id = 'precinct_fill',
-          name = 'fill-color',
-          value = '#FFFFFF00'
-        ) |>
-        mapgl::set_layout_property(
-          layer_id = 'district_label_layer',
-          name = 'visibility',
-          value = 'none'
-        ) |>
-        mapgl::add_source(
-          data = create_mapgl_source(map_sub(), id_col = 'redistio_sub_id'),
-          id = 'redistio_sub',
-          promoteId = 'redistio_sub_id'
-        ) |>
-        mapgl::add_fill_layer(
-          source = 'redistio_sub',
-          fill_color = discrete_palette(pal(), redistio_alg_plan$pl,
-            column = 'redistio_sub_id', base = base_id
-          ),
-          fill_opacity = fill_opacity,
-          id = 'alg_precincts'
+        run_sims <- switch(input$alg_algorithm,
+          'SMC' = redist::redist_smc,
+          'Merge Split' = \(...) redist::redist_mergesplit(warmup = 0, ...),
+          'Flip' = redist::redist_flip,
         )
+
+        if (input$alg_algorithm %in% c('SMC', 'Merge Split')) {
+          if (input$alg_counties_id != 'NONE') {
+            sims <- run_sims(map_sub_in(),
+              nsims = input$alg_nsims,
+              counties = !!rlang::sym(input$alg_counties_id)
+            )
+          } else {
+            sims <- run_sims(map_sub_in(), nsims = input$alg_nsims)
+          }
+        } else {
+          if (input$alg_counties_id != 'NONE') {
+            cons <- redist::redist_constr(map_sub_in()) |>
+              redist::add_constr_edges_rem(0.4) |>
+              redist::add_constr_splits(strength = 0.25, admin = !!rlang::sym(input$alg_counties_id))
+            sims <- run_sims(map_sub_in(),
+              nsims = input$alg_nsims,
+              constraints = cons
+            )
+          } else {
+            sims <- run_sims(map_sub_in(), nsims = input$alg_nsims)
+          }
+        }
+        if (length(input$alg_district) > 1) {
+          sims <- sims |>
+            redist::match_numbers('redistio_plan')
+        }
+
+        redistio_alg_plan$plans <- redist::get_plans_matrix(sims) |>
+          apply(MARGIN = 2, FUN = function(col) district_order[col])
+        redistio_alg_plan$pl <- redistio_alg_plan$plans[, 2]
+
+        sims_sum <- sims |>
+          dplyr::mutate(
+            dev = redist::plan_parity(map = map_sub_in())
+          ) |>
+          tibble::as_tibble() |>
+          dplyr::group_by(draw) |>
+          dplyr::slice(1) |>
+          dplyr::ungroup() |>
+          dplyr::select(dplyr::all_of(c('draw', 'dev')))
+        alg_plans(sims_sum)
+
+        mapgl::maplibre_proxy('alg_map') |>
+          mapgl::set_paint_property(
+            layer_id = 'precinct_fill',
+            name = 'fill-color',
+            value = '#FFFFFF00'
+          ) |>
+          mapgl::set_layout_property(
+            layer_id = 'district_label_layer',
+            name = 'visibility',
+            value = 'none'
+          ) |>
+          mapgl::add_source(
+            data = create_mapgl_source(map_sub(), id_col = 'redistio_sub_id'),
+            id = 'redistio_sub',
+            promoteId = 'redistio_sub_id'
+          ) |>
+          mapgl::add_fill_layer(
+            source = 'redistio_sub',
+            fill_color = discrete_palette(pal(), redistio_alg_plan$pl,
+              column = 'redistio_sub_id', base = base_id
+            ),
+            fill_opacity = fill_opacity,
+            id = 'alg_precincts'
+          )
+      }, error = function(e) {
+        shiny::showModal(shiny::modalDialog(
+          title = 'Algorithm Error',
+          paste('The algorithm failed with the following error:', conditionMessage(e)),
+          easyClose = TRUE,
+          footer = shiny::modalButton('Dismiss')
+        ))
+      })
     })
 
     output$alg_summary <- DT::renderDT(
