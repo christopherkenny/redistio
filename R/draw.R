@@ -12,9 +12,9 @@
 #' @param split_cols Names of column in `shp` that contain administrative units
 #' @param elect_cols Names of column in `shp` that contain election data
 #' @param demog_cols Names of column in `shp` that contain demographic data
-#' @param plans a `redist_plans` object of pre-computed plans for browsing and comparison.
+#' @param plans a `redist_plans` object plans for browsing and comparison
 #' @param plans_fn a function to add a reference plan to `plans` and compute summary statistics.
-#'   Should follow the signature of `alarmdata::alarm_add_plan()`.
+#'   Should follow the signature of `add_plan_stats()`.
 #' @param hover_fn Function to generate tables for mouse hovering. Default is `hover_precinct()`.
 #' @param opts list of options. Default is `redistio_options()`
 #'
