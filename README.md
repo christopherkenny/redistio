@@ -146,3 +146,25 @@ Several data-based options may be configured inside `draw()`:
 - `plans`: A `redist_plans` object for browsing and comparison.
 - `plans_fn`: A function to add a reference plan and compute summary
   statistics (e.g., `add_plan_stats()`).
+
+## More complex apps
+
+These features allow for analyzing more complex maps, with live
+comparisons with simulations. For example, with the following code, you
+can have many more options:
+
+``` r
+library(redistio)
+nj <- alarmdata::alarm_50state_map('NJ')
+pl <- alarmdata::alarm_50state_plans('NJ')
+draw(
+  nj,
+  init_plan = nj$cd_2020,
+  palette = ggredist::ggredist$alaska,
+  layers = list(County = 'county'),
+  plans = pl,
+  plans_fn = add_plan_stats
+)
+```
+
+![](man/figures/example_interactive_nj.png)
