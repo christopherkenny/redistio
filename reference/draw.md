@@ -74,14 +74,13 @@ draw(
 
 - plans:
 
-  a `redist_plans` object of pre-computed plans for browsing and
-  comparison.
+  a `redist_plans` object plans for browsing and comparison
 
 - plans_fn:
 
   a function to add a reference plan to `plans` and compute summary
   statistics. Should follow the signature of
-  [`alarmdata::alarm_add_plan()`](http://alarm-redist.org/alarmdata/reference/alarm_add_plan.md).
+  [`add_plan_stats()`](http://www.christophertkenny.com/redistio/reference/add_plan_stats.md).
 
 - hover_fn:
 
