@@ -309,7 +309,7 @@ tally_pop <- function(map, plan, pop_cols = dplyr::starts_with('pop_'), pop = 'p
                       normalize = FALSE) {
   pop_cols <- map |>
     tibble::as_tibble() |>
-    dplyr::select(pop_cols) |>
+    dplyr::select({{ pop_cols }}) |>
     names()
   map <- map |>
     tibble::as_tibble() |>
@@ -332,7 +332,11 @@ tally_pop <- function(map, plan, pop_cols = dplyr::starts_with('pop_'), pop = 'p
 }
 tally_vap <- function(map, plan, vap_cols = dplyr::starts_with('vap_'), vap = 'vap',
                       normalize = FALSE) {
-  tally_pop(map, plan, pop_cols = vap_cols, pop = vap, normalize = normalize)
+  vap_cols <- map |>
+    tibble::as_tibble() |>
+    dplyr::select({{ vap_cols }}) |>
+    names()
+  tally_pop(map, plan, pop_cols = dplyr::all_of(vap_cols), pop = vap, normalize = normalize)
 }
 
 # data colors ====
