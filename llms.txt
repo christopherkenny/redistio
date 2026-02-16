@@ -142,6 +142,28 @@ Several data-based options may be configured inside
   statistics (e.g.,
   [`add_plan_stats()`](http://www.christophertkenny.com/redistio/reference/add_plan_stats.md)).
 
+## More complex apps
+
+These features allow for analyzing more complex maps, with live
+comparisons with simulations. For example, with the following code, you
+can have many more options:
+
+``` r
+library(redistio)
+nj <- alarmdata::alarm_50state_map('NJ')
+pl <- alarmdata::alarm_50state_plans('NJ')
+draw(
+  nj,
+  init_plan = nj$cd_2020,
+  palette = ggredist::ggredist$alaska,
+  layers = list(County = 'county'),
+  plans = pl,
+  plans_fn = add_plan_stats
+)
+```
+
+![](reference/figures/example_interactive_nj.png)
+
 # Package index
 
 ## All functions
