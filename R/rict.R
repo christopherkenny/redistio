@@ -46,13 +46,14 @@ rict_contiguity <- function(map, plan, adj, as_gt = TRUE) {
 }
 
 rict_compactness <- function(
-    map, plan, measures = list(
-      'comp_polsby' = redistmetrics::comp_polsby,
-      'comp_schwartz' = redistmetrics::comp_schwartz,
-      'comp_reock' = redistmetrics::comp_reock,
-      'comp_ch' = redistmetrics::comp_ch
-    ),
-    as_gt = TRUE) {
+  map, plan, measures = list(
+    'comp_polsby' = redistmetrics::comp_polsby,
+    'comp_schwartz' = redistmetrics::comp_schwartz,
+    'comp_reock' = redistmetrics::comp_reock,
+    'comp_ch' = redistmetrics::comp_ch
+  ),
+  as_gt = TRUE
+) {
   meas <- lapply(measures, function(x) {
     x(plan, map)
   }) |>

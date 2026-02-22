@@ -67,7 +67,6 @@ plansServer <- function(id, parent_session,
                         leaf_tiles, layers, layer_colors, opts, def_opts,
                         val, tot_pop, tgt_pop, pop_col, undo_l) {
   shiny::moduleServer(id, function(input, output, session) {
-
     # store the selected plan vector for map preview
     selected_plan <- shiny::reactiveVal(NULL)
 
@@ -256,7 +255,8 @@ plansServer <- function(id, parent_session,
 
       new_tb_pop <- val()
       new_tb_pop$Population <- distr_pop(
-        shp[[pop_col]], total = tot_pop,
+        shp[[pop_col]],
+        total = tot_pop,
         plan = redistio_curr_plan$pl, ndists = ndists
       )
       new_tb_pop$Deviation <- as.integer(

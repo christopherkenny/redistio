@@ -18,13 +18,14 @@
 #'   adj_editor(dc, init_plan = dc$ward, layers = list(neighborhoods = 'adv_nbr'))
 #' }
 adj_editor <- function(
-    shp,
-    adj = geomander::adjacency(shp),
-    init_plan,
-    palette = NULL,
-    layers = NULL,
-    hover_fn = hover_precinct,
-    opts = redistio_options()) {
+  shp,
+  adj = geomander::adjacency(shp),
+  init_plan,
+  palette = NULL,
+  layers = NULL,
+  hover_fn = hover_precinct,
+  opts = redistio_options()
+) {
   # defaults ----
   def_opts <- redistio_options()
 

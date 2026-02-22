@@ -164,7 +164,9 @@ calc_ref_stats <- function(ref_plans, map, stat_cols) {
       elect_results <- lapply(elec_prefixes, function(el) {
         d_col <- names(map)[grepl(paste0('^', el, '_dem_'), names(map))]
         r_col <- names(map)[grepl(paste0('^', el, '_rep_'), names(map))]
-        if (length(d_col) != 1 || length(r_col) != 1) return(NULL)
+        if (length(d_col) != 1 || length(r_col) != 1) {
+          return(NULL)
+        }
 
         dvote <- map_tb[[d_col]]
         rvote <- map_tb[[r_col]]

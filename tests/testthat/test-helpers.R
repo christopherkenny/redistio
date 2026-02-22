@@ -19,9 +19,9 @@ test_that('distr_pop handles unassigned precincts', {
 test_that('generate_lock_icons marks locked districts', {
   result <- generate_lock_icons(ndists = 3, locked_districts = c('1', '3'))
   expect_length(result, 4)
-  expect_true(grepl('\U0001F512', result[2]))  # district 1 locked
-  expect_true(grepl('\U0001F513', result[3]))  # district 2 unlocked
-  expect_true(grepl('\U0001F512', result[4]))  # district 3 locked
+  expect_true(grepl('\U0001F512', result[2])) # district 1 locked
+  expect_true(grepl('\U0001F513', result[3])) # district 2 unlocked
+  expect_true(grepl('\U0001F512', result[4])) # district 3 locked
 })
 
 test_that('create_mapgl_source keeps only geometry and id', {

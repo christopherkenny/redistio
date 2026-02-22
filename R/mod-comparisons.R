@@ -71,7 +71,6 @@ comparisonsServer <- function(id, parent_session,
                               redistio_curr_plan, ndists,
                               opts, def_opts) {
   shiny::moduleServer(id, function(input, output, session) {
-
     # stores the plans with the current plan added as reference
     plans_with_ref <- shiny::reactiveVal(NULL)
 
