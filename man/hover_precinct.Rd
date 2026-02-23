@@ -12,11 +12,13 @@ hover_precinct(shp, ...)
 \item{...}{named tidyselections}
 }
 \value{
-A \link[tibble:tibble]{tibble::tibble}
+A \link[tibble:tibble]{tibble::tibble} with columns \code{group}, \code{rowname}, and one column
+per precinct (\code{V1}, \code{V2}, ...). Groups are labeled with human-readable
+names (e.g. \code{"Total Population"}, \code{"Voting Age Population"}).
 }
 \description{
 Create a \code{tibble} of precinct stats
 }
 \examples{
-hover_precinct(dc, 1, pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap'))
+hover_precinct(dc, pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap'))
 }
