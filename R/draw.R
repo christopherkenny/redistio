@@ -28,21 +28,22 @@
 #' }
 #'
 draw <- function(
-    shp,
-    init_plan,
-    ndists,
-    palette = NULL,
-    layers = NULL,
-    pop_tol = 0.05,
-    pop_col = 'pop',
-    adj_col = 'adj',
-    split_cols = guess_admins,
-    elect_cols = guess_elections,
-    demog_cols = guesstimate_demographics,
-    plans = NULL,
-    plans_fn = NULL,
-    hover_fn = hover_precinct,
-    opts = redistio_options()) {
+  shp,
+  init_plan,
+  ndists,
+  palette = NULL,
+  layers = NULL,
+  pop_tol = 0.05,
+  pop_col = 'pop',
+  adj_col = 'adj',
+  split_cols = guess_admins,
+  elect_cols = guess_elections,
+  demog_cols = guesstimate_demographics,
+  plans = NULL,
+  plans_fn = NULL,
+  hover_fn = hover_precinct,
+  opts = redistio_options()
+) {
   # defaults ----
   def_opts <- redistio_options()
   poss_panels <- c(
@@ -156,9 +157,7 @@ draw <- function(
     shp_tb,
     pop = dplyr::starts_with('pop'),
     vap = dplyr::starts_with('vap')
-  ) |>
-    dplyr::bind_rows(.id = 'group') |>
-    format_alarm_names()
+  )
 
   # prep layers -----
   layers <- prep_layers(layers, shp)
@@ -260,7 +259,7 @@ draw <- function(
             bslib::accordion(
               bslib::accordion_panel(
                 'Edit districts',
-                DT::DTOutput(outputId = 'district', fill = TRUE),
+                DT::DTOutput(outputId = 'district'),
                 icon = shiny::icon('paintbrush'),
                 style = 'padding: 0 !important'
               ),
@@ -326,9 +325,18 @@ draw <- function(
                 id = 'tabRight',
                 bslib::nav_panel(
                   title = 'Population',
-                  gt::gt_output('tab_pop')
+                  shiny::div(
+                    style = 'max-height: calc(100vh - 200px); overflow-y: auto;',
+                    shiny::uiOutput('tab_pop')
+                  )
                 ),
-                bslib::nav_panel(title = 'Precinct', gt::gt_output('hover')),
+                bslib::nav_panel(
+                  title = 'Precinct',
+                  shiny::div(
+                    style = 'max-height: calc(100vh - 200px); overflow-y: auto;',
+                    shiny::uiOutput('hover_panel')
+                  )
+                ),
                 bslib::nav_menu(
                   title = 'More',
                   bslib::nav_panel(
@@ -514,6 +522,8 @@ draw <- function(
       as.character(palette)
     )
 
+    hover_header_data <- shiny::reactiveVal(list(district = NULL, precinct = NULL))
+
     # undo ----
     undo_l <- shiny::reactiveVal(undo_log(l = undo_init(10L), pl = init_plan))
 
@@ -673,7 +683,6 @@ draw <- function(
             rownames = FALSE,
             escape = FALSE,
             selection = list(target = 'row', mode = 'single', selected = 2),
-            fillContainer = TRUE,
             colnames = c('District', '', 'Pop.', 'Dev.')
           ) |>
           DT::formatRound(columns = c('Population', 'Deviation'), digits = 0)
@@ -708,35 +717,49 @@ draw <- function(
 
     shiny::outputOptions(output, 'district', suspendWhenHidden = FALSE)
 
-    output$tab_pop <- gt::render_gt({
-      val() |>
-        # dplyr::slice(-1) |>
-        dplyr::mutate(
-          District = stringr::str_extract(.data$District, ' \\d+ ')
-        ) |>
-        gt::gt() |>
-        gt::cols_hide(columns = 'Lock') |>
-        gt::tab_style(
-          style = gt::cell_fill(color = 'red'),
-          locations = gt::cells_body(
-            rows = (.data$Population > max_pop | .data$Population < min_pop) &
-              !is.na(.data$District)
-          )
-        ) |>
-        gt::cols_label(
-          District = ''
-        ) |>
-        gt::tab_options(
-          data_row.padding = gt::px(2),
-          table.width = '100%',
-          container.padding.y = '0',
-          heading.padding = '0',
-          table.background.color = '#fff0'
-        ) |>
-        gt::fmt_number(columns = c('Population', 'Deviation'), decimals = 0) |>
-        gt::tab_footnote(
-          footnote = pretty_bounds
+    output$tab_pop <- shiny::renderUI({
+      tab_data <- val()
+      fmt <- scales::label_comma(accuracy = 1)
+
+      td_style <- 'padding: 2px 4px; font-size: 0.85em;'
+      td_r_style <- 'padding: 2px 4px; text-align: right; font-size: 0.85em; font-variant-numeric: tabular-nums;'
+
+      header <- shiny::tags$tr(
+        shiny::tags$th(style = paste0(td_style, ' border-bottom: 2px solid #ccc;'), ''),
+        shiny::tags$th(style = paste0(td_r_style, ' border-bottom: 2px solid #ccc;'), 'Pop.'),
+        shiny::tags$th(style = paste0(td_r_style, ' border-bottom: 2px solid #ccc;'), 'Dev.')
+      )
+
+      rows <- lapply(seq_len(nrow(tab_data)), function(i) {
+        dist <- trimws(stringr::str_extract(tab_data$District[i], ' \\d+ '))
+        pop <- tab_data$Population[i]
+        dev <- tab_data$Deviation[i]
+        is_district <- !is.na(dist) && !is.na(nchar(dist)) && nchar(dist) > 0
+        out_of_bounds <- isTRUE(is_district && (pop < min_pop || pop > max_pop))
+        row_class <- if (out_of_bounds) 'redistio-oob' else NULL
+
+        shiny::tags$tr(
+          class = row_class,
+          shiny::tags$td(style = td_style, if (!isTRUE(nchar(dist) > 0)) '' else dist),
+          shiny::tags$td(style = td_r_style, fmt(pop)),
+          shiny::tags$td(style = td_r_style, fmt(dev))
         )
+      })
+
+      shiny::tagList(
+        shiny::tags$style(shiny::HTML(
+          '.redistio-oob td { background-color: rgba(255, 0, 0, 0.3) !important; }'
+        )),
+        shiny::tags$table(
+          style = 'width: 100%; border-collapse: collapse;',
+          shiny::tags$thead(header),
+          shiny::tags$tbody(do.call(shiny::tagList, rows))
+        ),
+        shiny::tags$div(
+          style = 'padding: 4px; font-size: 0.8em; color: #666;',
+          pretty_bounds
+        )
+      )
     })
 
     # undo logic ----
@@ -782,44 +805,78 @@ draw <- function(
     hov_reac_d <- shiny::debounce(hov_reac, opts$debounce %||% def_opts$debounce)
 
     # precinct stats ----
+    output$hover_panel <- shiny::renderUI({
+      hd <- hover_header_data()
+      if (is.null(hd$precinct)) {
+        return(shiny::tags$div(
+          style = 'padding: 8px;',
+          shiny::tags$em('Hover over a precinct')
+        ))
+      }
+
+      col_name <- paste0('V', hd$precinct)
+      if (!col_name %in% names(hov)) {
+        return(NULL)
+      }
+
+      hover_data <- hov[c('group', 'rowname', col_name)]
+      names(hover_data)[3] <- 'value'
+      groups <- unique(hover_data$group)
+      fmt <- scales::label_comma(accuracy = 1)
+
+      table_rows <- lapply(groups, function(g) {
+        gd <- hover_data[hover_data$group == g, ]
+        c(
+          list(shiny::tags$tr(
+            shiny::tags$td(
+              colspan = '2',
+              style = 'font-weight: 600; padding: 3px 2px 1px; border-bottom: 1px solid #ccc; font-size: 0.72em; color: #555;',
+              g
+            )
+          )),
+          lapply(seq_len(nrow(gd)), function(i) {
+            shiny::tags$tr(
+              shiny::tags$td(
+                style = 'padding: 1px 2px; font-size: 0.75em;',
+                gd$rowname[i]
+              ),
+              shiny::tags$td(
+                style = 'padding: 1px 2px; text-align: right; font-size: 0.75em; font-variant-numeric: tabular-nums;',
+                fmt(gd$value[i])
+              )
+            )
+          })
+        )
+      })
+
+      shiny::tagList(
+        shiny::tags$div(
+          style = 'padding: 2px 0; margin-bottom: 2px; font-size: 0.8em;',
+          shiny::tags$strong(paste0('District: ', hd$district)),
+          ' ',
+          shiny::tags$span(
+            style = 'color: #666;',
+            paste0('(Precinct ', hd$precinct, ')')
+          )
+        ),
+        shiny::tags$table(
+          style = 'width: 100%; border-collapse: collapse;',
+          do.call(shiny::tagList, unlist(table_rows, recursive = FALSE))
+        )
+      )
+    })
+
     shiny::observeEvent(hov_reac_d(), {
       if (!is.null(hov_reac_d())) {
         if (input$tabRight == 'Precinct') {
-          output$hover <- gt::render_gt({
-            # produce hover tables ----
-            hov |>
-              dplyr::select(dplyr::any_of(c(
-                'group',
-                'rowname',
-                paste0('V', as.integer(hov_reac_d()$id))
-              ))) |>
-              gt::gt() |>
-              gt::cols_label_with(
-                columns = gt::starts_with('V'),
-                fn = function(x) ''
-              ) |>
-              gt::tab_style(
-                style = list(
-                  gt::cell_text(align = 'left')
-                ),
-                locations = gt::cells_stub(rows = TRUE)
-              ) |>
-              gt::tab_header(
-                title = paste0(
-                  'Current District: ',
-                  redistio_curr_plan$pl[as.integer(hov_reac_d()$id)]
-                ),
-                subtitle = paste0('Precinct ID: ', hov_reac_d()$id)
-              ) |>
-              gt::tab_options(
-                data_row.padding = gt::px(1),
-                table.width = '100%',
-                container.padding.y = '0',
-                column_labels.padding = '0',
-                table.background.color = '#fff0'
-              ) |>
-              gt::fmt_number(columns = gt::starts_with('V'), decimals = 0)
-          })
+          id <- as.integer(hov_reac_d()$id)
+          col_name <- paste0('V', id)
+          if (col_name %in% names(hov)) {
+            hover_header_data(list(
+              district = redistio_curr_plan$pl[id],
+              precinct = id
+            ))
+          }
         }
       }
     })

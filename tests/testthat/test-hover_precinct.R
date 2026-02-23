@@ -1,7 +1,9 @@
 test_that('`hover_precinct()` works', {
-  hov <- hover_precinct(dc, 1, pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap'))
+  hov <- hover_precinct(dc, pop = dplyr::starts_with('pop'), vap = dplyr::starts_with('vap'))
 
-  expect_type(hov, 'list')
-  expect_equal(length(hov), 3)
-  expect_named(hov, c('', 'pop', 'vap'))
+  expect_s3_class(hov, 'tbl_df')
+  expect_true(all(c('group', 'rowname') %in% names(hov)))
+  expect_true(any(grepl('^V[0-9]+$', names(hov))))
+  expect_true('Total Population' %in% hov$group)
+  expect_true('Voting Age Population' %in% hov$group)
 })
