@@ -26,9 +26,8 @@ demographicsServer <- function(id, shp, redistio_curr_plan) {
   shiny::moduleServer(id, function(input, output, session) {
     output$demographics <- gt::render_gt({
       list(
-        rict_population(shp, redistio_curr_plan$pl, as_gt = FALSE),
-        tally_pop(shp, redistio_curr_plan$pl, normalize = TRUE),
-        tally_vap(shp, redistio_curr_plan$pl, normalize = TRUE)
+        rict::rict_population(shp, redistio_curr_plan$pl, as_gt = FALSE),
+        rict::rict_demographics(shp, redistio_curr_plan$pl, normalize = TRUE, as_gt = FALSE)
       ) |>
         purrr::reduce(.f = dplyr::left_join, by = 'District') |>
         gt::gt() |>

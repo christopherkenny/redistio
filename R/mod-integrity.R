@@ -34,10 +34,10 @@ integrityServer <- function(id, shp, redistio_curr_plan, adj, split_cols) {
     output$integrity <- gt::render_gt({
       if (!any(is.na(redistio_curr_plan$pl))) {
         int_l <- list(
-          rict_population(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
-          rict_contiguity(shp, plan = redistio_curr_plan$pl, adj = adj, as_gt = FALSE),
-          rict_compactness(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
-          rict_splits(shp,
+          rict::rict_population(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
+          rict::rict_contiguity(shp, plan = redistio_curr_plan$pl, adj = adj, as_gt = FALSE),
+          rict::rict_compactness(shp, plan = redistio_curr_plan$pl, as_gt = FALSE),
+          rict::rict_splits(shp,
             plan = redistio_curr_plan$pl,
             admin = split_cols$admin, subadmin = split_cols$subadmin,
             multi = split_cols$multi, total = split_cols$total,
@@ -46,8 +46,8 @@ integrityServer <- function(id, shp, redistio_curr_plan, adj, split_cols) {
         )
       } else {
         int_l <- list(
-          rict_population(shp, redistio_curr_plan$pl, as_gt = FALSE),
-          rict_contiguity(shp, plan = redistio_curr_plan$pl, adj = adj, as_gt = FALSE)
+          rict::rict_population(shp, redistio_curr_plan$pl, as_gt = FALSE),
+          rict::rict_contiguity(shp, plan = redistio_curr_plan$pl, adj = adj, as_gt = FALSE)
         )
       }
       int_l |>

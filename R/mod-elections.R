@@ -25,7 +25,7 @@ electionsUI <- function(id) {
 electionsServer <- function(id, shp_tb, curr_plan) {
   shiny::moduleServer(id, function(input, output, session) {
     output$elections <- gt::render_gt({
-      rict_elections(shp_tb, plan = curr_plan$pl)
+      rict::rict_elections(shp_tb, plan = curr_plan$pl)
     })
   })
 }
