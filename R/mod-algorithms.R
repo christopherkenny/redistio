@@ -23,7 +23,13 @@ algorithmsUI <- function(id, opts, def_opts, ndists, shp) {
         shiny::selectInput(
           inputId = ns('alg_algorithm'),
           label = 'Algorithm to use',
-          choices = c('SMC', 'Merge Split', 'Flip')
+          choices = {
+            redist_exports <- getNamespaceExports('redist')
+            alg_choices <- c('SMC', 'Merge Split', 'Flip')
+            if ('redist_cyclewalk' %in% redist_exports) alg_choices <- c(alg_choices, 'Cycle Walk')
+            if ('redist_mmss' %in% redist_exports) alg_choices <- c(alg_choices, 'MMSS')
+            alg_choices
+          }
         ),
         shiny::hr(),
         shiny::sliderInput(
@@ -196,6 +202,8 @@ algorithmsServer <- function(id, parent_session,
               'SMC' = redist::redist_smc,
               'Merge Split' = \(...) redist::redist_mergesplit(warmup = 0, ...),
               'Flip' = redist::redist_flip,
+              'Cycle Walk' = \(...) redist::redist_cyclewalk(thin = 10, ...),
+              'MMSS' = \(...) redist::redist_mmss(l = 3, ...),
             )
 
             shiny::incProgress(0.1, detail = paste('Running', input$alg_algorithm, 'simulations'))
