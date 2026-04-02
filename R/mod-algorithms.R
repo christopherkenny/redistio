@@ -259,10 +259,8 @@ algorithmsServer <- function(
               'SMC' = redist::redist_smc,
               'Merge Split' = \(...) redist::redist_mergesplit(warmup = 0, ...),
               'Flip' = redist::redist_flip,
-              'Cycle Walk' = \(...) {
-                redist::redist_cyclewalk(warmup = 0, thin = 1, ...)
-              },
-              'MMSS' = \(...) redist::redist_mmss(warmup = 0, l = 3, ...),
+              'Cycle Walk' = \(...) getExportedValue('redist', 'redist_cyclewalk')(thin = 10, ...),
+              'MMSS' = \(...) getExportedValue('redist', 'redist_mmss')(l = 3, ...),
             )
 
             shiny::incProgress(
