@@ -12,12 +12,22 @@ algorithmsUI <- function(id, opts, def_opts, ndists, shp) {
     title = 'algorithms',
     bslib::layout_columns(
       col_widths = c(2, 8, 2),
-      bslib::card( # selector
+      bslib::card(
+        # selector
         shiny::selectizeInput(
           inputId = ns('alg_district'),
-          label = paste0('Districts to redraw (up to ', min(opts$alg_max_districts %||% def_opts$alg_max_districts, ndists), ')'),
+          label = paste0(
+            'Districts to redraw (up to ',
+            min(opts$alg_max_districts %||% def_opts$alg_max_districts, ndists),
+            ')'
+          ),
           choices = seq_len(ndists),
-          options = list(maxItems = min(opts$alg_max_districts %||% def_opts$alg_max_districts, ndists))
+          options = list(
+            maxItems = min(
+              opts$alg_max_districts %||% def_opts$alg_max_districts,
+              ndists
+            )
+          )
         ),
         shiny::hr(),
         shiny::selectInput(
@@ -26,8 +36,12 @@ algorithmsUI <- function(id, opts, def_opts, ndists, shp) {
           choices = {
             redist_exports <- getNamespaceExports('redist')
             alg_choices <- c('SMC', 'Merge Split', 'Flip')
-            if ('redist_cyclewalk' %in% redist_exports) alg_choices <- c(alg_choices, 'Cycle Walk')
-            if ('redist_mmss' %in% redist_exports) alg_choices <- c(alg_choices, 'MMSS')
+            if ('redist_cyclewalk' %in% redist_exports) {
+              alg_choices <- c(alg_choices, 'Cycle Walk')
+            }
+            if ('redist_mmss' %in% redist_exports) {
+              alg_choices <- c(alg_choices, 'MMSS')
+            }
             alg_choices
           }
         ),
@@ -40,8 +54,11 @@ algorithmsUI <- function(id, opts, def_opts, ndists, shp) {
           value = 10
         ),
         shiny::hr(),
-        shiny::selectizeInput(ns('alg_counties_id'), 'Select county column:',
-          choices = c('NONE', names(shp)), selected = NULL,
+        shiny::selectizeInput(
+          ns('alg_counties_id'),
+          'Select county column:',
+          choices = c('NONE', names(shp)),
+          selected = NULL,
           multiple = FALSE
         ),
         shiny::hr(),
@@ -51,14 +68,20 @@ algorithmsUI <- function(id, opts, def_opts, ndists, shp) {
           icon = shiny::icon('circle-play')
         )
       ),
-      bslib::card( # interactive mapper
+      bslib::card(
+        # interactive mapper
         mapgl::maplibreOutput(
           outputId = ns('alg_map'),
           height = opts$leaflet_height %||% def_opts$leaflet_height,
         )
       ),
-      bslib::card( # details area
-        DT::DTOutput(outputId = ns('alg_summary'), width = '30vh', height = '80vh'),
+      bslib::card(
+        # details area
+        DT::DTOutput(
+          outputId = ns('alg_summary'),
+          width = '30vh',
+          height = '80vh'
+        ),
         shiny::tags$hr(),
         shiny::actionButton(
           inputId = ns('alg_accept'),
@@ -96,12 +119,29 @@ algorithmsUI <- function(id, opts, def_opts, ndists, shp) {
 #'
 #' @return shiny server
 #' @noRd
-algorithmsServer <- function(id, parent_session,
-                             shp, shp_in, redistio_curr_plan, ndists, pal,
-                             fill_opacity, precinct_border, precinct_linecolor,
-                             fill_column,
-                             leaf_tiles, layers, layer_colors, opts, def_opts,
-                             val, tot_pop, tgt_pop, pop_col, undo_l) {
+algorithmsServer <- function(
+  id,
+  parent_session,
+  shp,
+  shp_in,
+  redistio_curr_plan,
+  ndists,
+  pal,
+  fill_opacity,
+  precinct_border,
+  precinct_linecolor,
+  fill_column,
+  leaf_tiles,
+  layers,
+  layer_colors,
+  opts,
+  def_opts,
+  val,
+  tot_pop,
+  tgt_pop,
+  pop_col,
+  undo_l
+) {
   shiny::moduleServer(id, function(input, output, session) {
     map_sub <- shiny::reactiveVal(shp)
     map_sub_in <- shiny::reactiveVal(shp_in)
@@ -136,7 +176,11 @@ algorithmsServer <- function(id, parent_session,
         mapgl::add_fill_layer(
           source = 'redistio',
           id = 'precinct_fill',
-          fill_color = discrete_palette(pal(), redistio_curr_plan$pl, column = 'redistio_id'),
+          fill_color = discrete_palette(
+            pal(),
+            redistio_curr_plan$pl,
+            column = 'redistio_id'
+          ),
           fill_opacity = fill_opacity,
           fill_outline_color = '#cccccc'
         ) |>
@@ -181,36 +225,45 @@ algorithmsServer <- function(id, parent_session,
         tryCatch(
           {
             shiny::incProgress(0.1, detail = 'Preparing map subset')
-            map_sub(shp |>
-              dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
-              `attr<-`('existing_col', 'redistio_plan') |>
-              redist::filter(.data$redistio_plan %in% input$alg_district) |>
-              dplyr::mutate(
-                redistio_sub_id = as.character(dplyr::row_number() + base_id)
-              ))
-            map_sub_in(shp_in |>
-              dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
-              `attr<-`('existing_col', 'redistio_plan') |>
-              redist::filter(.data$redistio_plan %in% input$alg_district) |>
-              dplyr::mutate(
-                redistio_sub_id = as.character(dplyr::row_number() + base_id)
-              ))
+            map_sub(
+              shp |>
+                dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
+                `attr<-`('existing_col', 'redistio_plan') |>
+                redist::filter(.data$redistio_plan %in% input$alg_district) |>
+                dplyr::mutate(
+                  redistio_sub_id = as.character(dplyr::row_number() + base_id)
+                )
+            )
+            map_sub_in(
+              shp_in |>
+                dplyr::mutate(redistio_plan = redistio_curr_plan$pl) |>
+                `attr<-`('existing_col', 'redistio_plan') |>
+                redist::filter(.data$redistio_plan %in% input$alg_district) |>
+                dplyr::mutate(
+                  redistio_sub_id = as.character(dplyr::row_number() + base_id)
+                )
+            )
 
             district_order <- map_sub()$redistio_plan |> unique()
 
-            run_sims <- switch(input$alg_algorithm,
+            run_sims <- switch(
+              input$alg_algorithm,
               'SMC' = redist::redist_smc,
               'Merge Split' = \(...) redist::redist_mergesplit(warmup = 0, ...),
               'Flip' = redist::redist_flip,
-              'Cycle Walk' = \(...) redist::redist_cyclewalk(thin = 10, ...),
+              'Cycle Walk' = \(...) redist::redist_cyclewalk(thin = 1, ...),
               'MMSS' = \(...) redist::redist_mmss(l = 3, ...),
             )
 
-            shiny::incProgress(0.1, detail = paste('Running', input$alg_algorithm, 'simulations'))
+            shiny::incProgress(
+              0.1,
+              detail = paste('Running', input$alg_algorithm, 'simulations')
+            )
 
             if (input$alg_algorithm %in% c('SMC', 'Merge Split')) {
               if (input$alg_counties_id != 'NONE') {
-                sims <- run_sims(map_sub_in(),
+                sims <- run_sims(
+                  map_sub_in(),
                   nsims = input$alg_nsims,
                   counties = !!rlang::sym(input$alg_counties_id)
                 )
@@ -221,8 +274,12 @@ algorithmsServer <- function(id, parent_session,
               if (input$alg_counties_id != 'NONE') {
                 cons <- redist::redist_constr(map_sub_in()) |>
                   redist::add_constr_edges_rem(0.4) |>
-                  redist::add_constr_splits(strength = 0.25, admin = !!rlang::sym(input$alg_counties_id))
-                sims <- run_sims(map_sub_in(),
+                  redist::add_constr_splits(
+                    strength = 0.25,
+                    admin = !!rlang::sym(input$alg_counties_id)
+                  )
+                sims <- run_sims(
+                  map_sub_in(),
                   nsims = input$alg_nsims,
                   constraints = cons
                 )
@@ -266,14 +323,20 @@ algorithmsServer <- function(id, parent_session,
                 value = 'none'
               ) |>
               mapgl::add_source(
-                data = create_mapgl_source(map_sub(), id_col = 'redistio_sub_id'),
+                data = create_mapgl_source(
+                  map_sub(),
+                  id_col = 'redistio_sub_id'
+                ),
                 id = 'redistio_sub',
                 promoteId = 'redistio_sub_id'
               ) |>
               mapgl::add_fill_layer(
                 source = 'redistio_sub',
-                fill_color = discrete_palette(pal(), redistio_alg_plan$pl,
-                  column = 'redistio_sub_id', base = base_id
+                fill_color = discrete_palette(
+                  pal(),
+                  redistio_alg_plan$pl,
+                  column = 'redistio_sub_id',
+                  base = base_id
                 ),
                 fill_opacity = fill_opacity,
                 id = 'alg_precincts'
@@ -282,7 +345,10 @@ algorithmsServer <- function(id, parent_session,
           error = function(e) {
             shiny::showModal(shiny::modalDialog(
               title = 'Algorithm Error',
-              paste('The algorithm failed with the following error:', conditionMessage(e)),
+              paste(
+                'The algorithm failed with the following error:',
+                conditionMessage(e)
+              ),
               easyClose = TRUE,
               footer = shiny::modalButton('Dismiss')
             ))
@@ -296,9 +362,14 @@ algorithmsServer <- function(id, parent_session,
         shiny::isolate(alg_plans()) |>
           DT::datatable(
             options = list(
-              dom = 't', ordering = FALSE, scrollX = TRUE, scrollY = '70vh', # TODO make changeable
-              pagingType = 'numbers', scrollCollapse = TRUE,
-              pageLength = ndists * ((opts$alg_max_sims %||% def_opts$alg_max_sims) + 1)
+              dom = 't',
+              ordering = FALSE,
+              scrollX = TRUE,
+              scrollY = '70vh', # TODO make changeable
+              pagingType = 'numbers',
+              scrollCollapse = TRUE,
+              pageLength = ndists *
+                ((opts$alg_max_sims %||% def_opts$alg_max_sims) + 1)
             ),
             style = 'bootstrap',
             rownames = FALSE,
@@ -315,8 +386,11 @@ algorithmsServer <- function(id, parent_session,
 
     shiny::observe({
       DT::replaceData(
-        proxy = dt_alg_proxy, alg_plans(), rownames = FALSE,
-        resetPaging = FALSE, clearSelection = 'none'
+        proxy = dt_alg_proxy,
+        alg_plans(),
+        rownames = FALSE,
+        resetPaging = FALSE,
+        clearSelection = 'none'
       )
     })
 
@@ -326,12 +400,14 @@ algorithmsServer <- function(id, parent_session,
         mapgl::set_paint_property(
           layer_id = 'alg_precincts',
           name = 'fill-color',
-          value = discrete_palette(pal(), redistio_alg_plan$plans[, input$alg_summary_rows_selected],
-            column = 'redistio_sub_id', base = base_id
+          value = discrete_palette(
+            pal(),
+            redistio_alg_plan$plans[, input$alg_summary_rows_selected],
+            column = 'redistio_sub_id',
+            base = base_id
           )
         )
     })
-
 
     shiny::observeEvent(input$alg_accept, {
       pl <- redistio_alg_plan$plans[, input$alg_summary_rows_selected]
@@ -342,8 +418,13 @@ algorithmsServer <- function(id, parent_session,
 
       mapgl::maplibre_proxy('map', session = parent_session) |>
         update_shape_style(
-          'District', pal(), redistio_curr_plan$pl, shp,
-          input$fill_opacity, precinct_border, precinct_linecolor
+          'District',
+          pal(),
+          redistio_curr_plan$pl,
+          shp,
+          input$fill_opacity,
+          precinct_border,
+          precinct_linecolor
         )
 
       mapgl::maplibre_proxy('alg_map') |>
@@ -353,13 +434,23 @@ algorithmsServer <- function(id, parent_session,
       shiny::updateTabsetPanel(parent_session, 'navbar', 'draw')
 
       new_tb_pop <- val()
-      new_tb_pop$Population <- distr_pop(shp[[pop_col]], total = tot_pop, plan = redistio_curr_plan$pl, ndists = ndists)
-      new_tb_pop$Deviation <- as.integer(new_tb_pop$Population - c(0L, rep(tgt_pop, ndists)))
+      new_tb_pop$Population <- distr_pop(
+        shp[[pop_col]],
+        total = tot_pop,
+        plan = redistio_curr_plan$pl,
+        ndists = ndists
+      )
+      new_tb_pop$Deviation <- as.integer(
+        new_tb_pop$Population - c(0L, rep(tgt_pop, ndists))
+      )
       val(new_tb_pop)
 
       DT::replaceData(
-        proxy = dt_alg_proxy, alg_plans(), rownames = FALSE,
-        resetPaging = FALSE, clearSelection = 'none'
+        proxy = dt_alg_proxy,
+        alg_plans(),
+        rownames = FALSE,
+        resetPaging = FALSE,
+        clearSelection = 'none'
       )
     })
   })
