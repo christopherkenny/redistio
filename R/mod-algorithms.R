@@ -251,8 +251,10 @@ algorithmsServer <- function(
               'SMC' = redist::redist_smc,
               'Merge Split' = \(...) redist::redist_mergesplit(warmup = 0, ...),
               'Flip' = redist::redist_flip,
-              'Cycle Walk' = \(...) redist::redist_cyclewalk(thin = 1, ...),
-              'MMSS' = \(...) redist::redist_mmss(l = 3, ...),
+              'Cycle Walk' = \(...) {
+                redist::redist_cyclewalk(warmup = 0, thin = 1, ...)
+              },
+              'MMSS' = \(...) redist::redist_mmss(warmup = 0, l = 3, ...),
             )
 
             shiny::incProgress(
@@ -260,7 +262,7 @@ algorithmsServer <- function(
               detail = paste('Running', input$alg_algorithm, 'simulations')
             )
 
-            if (input$alg_algorithm %in% c('SMC', 'Merge Split')) {
+            if (input$alg_algorithm %in% c('SMC', 'Merge Split', 'Cycle Walk', 'MMSS')) {
               if (input$alg_counties_id != 'NONE') {
                 sims <- run_sims(
                   map_sub_in(),
