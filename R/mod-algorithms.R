@@ -158,10 +158,10 @@ algorithmsServer <- function(
         dplyr::mutate(district = redistio_curr_plan$pl) |>
         dplyr::filter(!is.na(.data$district)) |>
         dplyr::group_by(.data$district) |>
-        dplyr::summarise(geometry = sf::st_union(.data$geometry)) |>
-        sf::st_centroid() |>
+        dplyr::summarise(geometry = sf::st_combine(.data$geometry)) |>
+        sf::st_point_on_surface() |>
         dplyr::mutate(label = as.character(.data$district)) |>
-        # avoid st_centroid assumptions
+        # avoid centroid assumptions for multipart districts
         suppressWarnings()
 
       map_alg <- mapgl::maplibre(
@@ -300,7 +300,7 @@ algorithmsServer <- function(
             }
             if (length(input$alg_district) > 1) {
               sims <- sims |>
-                redist::match_numbers(map_sub_in()['redistio_plan'])
+                redist::match_numbers(map_sub_in()[['redistio_plan']])
             }
 
             shiny::incProgress(0.5, detail = 'Processing results')
