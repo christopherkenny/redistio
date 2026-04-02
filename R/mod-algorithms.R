@@ -231,6 +231,10 @@ algorithmsServer <- function(
                 `attr<-`('existing_col', 'redistio_plan') |>
                 redist::filter(.data$redistio_plan %in% input$alg_district) |>
                 dplyr::mutate(
+                  redistio_plan = match(
+                    .data$redistio_plan,
+                    sort(unique(.data$redistio_plan))
+                  ),
                   redistio_sub_id = as.character(dplyr::row_number() + base_id)
                 )
             )
@@ -240,6 +244,10 @@ algorithmsServer <- function(
                 `attr<-`('existing_col', 'redistio_plan') |>
                 redist::filter(.data$redistio_plan %in% input$alg_district) |>
                 dplyr::mutate(
+                  redistio_plan = match(
+                    .data$redistio_plan,
+                    sort(unique(.data$redistio_plan))
+                  ),
                   redistio_sub_id = as.character(dplyr::row_number() + base_id)
                 )
             )
@@ -262,7 +270,10 @@ algorithmsServer <- function(
               detail = paste('Running', input$alg_algorithm, 'simulations')
             )
 
-            if (input$alg_algorithm %in% c('SMC', 'Merge Split', 'Cycle Walk', 'MMSS')) {
+            if (
+              input$alg_algorithm %in%
+                c('SMC', 'Merge Split', 'Cycle Walk', 'MMSS')
+            ) {
               if (input$alg_counties_id != 'NONE') {
                 sims <- run_sims(
                   map_sub_in(),
@@ -291,12 +302,13 @@ algorithmsServer <- function(
             }
             if (length(input$alg_district) > 1) {
               sims <- sims |>
-                redist::match_numbers('redistio_plan')
+                redist::match_numbers(map_sub_in()['redistio_plan'])
             }
 
             shiny::incProgress(0.5, detail = 'Processing results')
 
-            redistio_alg_plan$plans <- redist::get_plans_matrix(sims) |>
+            plans_mat <- redist::get_plans_matrix(sims)
+            redistio_alg_plan$plans <- plans_mat |>
               apply(MARGIN = 2, FUN = function(col) district_order[col])
             redistio_alg_plan$pl <- redistio_alg_plan$plans[, 2]
 
