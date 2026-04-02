@@ -309,9 +309,10 @@ algorithmsServer <- function(
 
             shiny::incProgress(0.5, detail = 'Processing results')
 
-            plans_mat <- redist::get_plans_matrix(sims)
-            redistio_alg_plan$plans <- plans_mat |>
+            plans_mat <- redist::get_plans_matrix(sims) |>
               apply(MARGIN = 2, FUN = function(col) district_order[col])
+            unique_cols <- !duplicated(t(plans_mat))
+            redistio_alg_plan$plans <- plans_mat[, unique_cols, drop = FALSE]
             redistio_alg_plan$pl <- redistio_alg_plan$plans[, 2]
 
             sims_sum <- sims |>
@@ -323,7 +324,7 @@ algorithmsServer <- function(
               dplyr::slice(1) |>
               dplyr::ungroup() |>
               dplyr::select(dplyr::all_of(c('draw', 'dev')))
-            alg_plans(sims_sum)
+            alg_plans(sims_sum[unique_cols, ])
 
             shiny::incProgress(0.3, detail = 'Updating map')
 
