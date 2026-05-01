@@ -1,4 +1,5 @@
 url: http://www.christophertkenny.com/redistio/
 template:
   bootstrap: 5
+  package: ctktemplate
 
