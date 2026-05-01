@@ -55,3 +55,4 @@ Suggests:
     testthat (>= 3.0.0)
 Language: en-US
 Config/testthat/edition: 3
+Config/Needs/website: christopherkenny/ctktemplate
