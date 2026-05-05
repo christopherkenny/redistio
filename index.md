@@ -14,12 +14,14 @@ You can install the development version of `redistio` from
 [GitHub](https://github.com/) with:
 
 ``` r
+
 pak::pak('christopherkenny/redistio')
 ```
 
 Or from [R-universe](https://christopherkenny.r-universe.dev/) with:
 
 ``` r
+
 install.packages('redistio', repos = c('https://christopherkenny.r-universe.dev', 'https://cloud.r-project.org'))
 ```
 
@@ -29,6 +31,7 @@ The most basic application of `redistio` starts with an `sf` tibble and
 a column of district assignments.
 
 ``` r
+
 library(redistio)
 
 draw(dc, dc$ward)
@@ -50,6 +53,7 @@ app:
   using summary statistics and plots.
 
 ``` r
+
 library(redistio)
 library(redist)
 
@@ -74,6 +78,7 @@ adjacency issues in your data (e.g., removing edges across rivers or
 adding edges for missing connections):
 
 ``` r
+
 library(redistio)
 
 adj_editor(dc, init_plan = dc$ward)
@@ -149,6 +154,7 @@ comparisons with simulations. For example, with the following code, you
 can have many more options:
 
 ``` r
+
 library(redistio)
 nj <- alarmdata::alarm_50state_map('NJ')
 pl <- alarmdata::alarm_50state_plans('NJ')
