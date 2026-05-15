@@ -230,6 +230,7 @@ algorithmsServer <- function(
                 `attr<-`('existing_col', 'redistio_plan') |>
                 redist::filter(.data$redistio_plan %in% input$alg_district) |>
                 dplyr::mutate(
+                  redistio_orig_plan = .data$redistio_plan,
                   redistio_plan = match(
                     .data$redistio_plan,
                     sort(unique(.data$redistio_plan))
@@ -243,6 +244,7 @@ algorithmsServer <- function(
                 `attr<-`('existing_col', 'redistio_plan') |>
                 redist::filter(.data$redistio_plan %in% input$alg_district) |>
                 dplyr::mutate(
+                  redistio_orig_plan = .data$redistio_plan,
                   redistio_plan = match(
                     .data$redistio_plan,
                     sort(unique(.data$redistio_plan))
@@ -251,7 +253,11 @@ algorithmsServer <- function(
                 )
             )
 
-            district_order <- map_sub()$redistio_plan |> unique()
+            district_order <- map_sub() |>
+              tibble::as_tibble() |>
+              dplyr::arrange(.data$redistio_plan) |>
+              dplyr::distinct(.data$redistio_plan, .data$redistio_orig_plan) |>
+              dplyr::pull(.data$redistio_orig_plan)
 
             run_sims <- switch(
               input$alg_algorithm,
@@ -312,7 +318,8 @@ algorithmsServer <- function(
               apply(MARGIN = 2, FUN = function(col) district_order[col])
             unique_cols <- !duplicated(t(plans_mat))
             redistio_alg_plan$plans <- plans_mat[, unique_cols, drop = FALSE]
-            redistio_alg_plan$pl <- redistio_alg_plan$plans[, 2]
+            selected_col <- min(2, ncol(redistio_alg_plan$plans))
+            redistio_alg_plan$pl <- redistio_alg_plan$plans[, selected_col]
 
             sims_sum <- sims |>
               dplyr::mutate(
