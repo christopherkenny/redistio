@@ -1,3 +1,7 @@
+# redistio 0.0.0.9002
+
+* Revises internal layer ID promotion scheme to fit (unclear) breaking changes between `mapgl` 0.4.4 and 0.4.6.
+
 # redistio 0.0.0.9001
 
 * Full rewrite in `mapgl` instead of `leaflet`. This removes hacks around not redrawing polygons.

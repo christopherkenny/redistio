@@ -30,3 +30,31 @@ test_that('create_mapgl_source keeps only geometry and id', {
   result <- create_mapgl_source(shp, id_col = 'redistio_id')
   expect_equal(ncol(result), 2)
 })
+
+test_that('create_mapgl_source can keep fill columns', {
+  shp <- dc
+  shp$redistio_id <- seq_len(nrow(shp))
+  result <- create_mapgl_source(
+    shp,
+    id_col = 'redistio_id',
+    cols = c('pop', 'vap', 'not_a_column')
+  )
+
+  expect_true(all(c('redistio_id', 'pop', 'vap', 'geometry') %in% names(result)))
+  expect_false('not_a_column' %in% names(result))
+})
+
+test_that('get_mapgl_feature_id prefers source properties', {
+  feature <- list(
+    id = 0,
+    properties = list(redistio_id = '12')
+  )
+
+  expect_equal(get_mapgl_feature_id(feature), '12')
+})
+
+test_that('get_mapgl_feature_id falls back to feature id', {
+  feature <- list(id = 0, properties = list())
+
+  expect_equal(get_mapgl_feature_id(feature), '0')
+})

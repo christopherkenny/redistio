@@ -1,24 +1,15 @@
 discrete_palette <- function(palette, rcp, column = 'redistio_id', base = 0) {
-  by_idx <- list(
-    'match',
-    list('get', column)
-  )
-
   idx <- seq_len(length(rcp)) + base
   p <- palette[rcp]
   idx <- idx[!is.na(p)]
   p <- p[!is.na(p)]
 
-  cols <- purrr::map2(idx, p, function(x, y) {
-    if (!is.na(y)) {
-      list(x, y)
-    }
-  }) |>
-    unlist()
-
-  by_idx |>
-    append(cols) |>
-    append('#000000')
+  mapgl::match_expr(
+    column = column,
+    values = as.character(idx),
+    stops = p,
+    default = '#000000'
+  )
 }
 
 percent_palette <- function(palette, na_color = '#CCCCCC', column = '') {

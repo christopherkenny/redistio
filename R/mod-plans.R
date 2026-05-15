@@ -122,8 +122,7 @@ plansServer <- function(id, parent_session,
       ) |>
         mapgl::add_source(
           id = 'redistio',
-          data = create_mapgl_source(shp),
-          promoteId = 'redistio_id'
+          data = create_mapgl_source(shp)
         ) |>
         mapgl::add_fill_layer(
           source = 'redistio',

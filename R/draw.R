@@ -536,8 +536,10 @@ draw <- function(
       ) |>
         mapgl::add_source(
           id = 'redistio',
-          data = create_mapgl_source(shp),
-          promoteId = 'redistio_id'
+          data = create_mapgl_source(
+            shp,
+            cols = c(demog_cols, names(elect_cols))
+          )
         ) |>
         mapgl::add_fill_layer(
           source = 'redistio',
@@ -600,15 +602,21 @@ draw <- function(
           return(NULL)
         }
 
+        if (!identical(click$layer, 'precinct_fill')) {
+          return(NULL)
+        }
+
         if (is.null(input$district_rows_selected)) {
           return(NULL)
         }
 
-        if (as.integer(click$id) > nrow(shp)) {
+        click_id <- get_mapgl_feature_id(click)
+
+        if (as.integer(click_id) > nrow(shp)) {
           return(NULL)
         }
 
-        idx <- which(shp$redistio_id == click$id)
+        idx <- which(shp$redistio_id == click_id)
         new_dist <- ifelse(
           input$district_rows_selected == 1,
           NA_integer_,
@@ -869,7 +877,7 @@ draw <- function(
     shiny::observeEvent(hov_reac_d(), {
       if (!is.null(hov_reac_d())) {
         if (input$tabRight == 'Precinct') {
-          id <- as.integer(hov_reac_d()$id)
+          id <- as.integer(get_mapgl_feature_id(hov_reac_d()))
           col_name <- paste0('V', id)
           if (col_name %in% names(hov)) {
             hover_header_data(list(

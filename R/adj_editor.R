@@ -194,13 +194,11 @@ adj_editor <- function(
       ) |>
         mapgl::add_source(
           id = 'redistio',
-          data = create_mapgl_source(shp),
-          promoteId = 'redistio_id'
+          data = create_mapgl_source(shp)
         ) |>
         mapgl::add_source(
           id = 'lines',
-          data = edges_centers$nb,
-          promoteId = 'line_id'
+          data = edges_centers$nb
         ) |>
         mapgl::add_fill_layer(
           source = 'redistio',
@@ -263,8 +261,8 @@ adj_editor <- function(
       {
         click_data <- click_reac()
         if (!is.null(click_data) && !is.null(click_data$id) & click_data$layer == 'precinct_fill') {
-          clicked_id_char <- as.character(click_data$id)
-          clicked_id <- as.integer(click_data$id)
+          clicked_id_char <- get_mapgl_feature_id(click_data)
+          clicked_id <- as.integer(clicked_id_char)
 
           if (clicked_id_char %in% adj_state$selected) {
             # Deselect if already selected
@@ -374,11 +372,13 @@ adj_editor <- function(
     shiny::observeEvent(hov_reac_d(), {
       if (!is.null(hov_reac_d())) {
         output$hover <- gt::render_gt({
+          hover_id <- get_mapgl_feature_id(hov_reac_d())
+
           hov |>
             dplyr::select(dplyr::any_of(c(
               'group',
               'rowname',
-              paste0('V', as.integer(hov_reac_d()$id))
+              paste0('V', as.integer(hover_id))
             ))) |>
             gt::gt() |>
             gt::cols_label_with(
@@ -394,9 +394,9 @@ adj_editor <- function(
             gt::tab_header(
               title = paste0(
                 'Current District: ',
-                redistio_curr_plan$pl[as.integer(hov_reac_d()$id)]
+                redistio_curr_plan$pl[as.integer(hover_id)]
               ),
-              subtitle = paste0('Precinct ID: ', hov_reac_d()$id)
+              subtitle = paste0('Precinct ID: ', hover_id)
             ) |>
             gt::tab_options(
               data_row.padding = gt::px(1),

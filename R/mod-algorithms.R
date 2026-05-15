@@ -170,8 +170,7 @@ algorithmsServer <- function(
       ) |>
         mapgl::add_source(
           id = 'redistio',
-          data = create_mapgl_source(shp),
-          promoteId = 'redistio_id'
+          data = create_mapgl_source(shp)
         ) |>
         mapgl::add_fill_layer(
           source = 'redistio',
@@ -344,8 +343,7 @@ algorithmsServer <- function(
                   map_sub(),
                   id_col = 'redistio_sub_id'
                 ),
-                id = 'redistio_sub',
-                promoteId = 'redistio_sub_id'
+                id = 'redistio_sub'
               ) |>
               mapgl::add_fill_layer(
                 source = 'redistio_sub',
