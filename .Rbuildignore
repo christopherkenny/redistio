@@ -11,3 +11,6 @@
 _\.new\.png$
 ^codecov\.yml$
 ^_disable_autoload\.R$
+^[.]?air[.]toml$
+^\.vscode$
+^jarl\.toml$
