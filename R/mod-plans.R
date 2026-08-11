@@ -23,7 +23,9 @@ plansUI <- function(id, opts, def_opts) {
       ),
       bslib::card(
         shiny::h4('Adopt a plan'),
-        shiny::p('Select a plan from the table to preview it. Click "Adopt plan" to use it.'),
+        shiny::p(
+          'Select a plan from the table to preview it. Click "Adopt plan" to use it.'
+        ),
         shiny::actionButton(
           inputId = ns('adopt_plan'),
           label = 'Adopt plan',
@@ -60,12 +62,29 @@ plansUI <- function(id, opts, def_opts) {
 #'
 #' @return shiny server
 #' @noRd
-plansServer <- function(id, parent_session,
-                        plans_reactive, shp, shp_in,
-                        redistio_curr_plan, ndists, pal,
-                        fill_opacity, precinct_border, precinct_linecolor,
-                        leaf_tiles, layers, layer_colors, opts, def_opts,
-                        val, tot_pop, tgt_pop, pop_col, undo_l) {
+plansServer <- function(
+  id,
+  parent_session,
+  plans_reactive,
+  shp,
+  shp_in,
+  redistio_curr_plan,
+  ndists,
+  pal,
+  fill_opacity,
+  precinct_border,
+  precinct_linecolor,
+  leaf_tiles,
+  layers,
+  layer_colors,
+  opts,
+  def_opts,
+  val,
+  tot_pop,
+  tgt_pop,
+  pop_col,
+  undo_l
+) {
   shiny::moduleServer(id, function(input, output, session) {
     # store the selected plan vector for map preview
     selected_plan <- shiny::reactiveVal(NULL)
@@ -80,13 +99,21 @@ plansServer <- function(id, parent_session,
       skip_cols <- c('draw', 'district')
       candidate_cols <- setdiff(names(pl_tb), skip_cols)
 
-      plan_level_cols <- vapply(candidate_cols, function(col) {
-        if (!is.numeric(pl_tb[[col]]) && !is.character(pl_tb[[col]]) && !is.factor(pl_tb[[col]])) {
-          return(FALSE)
-        }
-        grouped <- split(pl_tb[[col]], pl_tb$draw)
-        all(vapply(grouped, function(x) length(unique(x)) == 1L, logical(1)))
-      }, logical(1))
+      plan_level_cols <- vapply(
+        candidate_cols,
+        function(col) {
+          if (
+            !is.numeric(pl_tb[[col]]) &&
+              !is.character(pl_tb[[col]]) &&
+              !is.factor(pl_tb[[col]])
+          ) {
+            return(FALSE)
+          }
+          grouped <- split(pl_tb[[col]], pl_tb$draw)
+          all(vapply(grouped, function(x) length(unique(x)) == 1L, logical(1)))
+        },
+        logical(1)
+      )
 
       plan_cols <- names(plan_level_cols)[plan_level_cols]
 
@@ -127,7 +154,11 @@ plansServer <- function(id, parent_session,
         mapgl::add_fill_layer(
           source = 'redistio',
           id = 'precinct_fill',
-          fill_color = discrete_palette(pal(), redistio_curr_plan$pl, column = 'redistio_id'),
+          fill_color = discrete_palette(
+            pal(),
+            redistio_curr_plan$pl,
+            column = 'redistio_id'
+          ),
           fill_opacity = fill_opacity,
           fill_outline_color = '#cccccc'
         ) |>
@@ -193,8 +224,11 @@ plansServer <- function(id, parent_session,
 
     shiny::observe({
       DT::replaceData(
-        proxy = dt_plans_proxy, plans_summary(), rownames = FALSE,
-        resetPaging = FALSE, clearSelection = 'none'
+        proxy = dt_plans_proxy,
+        plans_summary(),
+        rownames = FALSE,
+        resetPaging = FALSE,
+        clearSelection = 'none'
       )
     })
 
@@ -246,8 +280,13 @@ plansServer <- function(id, parent_session,
 
       mapgl::maplibre_proxy('map', session = parent_session) |>
         update_shape_style(
-          'District', pal(), redistio_curr_plan$pl, shp,
-          fill_opacity, precinct_border, precinct_linecolor
+          'District',
+          pal(),
+          redistio_curr_plan$pl,
+          shp,
+          fill_opacity,
+          precinct_border,
+          precinct_linecolor
         )
 
       shiny::updateTabsetPanel(parent_session, 'navbar', 'draw')
@@ -256,7 +295,8 @@ plansServer <- function(id, parent_session,
       new_tb_pop$Population <- distr_pop(
         shp[[pop_col]],
         total = tot_pop,
-        plan = redistio_curr_plan$pl, ndists = ndists
+        plan = redistio_curr_plan$pl,
+        ndists = ndists
       )
       new_tb_pop$Deviation <- as.integer(
         new_tb_pop$Population - c(0L, rep(tgt_pop, ndists))

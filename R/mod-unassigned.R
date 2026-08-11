@@ -52,8 +52,14 @@ unassignedServer <- function(id, plan, shp, map_reac) {
     output$status2 <- shiny::renderText({
       paste0(
         'Showing ',
-        ifelse(is.logical(current()), 0L, ifelse(current() == 0L, length(nas()), current())),
-        ' of ', length(nas()), ' unassigned precincts'
+        ifelse(
+          is.logical(current()),
+          0L,
+          ifelse(current() == 0L, length(nas()), current())
+        ),
+        ' of ',
+        length(nas()),
+        ' unassigned precincts'
       )
     })
 
@@ -67,7 +73,12 @@ unassignedServer <- function(id, plan, shp, map_reac) {
       bb <- sf::st_bbox(shp[nas()[current()], ])
       map_reac() |>
         mapgl::fit_bounds(
-          bbox = c(unname(bb['xmin']), unname(bb['ymin']), unname(bb['xmax']), unname(bb['ymax']))
+          bbox = c(
+            unname(bb['xmin']),
+            unname(bb['ymin']),
+            unname(bb['xmax']),
+            unname(bb['ymax'])
+          )
         )
     })
 
@@ -83,7 +94,12 @@ unassignedServer <- function(id, plan, shp, map_reac) {
       bb <- sf::st_bbox(shp[nas()[current()], ])
       map_reac() |>
         mapgl::fit_bounds(
-          bounds = c(unname(bb['xmin']), unname(bb['ymin']), unname(bb['xmax']), unname(bb['ymax']))
+          bounds = c(
+            unname(bb['xmin']),
+            unname(bb['ymin']),
+            unname(bb['xmax']),
+            unname(bb['ymax'])
+          )
         )
     })
   })

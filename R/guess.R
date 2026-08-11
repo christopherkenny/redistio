@@ -9,10 +9,21 @@
 #' guess_admins(dc)
 guess_admins <- function(shp) {
   to_guess <- c(
-    'admin', 'subadmin',
-    'county', 'region', 'province', 'division', 'parish', 'prefecture',
-    'muni', 'town', 'municipality', 'county_muni',
-    'vtd', 'voting_district', 'precinct'
+    'admin',
+    'subadmin',
+    'county',
+    'region',
+    'province',
+    'division',
+    'parish',
+    'prefecture',
+    'muni',
+    'town',
+    'municipality',
+    'county_muni',
+    'vtd',
+    'voting_district',
+    'precinct'
   )
 
   noms <- names(shp)
@@ -20,14 +31,18 @@ guess_admins <- function(shp) {
   admin_cols <- noms[noms %in% to_guess]
 
   if (length(admin_cols) > 0) {
-    admin_nas <- vapply(admin_cols, function(x) any(is.na(shp[[x]])), logical(1))
-    admin_vals <- vapply(admin_cols, function(x) length(unique(shp[[x]])), numeric(1))
+    admin_nas <- vapply(admin_cols, function(x) anyNA(shp[[x]]), logical(1))
+    admin_vals <- vapply(
+      admin_cols,
+      function(x) length(unique(shp[[x]])),
+      numeric(1)
+    )
 
     list(
-      admin    = admin_cols[which(!admin_nas & admin_vals > 1)],
+      admin = admin_cols[which(!admin_nas & admin_vals > 1)],
       subadmin = admin_cols[which(admin_nas & admin_vals > 1)],
-      multi    = admin_cols[which(!admin_nas & admin_vals > 1)],
-      total    = admin_cols[which(!admin_nas & admin_vals > 1)]
+      multi = admin_cols[which(!admin_nas & admin_vals > 1)],
+      total = admin_cols[which(!admin_nas & admin_vals > 1)]
     )
   } else {
     list(
@@ -95,17 +110,29 @@ guesstimate_demographics <- function(shp) {
 
   if ('pop' %in% names(shp)) {
     cols$pop <- shp |>
-      dplyr::mutate(dplyr::across(dplyr::starts_with('pop_'), function(x) x / .data$pop, .names = 'pct_{col}')) |>
+      dplyr::mutate(dplyr::across(
+        dplyr::starts_with('pop_'),
+        function(x) x / .data$pop,
+        .names = 'pct_{col}'
+      )) |>
       dplyr::select(dplyr::starts_with('pct_pop'))
   }
   if ('vap' %in% names(shp)) {
     cols$vap <- shp |>
-      dplyr::mutate(dplyr::across(dplyr::starts_with('vap_'), function(x) x / .data$vap, .names = 'pct_{col}')) |>
+      dplyr::mutate(dplyr::across(
+        dplyr::starts_with('vap_'),
+        function(x) x / .data$vap,
+        .names = 'pct_{col}'
+      )) |>
       dplyr::select(dplyr::starts_with('pct_vap'))
   }
   if ('cvap' %in% names(shp)) {
     cols$cvap <- shp |>
-      dplyr::mutate(dplyr::across(dplyr::starts_with('cvap_'), function(x) x / .data$cvap, .names = 'pct_{col}')) |>
+      dplyr::mutate(dplyr::across(
+        dplyr::starts_with('cvap_'),
+        function(x) x / .data$cvap,
+        .names = 'pct_{col}'
+      )) |>
       dplyr::select(dplyr::starts_with('pct_cvap'))
   }
 

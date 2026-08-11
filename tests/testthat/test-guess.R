@@ -15,5 +15,5 @@ test_that('`guess_admins()` works', {
 test_that('`guesstimate_demographics()` works', {
   dm <- guesstimate_demographics(dc)
   expect_s3_class(dm, 'data.frame')
-  expect_true(all(substr(names(dm), start = 1, stop = 3) == 'pct'))
+  expect_true(all(startsWith(names(dm), 'pct')))
 })

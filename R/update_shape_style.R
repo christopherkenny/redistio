@@ -1,5 +1,13 @@
-update_shape_style <- function(leafl, fc, pal, rcp, shp, opac = 0.8, wt = 0.5,
-                               border_color = '#000') {
+update_shape_style <- function(
+  leafl,
+  fc,
+  pal,
+  rcp,
+  shp,
+  opac = 0.8,
+  wt = 0.5,
+  border_color = '#000'
+) {
   if (fc == 'District') {
     leafl |>
       mapgl::set_paint_property(

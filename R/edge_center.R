@@ -18,7 +18,10 @@ edge_center_df <- function(shp, adj) {
     finish = unlist(nb)
   )
   edgedf <- edgedf |>
-    dplyr::mutate(i = pmin(.data$start, .data$finish), j = pmax(.data$start, .data$finish)) |>
+    dplyr::mutate(
+      i = pmin(.data$start, .data$finish),
+      j = pmax(.data$start, .data$finish)
+    ) |>
     dplyr::select(dplyr::all_of(c('i', 'j')))
   edgedf <- edgedf[!duplicated(edgedf), ]
 

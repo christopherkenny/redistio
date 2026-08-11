@@ -260,7 +260,11 @@ adj_editor <- function(
       click_reac(),
       {
         click_data <- click_reac()
-        if (!is.null(click_data) && !is.null(click_data$id) & click_data$layer == 'precinct_fill') {
+        if (
+          !is.null(click_data) &&
+            !is.null(click_data$id) &&
+            click_data$layer == 'precinct_fill'
+        ) {
           clicked_id_char <- get_mapgl_feature_id(click_data)
           clicked_id <- as.integer(clicked_id_char)
 
@@ -288,7 +292,10 @@ adj_editor <- function(
                 max(as.integer(adj_state$selected))
               )
 
-              if (!state$exists || (isFALSE(state$original) && isFALSE(state$shown))) {
+              if (
+                !state$exists ||
+                  (isFALSE(state$original) && isFALSE(state$shown))
+              ) {
                 mapgl::maplibre_proxy('map') |>
                   mapgl::add_line_layer(
                     id = paste0(sort(adj_state$selected), collapse = '-'),
@@ -302,10 +309,24 @@ adj_editor <- function(
                 # then we have to fix the filter
                 current_edges <- get_current_edge_ids(adj_state$tracker)
                 mapgl::maplibre_proxy('map') |>
-                  mapgl::set_filter('edges', list('match', mapgl::get_column('line_id'), as.list(current_edges), TRUE, FALSE))
+                  mapgl::set_filter(
+                    'edges',
+                    list(
+                      'match',
+                      mapgl::get_column('line_id'),
+                      as.list(current_edges),
+                      TRUE,
+                      FALSE
+                    )
+                  )
               }
 
-              adj_state$log <- log_adj_update(adj_state$log, act = '+', p = sort(as.integer(adj_state$selected)), comment = input$edit_comment)
+              adj_state$log <- log_adj_update(
+                adj_state$log,
+                act = '+',
+                p = sort(as.integer(adj_state$selected)),
+                comment = input$edit_comment
+              )
             } else {
               # Remove edge from adjacency list
 
@@ -319,16 +340,33 @@ adj_editor <- function(
                 if (isFALSE(state$original) && isTRUE(state$shown)) {
                   mapgl::maplibre_proxy('map') |>
                     mapgl::clear_layer(
-                      layer_id = paste0(sort(adj_state$selected), collapse = '-')
+                      layer_id = paste0(
+                        sort(adj_state$selected),
+                        collapse = '-'
+                      )
                     )
                 } else if (isTRUE(state$original) && isTRUE(state$shown)) {
                   current_edges <- get_current_edge_ids(adj_state$tracker)
                   mapgl::maplibre_proxy('map') |>
-                    mapgl::set_filter('edges', list('match', mapgl::get_column('line_id'), as.list(current_edges), TRUE, FALSE))
+                    mapgl::set_filter(
+                      'edges',
+                      list(
+                        'match',
+                        mapgl::get_column('line_id'),
+                        as.list(current_edges),
+                        TRUE,
+                        FALSE
+                      )
+                    )
                 }
               }
 
-              adj_state$log <- log_adj_update(adj_state$log, act = '-', p = sort(as.integer(adj_state$selected)), comment = input$edit_comment)
+              adj_state$log <- log_adj_update(
+                adj_state$log,
+                act = '-',
+                p = sort(as.integer(adj_state$selected)),
+                comment = input$edit_comment
+              )
             }
             # Clear selection after operation
             adj_state$selected <- character(0)
@@ -350,14 +388,18 @@ adj_editor <- function(
         shiny::HTML('<p style="color: #666;">No precincts selected</p>')
       } else if (length(selected) == 1) {
         shiny::HTML(paste0(
-          '<p><strong>Selected:</strong> Precinct ', selected[1], '</p>',
+          '<p><strong>Selected:</strong> Precinct ',
+          selected[1],
+          '</p>',
           '<p style="color: #666;">Click another precinct to ',
-          input$edge_mode, ' edge</p>'
+          input$edge_mode,
+          ' edge</p>'
         ))
       } else {
         shiny::HTML(paste0(
           '<p><strong>Selected:</strong> Precincts ',
-          paste(selected, collapse = ', '), '</p>'
+          paste(selected, collapse = ', '),
+          '</p>'
         ))
       }
     })
@@ -366,7 +408,10 @@ adj_editor <- function(
     hov_reac <- shiny::reactive({
       input$map_feature_hover
     })
-    hov_reac_d <- shiny::debounce(hov_reac, opts$debounce %||% def_opts$debounce)
+    hov_reac_d <- shiny::debounce(
+      hov_reac,
+      opts$debounce %||% def_opts$debounce
+    )
 
     # precinct stats ----
     shiny::observeEvent(hov_reac_d(), {

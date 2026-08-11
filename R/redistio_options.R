@@ -43,31 +43,43 @@
 #'
 #' @examples
 #' redistio_options()
-redistio_options <- function(theme = 'flatly',
-                             panels = c('elections', 'demographics', 'integrity', 'algorithms', 'plans', 'comparisons'),
-                             select_color = 'purple',
-                             border_color = '#000000',
-                             palette_pop = 'Purples',
-                             palette_pct = 'PuOr',
-                             palette_party = ggredist::ggredist$partisan,
-                             map_tiles = mapgl::carto_style('voyager'),
-                             leaflet_height = '91vh', crs = 4326,
-                             na_color = '#0000',
-                             layer_weight = 1.5, layer_color = '#000000',
-                             locked_districts = NULL,
-                             use_algorithms = TRUE, alg_max_districts = 3,
-                             alg_max_sims = 100,
-                             use_plans = TRUE,
-                             use_comparisons = TRUE,
-                             use_planscore = TRUE,
-                             save_assignment_path = 'redistio.csv',
-                             save_shape_path = 'redistio.geojson',
-                             debounce = 150,
-                             projection = 'mercator',
-                             plot_theme = ggplot2::theme_bw(),
-                             plot_geom = 'boxplot',
-                             plot_ref_geom = NULL,
-                             ...) {
+redistio_options <- function(
+  theme = 'flatly',
+  panels = c(
+    'elections',
+    'demographics',
+    'integrity',
+    'algorithms',
+    'plans',
+    'comparisons'
+  ),
+  select_color = 'purple',
+  border_color = '#000000',
+  palette_pop = 'Purples',
+  palette_pct = 'PuOr',
+  palette_party = ggredist::ggredist$partisan,
+  map_tiles = mapgl::carto_style('voyager'),
+  leaflet_height = '91vh',
+  crs = 4326,
+  na_color = '#0000',
+  layer_weight = 1.5,
+  layer_color = '#000000',
+  locked_districts = NULL,
+  use_algorithms = TRUE,
+  alg_max_districts = 3,
+  alg_max_sims = 100,
+  use_plans = TRUE,
+  use_comparisons = TRUE,
+  use_planscore = TRUE,
+  save_assignment_path = 'redistio.csv',
+  save_shape_path = 'redistio.geojson',
+  debounce = 150,
+  projection = 'mercator',
+  plot_theme = ggplot2::theme_bw(),
+  plot_geom = 'boxplot',
+  plot_ref_geom = NULL,
+  ...
+) {
   if (length(palette_pop) == 1) {
     palette_pop <- RColorBrewer::brewer.pal(n = 3, name = palette_pop)
   }

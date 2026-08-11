@@ -7,7 +7,9 @@ test_that('undo_log adds and retrieves entries', {
 
 test_that('undo_log wraps around at max_undo', {
   l <- undo_init(max_undo = 3L)
-  for (i in 1:4) l <- undo_log(l, rep(as.integer(i), 3))
+  for (i in 1:4) {
+    l <- undo_log(l, rep(as.integer(i), 3))
+  }
 
   expect_equal(l$undo_index, 3L)
   expect_equal(l$undo[[1]], c(2L, 2L, 2L))

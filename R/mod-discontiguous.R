@@ -64,13 +64,18 @@ discontiguousServer <- function(id, plan, adj, shp, map_reac) {
       current(FALSE)
     })
 
-
     # show status
     output$status <- shiny::renderText({
       paste0(
         'Showing piece ',
-        ifelse(is.logical(current()), 0L, ifelse(current() == 0L, nrow(cont()), current())),
-        ' of ', nrow(cont()), ' discontiguities'
+        ifelse(
+          is.logical(current()),
+          0L,
+          ifelse(current() == 0L, nrow(cont()), current())
+        ),
+        ' of ',
+        nrow(cont()),
+        ' discontiguities'
       )
     })
 

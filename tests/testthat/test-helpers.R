@@ -40,7 +40,9 @@ test_that('create_mapgl_source can keep fill columns', {
     cols = c('pop', 'vap', 'not_a_column')
   )
 
-  expect_true(all(c('redistio_id', 'pop', 'vap', 'geometry') %in% names(result)))
+  expect_true(all(
+    c('redistio_id', 'pop', 'vap', 'geometry') %in% names(result)
+  ))
   expect_false('not_a_column' %in% names(result))
 })
 

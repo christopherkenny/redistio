@@ -50,12 +50,15 @@ add_plan_stats <- function(plans, ref_plan, map = NULL, name = NULL, ...) {
   }
 
   if (is.null(map)) {
-    stop('`map` must be provided to calculate summary statistics for the reference plan.')
+    stop(
+      '`map` must be provided to calculate summary statistics for the reference plan.'
+    )
   }
 
   # create a single-plan redist_plans from ref_plan
   ref_plans <- redist::redist_plans(
-    plans = ref_plan, map = map,
+    plans = ref_plan,
+    map = map,
     algorithm = attr(plans, 'algorithm')
   )
 
@@ -130,25 +133,46 @@ calc_ref_stats <- function(ref_plans, map, stat_cols) {
   # tally columns: pop_*, vap_*, *_dem_*, *_rep_*, adv_*, arv_*
   tally_patterns <- c('^pop_', '^vap_', '_dem_', '_rep_', '^adv_', '^arv_')
   for (col in stat_cols) {
-    if (col %in% names(ref_plans)) next
-    if (col %in% names(map) && any(vapply(tally_patterns, function(p) grepl(p, col), logical(1)))) {
+    if (col %in% names(ref_plans)) {
+      next
+    }
+    if (
+      col %in%
+        names(map) &&
+        any(vapply(tally_patterns, function(p) grepl(p, col), logical(1)))
+    ) {
       ref_plans <- ref_plans |>
         dplyr::mutate(!!col := redist::tally_var(map, map[[col]]))
     }
   }
 
   # ndv / nrv
-  if ('ndv' %in% stat_cols && 'ndv' %in% names(map) && !'ndv' %in% names(ref_plans)) {
+  if (
+    'ndv' %in%
+      stat_cols &&
+      'ndv' %in% names(map) &&
+      !'ndv' %in% names(ref_plans)
+  ) {
     ref_plans <- ref_plans |>
       dplyr::mutate(ndv = redist::tally_var(map, .data$ndv))
   }
-  if ('nrv' %in% stat_cols && 'nrv' %in% names(map) && !'nrv' %in% names(ref_plans)) {
+  if (
+    'nrv' %in%
+      stat_cols &&
+      'nrv' %in% names(map) &&
+      !'nrv' %in% names(ref_plans)
+  ) {
     ref_plans <- ref_plans |>
       dplyr::mutate(nrv = redist::tally_var(map, .data$nrv))
   }
 
   # ndshare
-  if ('ndshare' %in% stat_cols && 'ndv' %in% names(ref_plans) && 'nrv' %in% names(ref_plans)) {
+  if (
+    'ndshare' %in%
+      stat_cols &&
+      'ndv' %in% names(ref_plans) &&
+      'nrv' %in% names(ref_plans)
+  ) {
     ref_plans <- ref_plans |>
       dplyr::mutate(ndshare = .data$ndv / (.data$ndv + .data$nrv))
   }
@@ -190,9 +214,13 @@ calc_ref_stats <- function(ref_plans, map, stat_cols) {
       if (length(elect_results) > 0) {
         elect_tb <- do.call(dplyr::bind_rows, elect_results) |>
           dplyr::group_by(.data$draw, .data$district) |>
-          dplyr::summarize(dplyr::across(dplyr::everything(), mean), .groups = 'drop')
+          dplyr::summarize(
+            dplyr::across(dplyr::everything(), mean),
+            .groups = 'drop'
+          )
         ref_plans <- dplyr::left_join(
-          tibble::as_tibble(ref_plans), elect_tb,
+          tibble::as_tibble(ref_plans),
+          elect_tb,
           by = c('draw', 'district')
         )
         # restore class
@@ -210,7 +238,9 @@ calc_ref_stats <- function(ref_plans, map, stat_cols) {
       for (el in elec_prefixes) {
         d_col <- names(map)[grepl(paste0('^', el, '_dem_'), names(map))]
         r_col <- names(map)[grepl(paste0('^', el, '_rep_'), names(map))]
-        if (length(d_col) != 1 || length(r_col) != 1) next
+        if (length(d_col) != 1 || length(r_col) != 1) {
+          next
+        }
 
         dvote <- map_tb[[d_col]]
         rvote <- map_tb[[r_col]]
@@ -219,7 +249,10 @@ calc_ref_stats <- function(ref_plans, map, stat_cols) {
           ref_plans <- ref_plans |>
             dplyr::mutate(
               egap = redistmetrics::part_egap(
-                plans = redist::pl(), shp = map, rvote = rvote, dvote = dvote
+                plans = redist::pl(),
+                shp = map,
+                rvote = rvote,
+                dvote = dvote
               )
             )
         }
@@ -227,7 +260,10 @@ calc_ref_stats <- function(ref_plans, map, stat_cols) {
           ref_plans <- ref_plans |>
             dplyr::mutate(
               pbias = redistmetrics::part_bias(
-                plans = redist::pl(), shp = map, rvote = rvote, dvote = dvote
+                plans = redist::pl(),
+                shp = map,
+                rvote = rvote,
+                dvote = dvote
               )
             )
         }
@@ -241,7 +277,9 @@ calc_ref_stats <- function(ref_plans, map, stat_cols) {
     ref_plans <- ref_plans |>
       dplyr::mutate(
         county_splits = redistmetrics::splits_admin(
-          plans = redist::pl(), map, .data$county
+          plans = redist::pl(),
+          map,
+          .data$county
         )
       )
   }
@@ -249,7 +287,9 @@ calc_ref_stats <- function(ref_plans, map, stat_cols) {
     ref_plans <- ref_plans |>
       dplyr::mutate(
         muni_splits = redistmetrics::splits_sub_admin(
-          plans = redist::pl(), map, .data$muni
+          plans = redist::pl(),
+          map,
+          .data$muni
         )
       )
   }

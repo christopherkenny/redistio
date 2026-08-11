@@ -27,7 +27,6 @@ planscoreServer <- function(id, plan, shp) {
     ps_link <- shiny::reactiveVal()
     ps_data <- shiny::reactiveVal()
 
-
     shiny::observeEvent(input$upload, {
       f <- tempfile(fileext = '.geojson')
 
@@ -42,7 +41,8 @@ planscoreServer <- function(id, plan, shp) {
         sf::st_write(f)
 
       planscorer::ps_upload_file(
-        file = f, description = input$psdescription
+        file = f,
+        description = input$psdescription
       ) |>
         as.character() |>
         ps_link()
@@ -59,7 +59,10 @@ planscoreServer <- function(id, plan, shp) {
       })
 
       output$ingestBut <- shiny::renderUI({
-        shiny::actionButton(shiny::NS(id, 'ingest'), label = 'Summarize results')
+        shiny::actionButton(
+          shiny::NS(id, 'ingest'),
+          label = 'Summarize results'
+        )
       })
     })
 
@@ -73,7 +76,9 @@ planscoreServer <- function(id, plan, shp) {
       )
       if (is.null(ps_info)) {
         shiny::showModal(
-          shiny::modalDialog('Error ingesting results. Try again in a few seconds.')
+          shiny::modalDialog(
+            'Error ingesting results. Try again in a few seconds.'
+          )
         )
         message('PlanScore ingest failed at ', Sys.time(), '.\n')
         return()
@@ -88,11 +93,16 @@ planscoreServer <- function(id, plan, shp) {
   })
 }
 
-color_bias <- function(x, domain = c(-0.3, 0.3),
-                       oob = function(x) scales::oob_squish(x, range = domain),
-                       reverse = FALSE) {
+color_bias <- function(
+  x,
+  domain = c(-0.3, 0.3),
+  oob = function(x) scales::oob_squish(x, range = domain),
+  reverse = FALSE
+) {
   pal <- ggredist::ggredist$partisan
-  if (reverse) pal <- rev(pal)
+  if (reverse) {
+    pal <- rev(pal)
+  }
   scales::col_numeric(
     palette = as.character(pal),
     domain = domain
@@ -103,7 +113,9 @@ planscorer_summary <- function(ps_info) {
   vbs <- list(
     bslib::value_box(
       title = 'Efficiency gap',
-      value = scales::label_percent(accuracy = 0.1, suffix = 'pp')(-1 * ps_info$efficiency_gap[1]),
+      value = scales::label_percent(accuracy = 0.1, suffix = 'pp')(
+        -1 * ps_info$efficiency_gap[1]
+      ),
       theme = bslib::value_box_theme(bg = color_bias(ps_info$efficiency_gap[1]))
     ),
     bslib::value_box(

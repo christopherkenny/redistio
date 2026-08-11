@@ -66,10 +66,17 @@ comparisonsUI <- function(id) {
 #'
 #' @return shiny server
 #' @noRd
-comparisonsServer <- function(id, parent_session,
-                              plans_reactive, plans_fn, shp_in,
-                              redistio_curr_plan, ndists,
-                              opts, def_opts) {
+comparisonsServer <- function(
+  id,
+  parent_session,
+  plans_reactive,
+  plans_fn,
+  shp_in,
+  redistio_curr_plan,
+  ndists,
+  opts,
+  def_opts
+) {
   shiny::moduleServer(id, function(input, output, session) {
     # stores the plans with the current plan added as reference
     plans_with_ref <- shiny::reactiveVal(NULL)
@@ -145,12 +152,17 @@ comparisonsServer <- function(id, parent_session,
 
         # build choices with labels
         choices <- names(types)
-        names(choices) <- vapply(choices, function(nm) {
-          paste0(nm, ' (', types[[nm]], '-level)')
-        }, character(1))
+        names(choices) <- vapply(
+          choices,
+          function(nm) {
+            paste0(nm, ' (', types[[nm]], '-level)')
+          },
+          character(1)
+        )
 
         shiny::updateSelectInput(
-          session, 'stat_choice',
+          session,
+          'stat_choice',
           choices = choices,
           selected = if (length(choices) > 0) choices[[1]] else NULL
         )
@@ -188,7 +200,8 @@ comparisonsServer <- function(id, parent_session,
             !!stat := dplyr::first(!!rlang::sym(stat)),
             .groups = 'drop'
           )
-        p <- redist::redist.plot.hist(pl_summary, !!rlang::sym(stat)) + plot_theme
+        p <- redist::redist.plot.hist(pl_summary, !!rlang::sym(stat)) +
+          plot_theme
       }
 
       current_plot(p)
@@ -203,8 +216,11 @@ comparisonsServer <- function(id, parent_session,
         p <- current_plot()
         shiny::req(p)
         ggplot2::ggsave(
-          filename = file, plot = p,
-          width = 10, height = 7, dpi = 300
+          filename = file,
+          plot = p,
+          width = 10,
+          height = 7,
+          dpi = 300
         )
       }
     )

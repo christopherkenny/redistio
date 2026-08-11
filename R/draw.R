@@ -189,7 +189,8 @@ draw <- function(
     opts$use_plans %||% def_opts$use_plans &&
     rlang::is_installed('redist')
 
-  use_comparisons <- !is.null(plans) && !is.null(plans_fn) &&
+  use_comparisons <- !is.null(plans) &&
+    !is.null(plans_fn) &&
     opts$use_comparisons %||% def_opts$use_comparisons &&
     rlang::is_installed('redist')
 
@@ -232,12 +233,14 @@ draw <- function(
         type = 'text/css',
         href = 'assets/styles.css'
       ),
-      shiny::tags$script(shiny::HTML("
+      shiny::tags$script(shiny::HTML(
+        "
         Shiny.addCustomMessageHandler('trigger_map_screenshot', function(message) {
           var btn = document.querySelector('button.maplibregl-ctrl-screenshot, button.mapboxgl-ctrl-screenshot');
           if (btn) btn.click();
         });
-      "))
+      "
+      ))
     ),
 
     # draw panel ----
@@ -396,7 +399,8 @@ draw <- function(
                   bslib::nav_panel(
                     'Color from column',
                     color_from_columnUI('colorFromColumn')
-                  ), ,
+                  ),
+                  ,
                   align = 'right'
                 ),
                 selected = 'Precinct'
@@ -479,7 +483,9 @@ draw <- function(
     redistio_alg_plan <- shiny::reactiveValues(pl = NULL, plans = NULL)
     clicked <- shiny::reactiveValues(clickedMarker = NULL)
     palette_reactive <- shiny::reactiveVal(palette)
-    initial_locks <- as.character(opts$locked_districts %||% def_opts$locked_districts %||% integer(0))
+    initial_locks <- as.character(
+      opts$locked_districts %||% def_opts$locked_districts %||% integer(0)
+    )
     locks_reactive <- shiny::reactiveVal(initial_locks)
 
     tab_pop_static <- dplyr::tibble(
@@ -522,7 +528,10 @@ draw <- function(
       as.character(palette)
     )
 
-    hover_header_data <- shiny::reactiveVal(list(district = NULL, precinct = NULL))
+    hover_header_data <- shiny::reactiveVal(list(
+      district = NULL,
+      precinct = NULL
+    ))
 
     # undo ----
     undo_l <- shiny::reactiveVal(undo_log(l = undo_init(10L), pl = init_plan))
@@ -733,9 +742,18 @@ draw <- function(
       td_r_style <- 'padding: 2px 4px; text-align: right; font-size: 0.85em; font-variant-numeric: tabular-nums;'
 
       header <- shiny::tags$tr(
-        shiny::tags$th(style = paste0(td_style, ' border-bottom: 2px solid #ccc;'), ''),
-        shiny::tags$th(style = paste0(td_r_style, ' border-bottom: 2px solid #ccc;'), 'Pop.'),
-        shiny::tags$th(style = paste0(td_r_style, ' border-bottom: 2px solid #ccc;'), 'Dev.')
+        shiny::tags$th(
+          style = paste0(td_style, ' border-bottom: 2px solid #ccc;'),
+          ''
+        ),
+        shiny::tags$th(
+          style = paste0(td_r_style, ' border-bottom: 2px solid #ccc;'),
+          'Pop.'
+        ),
+        shiny::tags$th(
+          style = paste0(td_r_style, ' border-bottom: 2px solid #ccc;'),
+          'Dev.'
+        )
       )
 
       rows <- lapply(seq_len(nrow(tab_data)), function(i) {
@@ -748,7 +766,10 @@ draw <- function(
 
         shiny::tags$tr(
           class = row_class,
-          shiny::tags$td(style = td_style, if (!isTRUE(nchar(dist) > 0)) '' else dist),
+          shiny::tags$td(
+            style = td_style,
+            if (!isTRUE(nchar(dist) > 0)) '' else dist
+          ),
           shiny::tags$td(style = td_r_style, fmt(pop)),
           shiny::tags$td(style = td_r_style, fmt(dev))
         )
@@ -810,7 +831,10 @@ draw <- function(
     hov_reac <- shiny::reactive({
       input$map_feature_hover
     })
-    hov_reac_d <- shiny::debounce(hov_reac, opts$debounce %||% def_opts$debounce)
+    hov_reac_d <- shiny::debounce(
+      hov_reac,
+      opts$debounce %||% def_opts$debounce
+    )
 
     # precinct stats ----
     output$hover_panel <- shiny::renderUI({
