@@ -233,6 +233,7 @@ draw <- function(
         type = 'text/css',
         href = 'assets/styles.css'
       ),
+      shiny::tags$script(src = 'assets/redistio-map.js'),
       shiny::tags$script(shiny::HTML(
         "
         Shiny.addCustomMessageHandler('trigger_map_screenshot', function(message) {
@@ -547,13 +548,14 @@ draw <- function(
           id = 'redistio',
           data = create_mapgl_source(
             shp,
-            cols = c(demog_cols, names(elect_cols))
+            cols = c(demog_cols, names(elect_cols)),
+            districts = init_plan
           )
         ) |>
         mapgl::add_fill_layer(
           source = 'redistio',
           id = 'precinct_fill',
-          fill_color = discrete_palette(palette, init_plan),
+          fill_color = district_palette(palette),
           fill_opacity = 0.9,
           fill_outline_color = '#00000000'
         ) |>
@@ -564,15 +566,6 @@ draw <- function(
           line_width = 0.5
         ) |>
         mapgl::set_projection(opts$projection %||% def_opts$projection)
-
-      if (!is.null(hover_fn)) {
-        base_map <- base_map |>
-          mapgl::enable_shiny_hover(
-            coordinates = FALSE,
-            features = TRUE,
-            layer_id = 'precinct_fill'
-          )
-      }
 
       if (!is.null(layers)) {
         for (i in seq_along(layers)) {
@@ -597,6 +590,15 @@ draw <- function(
           filename = 'redistio-plan'
         )
     })
+
+    if (!is.null(hover_fn)) {
+      enable_map_hover(
+        session,
+        id = 'map',
+        layer_id = 'precinct_fill',
+        delay = opts$debounce %||% def_opts$debounce
+      )
+    }
 
     shiny::observeEvent(input$map_feature_click, {
       clicked$map_feature_click <- input$map_feature_click
@@ -655,16 +657,17 @@ draw <- function(
         )
         val(new_tb_pop)
 
+        feature_id <- click$id %||% (as.integer(click_id) - 1L)
         mapgl::maplibre_proxy('map') |>
-          update_shape_style(
-            input$fill_column,
-            pal(),
-            redistio_curr_plan$pl,
-            shp,
-            input$fill_opacity,
-            input$precinct_border,
-            input$precinct_linecolor
-          )
+          set_district_state(new_dist, feature_ids = feature_id)
+
+        hover_header <- hover_header_data()
+        if (identical(hover_header$precinct, as.integer(click_id))) {
+          hover_header_data(list(
+            district = new_dist,
+            precinct = as.integer(click_id)
+          ))
+        }
       }
     )
 
@@ -675,8 +678,6 @@ draw <- function(
           update_shape_style(
             input$fill_column,
             pal(),
-            redistio_curr_plan$pl,
-            shp,
             input$fill_opacity,
             input$precinct_border,
             input$precinct_linecolor
@@ -804,11 +805,10 @@ draw <- function(
       redistio_curr_plan$pl <- last_pl
 
       mapgl::maplibre_proxy('map') |>
+        set_district_state(redistio_curr_plan$pl) |>
         update_shape_style(
           input$fill_column,
           pal(),
-          redistio_curr_plan$pl,
-          shp,
           input$fill_opacity,
           input$precinct_border,
           input$precinct_linecolor
@@ -826,15 +826,6 @@ draw <- function(
       )
       val(new_tb_pop)
     })
-
-    # reactive mouseover
-    hov_reac <- shiny::reactive({
-      input$map_feature_hover
-    })
-    hov_reac_d <- shiny::debounce(
-      hov_reac,
-      opts$debounce %||% def_opts$debounce
-    )
 
     # precinct stats ----
     output$hover_panel <- shiny::renderUI({
@@ -898,10 +889,11 @@ draw <- function(
       )
     })
 
-    shiny::observeEvent(hov_reac_d(), {
-      if (!is.null(hov_reac_d())) {
+    shiny::observeEvent(input$map_feature_hover, {
+      hover_event <- input$map_feature_hover
+      if (!is.null(hover_event)) {
         if (input$tabRight == 'Precinct') {
-          id <- as.integer(get_mapgl_feature_id(hov_reac_d()))
+          id <- as.integer(get_mapgl_feature_id(hover_event))
           col_name <- paste0('V', id)
           if (col_name %in% names(hov)) {
             hover_header_data(list(
@@ -1038,8 +1030,6 @@ draw <- function(
           update_shape_style(
             input$fill_column,
             pal(),
-            redistio_curr_plan$pl,
-            shp,
             input$fill_opacity,
             input$precinct_border,
             input$precinct_linecolor
@@ -1083,8 +1073,6 @@ draw <- function(
             update_shape_style(
               input$fill_column,
               pal(),
-              redistio_curr_plan$pl,
-              shp,
               input$fill_opacity,
               input$precinct_border,
               input$precinct_linecolor

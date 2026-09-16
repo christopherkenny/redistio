@@ -92,11 +92,10 @@ color_from_fileServer <- function(
       val(new_tb_pop)
 
       map_reac() |>
+        set_district_state(plan$pl) |>
         update_shape_style(
           i_fill_column,
           pal(),
-          dat[['.redistio_from_file']],
-          shp,
           i_fill_opacity,
           i_precinct_border,
           i_precinct_linecolor

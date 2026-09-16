@@ -8,14 +8,16 @@ init_edge_tracker <- function(edges_df) {
 }
 
 add_edge_to_tracker <- function(tracker, i, j) {
-  existing_idx <- which(tracker$i == min(i, j) & tracker$j == max(i, j))
+  edge_i <- min(i, j)
+  edge_j <- max(i, j)
+  existing_idx <- which(tracker$i == edge_i & tracker$j == edge_j)
 
   if (length(existing_idx) > 0) {
     tracker$shown[existing_idx] <- TRUE
   } else {
     new_row <- tibble::tibble_row(
-      i = i,
-      j = j,
+      i = edge_i,
+      j = edge_j,
       original = FALSE,
       shown = TRUE
     )
@@ -54,9 +56,31 @@ check_edge_state <- function(tracker, i, j) {
   }
 }
 
-get_current_edge_ids <- function(tracker) {
+edge_layer_id <- function(i, j) {
+  edge <- sort(c(i, j))
+  paste0(edge[1], '-', edge[2])
+}
+
+get_hidden_original_edge_ids <- function(tracker) {
   tracker |>
-    dplyr::filter(.data$shown) |>
-    dplyr::mutate(id = paste0(.data$i, '-', .data$j)) |>
+    dplyr::filter(.data$original, !.data$shown) |>
+    dplyr::mutate(
+      id = paste0(pmin(.data$i, .data$j), '-', pmax(.data$i, .data$j))
+    ) |>
     dplyr::pull('id')
+}
+
+build_edge_visibility_filter <- function(tracker) {
+  hidden_edges <- get_hidden_original_edge_ids(tracker)
+  if (length(hidden_edges) == 0L) {
+    return(NULL)
+  }
+
+  list(
+    'match',
+    mapgl::get_column('line_id'),
+    as.list(hidden_edges),
+    FALSE,
+    TRUE
+  )
 }

@@ -79,10 +79,14 @@ adj_editor <- function(
   # User Interface ----
   leaf_tiles <- opts$map_tiles %||% def_opts$map_tiles
 
+  shiny::addResourcePath('assets', system.file('assets', package = 'redistio'))
   ui <- bslib::page_navbar(
     title = 'redistio',
     theme = bslib::bs_theme(preset = (opts$theme %||% def_opts$theme)),
     id = 'navbar',
+    header = shiny::tags$head(
+      shiny::tags$script(src = 'assets/redistio-map.js')
+    ),
     # editor panel ----
     bslib::nav_panel(
       title = 'adj editor',
@@ -238,17 +242,17 @@ adj_editor <- function(
           )
       }
 
-      if (!is.null(hover_fn)) {
-        base_map <- base_map |>
-          mapgl::enable_shiny_hover(
-            coordinates = FALSE,
-            features = 'precinct_fill',
-            layer_id = 'precinct_fill'
-          )
-      }
-
       base_map
     })
+
+    if (!is.null(hover_fn)) {
+      enable_map_hover(
+        session,
+        id = 'map',
+        layer_id = 'precinct_fill',
+        delay = opts$debounce %||% def_opts$debounce
+      )
+    }
 
     # Track clicks reactively
     click_reac <- shiny::reactive({
@@ -292,32 +296,34 @@ adj_editor <- function(
                 max(as.integer(adj_state$selected))
               )
 
-              if (
-                !state$exists ||
-                  (isFALSE(state$original) && isFALSE(state$shown))
-              ) {
-                mapgl::maplibre_proxy('map') |>
+              edge_id <- edge_layer_id(
+                as.integer(adj_state$selected[1]),
+                as.integer(adj_state$selected[2])
+              )
+              proxy <- mapgl::maplibre_proxy('map')
+
+              if (!state$exists) {
+                proxy |>
                   mapgl::add_line_layer(
-                    id = paste0(sort(adj_state$selected), collapse = '-'),
+                    id = edge_id,
                     source = new_single_edge(
                       edges_centers$centers,
                       min(as.integer(adj_state$selected)),
                       max(as.integer(adj_state$selected))
                     )
                   )
+              } else if (isFALSE(state$original) && isFALSE(state$shown)) {
+                proxy |>
+                  mapgl::set_layout_property(
+                    layer_id = edge_id,
+                    name = 'visibility',
+                    value = 'visible'
+                  )
               } else if (isFALSE(state$shown) && isTRUE(state$original)) {
-                # then we have to fix the filter
-                current_edges <- get_current_edge_ids(adj_state$tracker)
-                mapgl::maplibre_proxy('map') |>
+                proxy |>
                   mapgl::set_filter(
                     'edges',
-                    list(
-                      'match',
-                      mapgl::get_column('line_id'),
-                      as.list(current_edges),
-                      TRUE,
-                      FALSE
-                    )
+                    build_edge_visibility_filter(adj_state$tracker)
                   )
               }
 
@@ -339,24 +345,19 @@ adj_editor <- function(
               if (state$exists) {
                 if (isFALSE(state$original) && isTRUE(state$shown)) {
                   mapgl::maplibre_proxy('map') |>
-                    mapgl::clear_layer(
-                      layer_id = paste0(
-                        sort(adj_state$selected),
-                        collapse = '-'
-                      )
+                    mapgl::set_layout_property(
+                      layer_id = edge_layer_id(
+                        as.integer(adj_state$selected[1]),
+                        as.integer(adj_state$selected[2])
+                      ),
+                      name = 'visibility',
+                      value = 'none'
                     )
                 } else if (isTRUE(state$original) && isTRUE(state$shown)) {
-                  current_edges <- get_current_edge_ids(adj_state$tracker)
                   mapgl::maplibre_proxy('map') |>
                     mapgl::set_filter(
                       'edges',
-                      list(
-                        'match',
-                        mapgl::get_column('line_id'),
-                        as.list(current_edges),
-                        TRUE,
-                        FALSE
-                      )
+                      build_edge_visibility_filter(adj_state$tracker)
                     )
                 }
               }
@@ -404,20 +405,12 @@ adj_editor <- function(
       }
     })
 
-    # reactive mouseover
-    hov_reac <- shiny::reactive({
-      input$map_feature_hover
-    })
-    hov_reac_d <- shiny::debounce(
-      hov_reac,
-      opts$debounce %||% def_opts$debounce
-    )
-
     # precinct stats ----
-    shiny::observeEvent(hov_reac_d(), {
-      if (!is.null(hov_reac_d())) {
+    shiny::observeEvent(input$map_feature_hover, {
+      hover_event <- input$map_feature_hover
+      if (!is.null(hover_event)) {
         output$hover <- gt::render_gt({
-          hover_id <- get_mapgl_feature_id(hov_reac_d())
+          hover_id <- get_mapgl_feature_id(hover_event)
 
           hov |>
             dplyr::select(dplyr::any_of(c(

@@ -279,11 +279,10 @@ plansServer <- function(
       undo_l(undo_log(undo_l(), redistio_curr_plan$pl))
 
       mapgl::maplibre_proxy('map', session = parent_session) |>
+        set_district_state(redistio_curr_plan$pl) |>
         update_shape_style(
           'District',
           pal(),
-          redistio_curr_plan$pl,
-          shp,
           fill_opacity,
           precinct_border,
           precinct_linecolor

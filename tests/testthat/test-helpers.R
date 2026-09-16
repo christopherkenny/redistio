@@ -46,6 +46,14 @@ test_that('create_mapgl_source can keep fill columns', {
   expect_false('not_a_column' %in% names(result))
 })
 
+test_that('create_mapgl_source adds initial district properties', {
+  shp <- dc
+  shp$redistio_id <- seq_len(nrow(shp))
+  result <- create_mapgl_source(shp, districts = shp$ward)
+
+  expect_equal(result$redistio_district, as.integer(shp$ward))
+})
+
 test_that('get_mapgl_feature_id prefers source properties', {
   feature <- list(
     id = 0,
